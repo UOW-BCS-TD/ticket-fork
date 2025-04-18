@@ -1,22 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import './Introduction.css';
 
 const Introduction = () => {
-
-  const imagePaths = [
-    '/Techcare-Introduction.png',
-    '/ai-chat.jpg',
-    'bug-tracking.jpg',
-    '/task-dispatch.jpg',
-    '/customer-info.jpg'
-  ];
-
-  useEffect(() => {
-    imagePaths.forEach(path => {
-      const img = new Image();
-      img.src = path;
-    });
-  }, []);
 
   const FeatureCard = ({ imageSrc, title, description, benefit }) => {
     return (
@@ -39,7 +25,7 @@ const Introduction = () => {
           <p>Your trusted partner in technical solutions</p>
           <div className="button-container">
             <button className="support-button">Get Support</button>
-            <button className="chat-button">Chat with Us</button>
+            <Link to="/chatbot"><button className="chat-button">Chat with Us</button></Link>
           </div>
         </main>
       </section>

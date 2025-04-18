@@ -5,7 +5,8 @@ export default class Header extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isMobileMenuOpen: false
+      isMobileMenuOpen: false,
+      isServiceDropdownOpen: false
     };
   }
 
@@ -15,13 +16,27 @@ export default class Header extends Component {
     }));
   }
 
+  toggleServiceDropdown = () => {
+    this.setState(prevState => ({
+      isServiceDropdownOpen: !prevState.isServiceDropdownOpen
+    }));
+  }
+
   render() {
-    const { isMobileMenuOpen } = this.state;
+    const { isMobileMenuOpen, isServiceDropdownOpen } = this.state;
     
     const navLinks = this.props.navLinks || [
       { path: '/', label: 'Home' },
       { path: '/about', label: 'About Us' },
-      { path: '/services', label: 'Our Service' },
+      { 
+        label: 'Our Service', 
+        hasDropdown: true,
+        dropdownItems: [
+          { path: '/chatbot', label: 'Chat with Support Bot' },
+          { path: '/view-tickets', label: 'View Ticket Information' },
+          { path: '/create-ticket', label: 'Submit a Ticket' }
+        ]
+      },
       { path: '/resources', label: 'Resources & Guides' },
       { path: '/login', label: 'Login' }
     ];
@@ -42,8 +57,27 @@ export default class Header extends Component {
         <nav className={`header-nav ${isMobileMenuOpen ? 'active' : ''}`}>
           <ul>
             {navLinks.map((link, index) => (
-              <li key={index}>
-                <a href={link.path}>{link.label}</a>
+              <li key={index} className={link.hasDropdown ? 'has-dropdown' : ''}>
+                {link.hasDropdown ? (
+                  <>
+                    <a href="#" onClick={(e) => {
+                      e.preventDefault();
+                      this.toggleServiceDropdown();
+                    }} className="dropdown-toggle">
+                      {link.label}
+                      <span className="dropdown-arrow">▼</span>
+                    </a>
+                    <ul className={`dropdown-menu ${isServiceDropdownOpen ? 'active' : ''}`}>
+                      {link.dropdownItems.map((item, idx) => (
+                        <li key={idx}>
+                          <a href={item.path}>{item.label}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <a href={link.path}>{link.label}</a>
+                )}
               </li>
             ))}
           </ul>

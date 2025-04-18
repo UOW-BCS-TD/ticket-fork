@@ -1,17 +1,28 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './Components/Header';
-import Introduction from './Home Page/Introduction';
-import ResourcesAndGuides from './Home Page/ResourcesAndGuides';
 import Footer from './Components/Footer';
+import Introduction from './Pages/Home Page/Introduction';
+import ResourcesAndGuides from './Pages/Home Page/ResourcesAndGuides';
+import Chatbot from './Pages/Customer Chatbot Page/Chatbot';
 
 const App = () => {
   return (
-    <div>
-      <Header />
-      <Introduction />
-      <ResourcesAndGuides />
-      <Footer />
-    </div>
+    <Router>
+      <div>
+        <Header />
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Introduction />
+              <ResourcesAndGuides />
+              <Footer />
+            </>
+          } />
+          <Route path="/chatbot" element={<Chatbot />} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
