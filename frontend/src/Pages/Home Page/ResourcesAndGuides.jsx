@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './ResourcesAndGuides.css'
 
-// Mock data for resources and guides with added image source
 const resourcesData = [
   { 
     title: 'Tesla Model 3 Troubleshooting Guide', 
@@ -29,7 +28,6 @@ const resourcesData = [
   },
 ];
 
-// ResourceCard Component - updated to match FeatureCard style
 const ResourceCard = ({ title, description, content, imageSrc }) => {
   return (
     <div className="resource-card">
