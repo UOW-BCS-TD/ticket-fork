@@ -5,6 +5,7 @@ import Footer from './Components/Footer';
 import Introduction from './Pages/Home Page/Introduction';
 import ResourcesAndGuides from './Pages/Home Page/ResourcesAndGuides';
 import Chatbot from './Pages/Customer Chatbot Page/Chatbot';
+import Login from './Pages/Login Page/Login';
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
             </>
           } />
           <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
     </Router>

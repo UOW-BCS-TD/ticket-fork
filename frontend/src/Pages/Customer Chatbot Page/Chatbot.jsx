@@ -21,7 +21,13 @@ const Chatbot = () => {
     { name: 'Feature inquiry', date: '2023/02/17', message: 'Does your platform support integration with Shopify? I need to connect my store.' },
     { name: 'Subscription upgrade', date: '2023/02/15', message: 'I want to upgrade from Basic to Pro plan. What are the additional features?' },
     { name: 'Mobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'Mobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' }
+    { name: 'aobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
+    { name: 'bobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
+    { name: 'cobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
+    { name: 'dobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
+    { name: 'eobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
+    { name: 'fobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
+
   ];
 
   const sendMessage = () => {
@@ -111,30 +117,32 @@ const Chatbot = () => {
           />
         </div>
         
-        {filteredChats.map((chat, index) => (
-          <div 
-            key={index} 
-            className={`chat-item ${activeChat === chat.name ? 'active' : ''}`}
-            onClick={() => handleChatItemClick(chat.name)}
-          >
-            <div className="chat-item-header">
-              <h4>{chat.name}</h4>
-              <span className="chat-date">{chat.date}</span>
+        <div className="chat-items-container">
+          {filteredChats.map((chat, index) => (
+            <div 
+              key={index} 
+              className={`chat-item ${activeChat === chat.name ? 'active' : ''}`}
+              onClick={() => handleChatItemClick(chat.name)}
+            >
+              <div className="chat-item-header">
+                <h4>{chat.name}</h4>
+                <span className="chat-date">{chat.date}</span>
+              </div>
+              <p className="chat-preview">{chat.message}</p>
             </div>
-            <p className="chat-preview">{chat.message}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       
       <div className="chat-main">
         {chatStarted && (
           <div className="chat-header">
-            <div>
+            <div className="chat-header-info">
               <h3>{activeChat}</h3>
               <span className="online-tag">Online</span>
             </div>
-            <div>
-              <button className="quick-action-btn" onClick={handleNewChat}>New Chat</button>
+            <div className="chat-header-actions">
+              <button className="quick-action-btn" onClick={handleNewChat}><i className="new-chat-icon">+</i> New Chat</button>
             </div>
           </div>
         )}
@@ -145,6 +153,7 @@ const Chatbot = () => {
               <div key={index} className={`message ${chat.sender}-message`}>
                 <div className="message-content">
                   <p>{chat.text}</p>
+                  <span className="message-timestamp">{new Date(chat.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
               </div>
             ))}
@@ -157,8 +166,8 @@ const Chatbot = () => {
               <div className="chat-logo">
                 <img src="/techcare-logo.jpg" alt="Company Logo" />
               </div>
-              <h2>Welcome to our Support Chat</h2>
-              <p>How can we help you today?</p>
+              <h2>Welcome to TechCare Support</h2>
+              <p>How can our virtual assistant help you today?</p>
             </div>
           </div>
         )}
@@ -172,7 +181,7 @@ const Chatbot = () => {
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
             />
-            <button onClick={sendMessage}>Send</button>
+            <button onClick={sendMessage}><i className="send-icon">➤</i>Send</button>
           </div>
         </div>
       </div>

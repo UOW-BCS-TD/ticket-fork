@@ -33,13 +33,13 @@ export default class Header extends Component {
         label: 'Our Service', 
         hasDropdown: true,
         dropdownItems: [
-          { path: '/chatbot', label: 'Chat with Support Bot' },
-          { path: '/view-tickets', label: 'View Ticket Information' },
-          { path: '/create-ticket', label: 'Submit a Ticket' }
+          { path: '/chatbot', label: 'Virtual Support Assistant' },
+          { path: '/view-tickets', label: 'Track Support Tickets' },
+          { path: '/create-ticket', label: 'Request Technical Support' }
         ]
       },
       { path: '/resources', label: 'Resources & Guides' },
-      { path: '/login', label: 'Login' }
+      { path: '/login', label: 'Sign In' }
     ];
 
     return (
