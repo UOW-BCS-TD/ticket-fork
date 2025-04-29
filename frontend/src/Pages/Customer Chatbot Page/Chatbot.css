@@ -1,11 +1,15 @@
+/* Import font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 .chat-container {
-  padding: 0px 100px;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  height: 100vh;
-  max-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f7ff;
+  padding: 2rem 100px;
+  font-family: 'Poppins', sans-serif;
   background: linear-gradient(to bottom, #72b3f0, #54a2ec);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
 }
 
 /* Left Sidebar - Chat List */
@@ -16,6 +20,9 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  width: 320px;
+  height: 100vh;
+  border-radius: 10px 0 0 10px;
 }
 
 .chat-list-header {
@@ -145,6 +152,9 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 1;
   position: relative;
+  width: calc(100% - 320px);
+  height: 100vh;
+  border-radius: 0 10px 10px 0;
 }
 
 .chat-header {
@@ -330,6 +340,7 @@
   font-weight: 500;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .chat-input button:hover {
@@ -389,7 +400,7 @@
   height: 21px;
   cursor: pointer;
   position: absolute;
-  top: 90px;
+  top: 20px;
   right: 10px;
   z-index: 100;
   background-color: rgba(255, 255, 255, 0.9);

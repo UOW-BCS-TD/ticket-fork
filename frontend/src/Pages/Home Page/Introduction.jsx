@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Introduction.css';
 
 const Introduction = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Set visible after component mounts to trigger animation
+    setIsVisible(true);
+  }, []);
 
   const FeatureCard = ({ imageSrc, title, description, benefit }) => {
     return (
@@ -19,12 +25,12 @@ const Introduction = () => {
 
   return (
     <div>
-      <section className="introduction-container">
+      <section className={`introduction-container ${isVisible ? 'animate-intro' : ''}`}>
         <main className="introduction">
-          <h1>Welcome to Techcare Support</h1>
-          <p>Your trusted partner in technical solutions</p>
-          <div className="button-container">
-            <button className="support-button">Get Support</button>
+          <h1 className="animate-item">Welcome to Techcare Support</h1>
+          <p className="animate-item">Your trusted partner in technical solutions</p>
+          <div className="button-container animate-item">
+            <Link to="/create-ticket"><button className="support-button">Get Support</button></Link>
             <Link to="/chatbot"><button className="chat-button">Chat with Us</button></Link>
           </div>
         </main>

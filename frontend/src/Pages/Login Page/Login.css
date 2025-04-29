@@ -8,6 +8,7 @@
   background-color: #f4f7ff;
   padding: 2rem;
   font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to bottom, #72b3f0, #54a2ec);
 }
 
 .login-container {
@@ -45,7 +46,8 @@
   left: 25%;
 }
 
-form {
+.login-container form,
+.signin-signup form {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -333,7 +335,6 @@ form.sign-up-form {
   cursor: pointer;
   font-size: 18px;
   transition: all 0.3s ease;
-  background-color: white;
 }
 
 .social-icon:hover {
