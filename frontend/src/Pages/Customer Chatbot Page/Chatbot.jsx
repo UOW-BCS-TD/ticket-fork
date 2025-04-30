@@ -164,7 +164,7 @@ const Chatbot = () => {
           <div className="welcome-container">
             <div className="logo-container">
               <div className="chat-logo">
-                <img src="/techcare-logo.jpg" alt="Company Logo" />
+                <img src="/logo.png" alt="Company Logo" />
               </div>
               <h2>Welcome to TechCare Support</h2>
               <p>How can our virtual assistant help you today?</p>

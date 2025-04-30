@@ -45,7 +45,7 @@ export default class Header extends Component {
     return (
       <header className="header">
         <div className="header-logo">
-          <img className="circular-logo" src={this.props.logoSrc || "/techcare-logo.jpg"} alt={this.props.logoAlt || "Techcare Logo"} />
+          <img className="circular-logo" src={this.props.logoSrc || "/logo.png"} alt={this.props.logoAlt || "Techcare Logo"} />
           <h2>{this.props.company || "Techcare Consulting Services Limited"}</h2>
         </div>
         

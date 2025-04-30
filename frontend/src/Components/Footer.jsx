@@ -9,7 +9,7 @@ export default class Footer extends Component {
         <div className="footer-main">
           <div className="footer-column">
             <div className="footer-logo">
-              <img className="circular-logo" src="/techcare-logo.jpg" alt="Techcare Logo" />
+              <img className="circular-logo" src="/logo.png" alt="Techcare Logo" />
               <h3>Techcare Consulting Services Limited</h3>
             </div>
             <div className="company-address">

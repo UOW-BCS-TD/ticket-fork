@@ -68,8 +68,22 @@ const TicketInformation = () => {
   // Get the active ticket data
   const currentTicket = ticketList.find(ticket => ticket.id === activeTicket) || ticketList[0];
 
+  const toggleSidebar = () => {
+    const sidebar = document.querySelector('.ticket-left-panel');
+    const toggle = document.querySelector('.sidebar-toggle');
+    
+    sidebar.classList.toggle('active');
+    toggle.classList.toggle('active');
+  }
+
   return (
     <div className="ticket-view-container">
+      <div className="sidebar-toggle" onClick={toggleSidebar}>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      
       <div className="ticket-main">
         <div className="ticket-panels-container">
           <div className="ticket-left-panel">
@@ -131,14 +145,14 @@ const TicketInformation = () => {
                 </div>
               </div>
               
-              <div className="quick-actions">
+              {/* <div className="quick-actions">
                 <button className="action-btn">
                   <i className="fas fa-edit"></i> Add More Details
                 </button>
                 <button className="action-btn secondary">
                   <i className="fas fa-times"></i> Close Ticket
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -300,7 +314,7 @@ const TicketInformation = () => {
                 </div>
               </div>
               
-              <div className="satisfaction-survey">
+              {/* <div className="satisfaction-survey">
                 <h4>How would you rate our support so far?</h4>
                 <div className="rating-options">
                   <div className="rating-option">
@@ -320,7 +334,7 @@ const TicketInformation = () => {
                     <p>Excellent</p>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

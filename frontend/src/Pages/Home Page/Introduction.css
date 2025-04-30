@@ -1,9 +1,13 @@
+/* Import font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('@fortawesome/fontawesome-free/css/all.min.css');
+
 /* Introduction container styles */
 .introduction-container {
   background-color: #f5f7fa;
   background-image: linear-gradient(135deg, #3090FF 0%, #1565c0 100%);
   color: white;
-  padding: 80px 0;
+  padding: 100px 0;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -167,12 +171,41 @@
   }
 }
 
+/* Section header styling like AboutUs */
+.section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-header h2 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #3090FF;
+  margin-bottom: 15px;
+}
+
+.section-divider {
+  height: 4px;
+  width: 60px;
+  background: #3090FF;
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+.section-divider-left {
+  height: 4px;
+  width: 60px;
+  background: #3090FF;
+  margin-bottom: 20px;
+  border-radius: 2px;
+}
+
 /* Company introduction section */
 .company-introduction {
   display: flex;
   align-items: center;
   background-color: #EBEBEB;
-  padding: 2rem 100px;
+  padding: 50px 100px;
   box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3) !important;
   position: relative;
   z-index: 1;
@@ -186,7 +219,7 @@
 .company-photo img {
   width: 100%;
   height: auto;
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -196,43 +229,46 @@
 }
 
 .company-info h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #2287FA;
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #3090FF;
 }
 
 .company-info p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #555;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #666;
 }
 
 /* Features section */
 .features {
-  padding: 2rem 100px;
+  padding: 50px 100px;
   background-color: #f9f9f9;
 }
 
 .features h2 {
-  font-size: 2.2rem;
-  margin-bottom: 2rem;
-  color: #333;
+  font-size: 32px;
+  font-weight: 600;
+  color: #3090FF;
   text-align: center;
 }
 
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  gap: 30px;
   margin: 0 auto;
 }
 
 .feature-card {
   background-color: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s, box-shadow 0.3s;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
 }
 
 .feature-card:hover {
@@ -240,18 +276,46 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
+.feature-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.feature-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.feature-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.feature-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.feature-icon {
+  font-size: 36px;
+  color: #3090FF;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 .feature-photo {
   height: 200px;
   width: 100%;
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+  border-radius: 8px;
 }
 
 .feature-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 4px;
+  transition: transform 0.5s ease;
+}
+
+.feature-card:hover .feature-photo img {
+  transform: scale(1.05);
 }
 
 .feature-card h3 {
@@ -269,18 +333,24 @@
   min-height: 100px;
 }
 
-.content-loading {
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
+.feature-description {
+  margin-bottom: 15px;
 }
 
-.content-visible {
-  opacity: 1;
-  transition: opacity 0.5s ease-in-out;
+.feature-benefit {
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  font-style: italic;
+  color: #555;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Responsive styles */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .introduction-container {
     padding: 70px 0;
   }
@@ -295,12 +365,13 @@
   
   .company-introduction,
   .features {
-    padding: 70px 80px;
+    padding: 60px 80px;
   }
   
   .company-info h2,
-  .features h2 {
-    font-size: 2rem;
+  .features h2,
+  .section-header h2 {
+    font-size: 28px;
   }
 }
 
@@ -372,12 +443,27 @@
     flex: 0 0 100%;
   }
   
+  .company-info h2,
+  .features h2,
+  .section-header h2 {
+    font-size: 24px;
+  }
+  
   .features {
     padding: 50px 40px;
   }
   
+  .features-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+  }
+  
   .feature-photo {
     height: 180px;
+  }
+  
+  .feature-icon {
+    font-size: 28px;
   }
 }
 
@@ -412,8 +498,9 @@
   }
   
   .company-info h2,
-  .features h2 {
-    font-size: 1.6rem;
+  .features h2,
+  .section-header h2 {
+    font-size: 22px;
   }
   
   .features-grid {
@@ -428,9 +515,18 @@
   .feature-photo {
     height: 160px;
   }
+  
+  .feature-card h3 {
+    font-size: 18px;
+  }
+  
+  .feature-icon {
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .introduction h1 {
     font-size: 1.5rem;
   }
@@ -444,11 +540,31 @@
   }
   
   .company-info h2,
-  .features h2 {
-    font-size: 1.4rem;
+  .features h2,
+  .section-header h2 {
+    font-size: 20px;
   }
   
   .feature-card h3 {
-    font-size: 1.2rem;
+    font-size: 16px;
+  }
+  
+  .feature-card p {
+    font-size: 14px;
+  }
+  
+  .feature-photo {
+    height: 140px;
+  }
+  
+  .feature-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  
+  .section-divider,
+  .section-divider-left {
+    height: 3px;
+    width: 50px;
   }
 }

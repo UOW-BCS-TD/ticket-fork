@@ -406,19 +406,11 @@ form.sign-up-form {
   .panel {
     flex-direction: row;
     justify-content: space-around;
-    align-items: center;
     padding: 2.5rem 8%;
-  }
-
-  .left-panel {
-    position: absolute;
-    top: 0;
-    z-index: 7;
   }
   
   .right-panel {
-    position: absolute;
-    bottom: 0;
+    margin-top: 367px;
     z-index: 7;
   }
   
@@ -489,6 +481,11 @@ form.sign-up-form {
   .right-panel .content {
     align-items: center;
     transition: 0.9s 0.8s ease-in-out;
+  }
+
+  .right-panel {
+    margin-top: 335px;
+    z-index: 7;
   }
   
   .login-container::before {

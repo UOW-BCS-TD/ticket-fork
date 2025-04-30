@@ -4,10 +4,11 @@ import Header from './Components/Header';
 import Footer from './Components/Footer';
 import Introduction from './Pages/Home Page/Introduction';
 import ResourcesAndGuides from './Pages/Home Page/ResourcesAndGuides';
+import AboutUs from './Pages/About Us Page/AboutUs';
 import Chatbot from './Pages/Customer Chatbot Page/Chatbot';
-import Login from './Pages/Login Page/Login';
 import CreateTicket from './Pages/Ticket Support Page/CreateTicket';
 import TicketInformation from './Pages/Ticket View Page/TicketInformation';
+import Login from './Pages/Login Page/Login';
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
               <Footer />
             </>
           } />
+          <Route path="/about" element={<AboutUs />} />
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/view-tickets" element={<TicketInformation />} />
           <Route path="/create-ticket" element={<CreateTicket />} />
