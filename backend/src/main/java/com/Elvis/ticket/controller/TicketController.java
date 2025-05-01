@@ -83,4 +83,14 @@ public class TicketController {
         ticketService.deleteTicket(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/escalate")
+    public ResponseEntity<Ticket> escalateTicket(@PathVariable Long id) {
+        try {
+            Ticket escalatedTicket = ticketService.escalateTicket(id);
+            return ResponseEntity.ok(escalatedTicket);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 } 

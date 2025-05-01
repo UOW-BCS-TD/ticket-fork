@@ -7,7 +7,9 @@ import java.util.List;
 
 @Repository
 public interface EngineerRepository extends JpaRepository<Engineer, Long> {
+    List<Engineer> findByCategoryAndLevelGreaterThan(String category, int level);
+    List<Engineer> findByCurrentTicketsLessThanMaxTickets();
     List<Engineer> findByCategory(String category);
-    List<Engineer> findByCurrentTicketCountLessThan(Integer maxTickets);
     Engineer findByEmail(String email);
+    boolean existsByEmail(String email);
 } 

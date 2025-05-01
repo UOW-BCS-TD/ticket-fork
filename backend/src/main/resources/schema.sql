@@ -1,129 +1,122 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS ticket_system;
-USE ticket_system;
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS engineers;
+DROP TABLE IF EXISTS managers;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS ticket_types;
+DROP TABLE IF EXISTS users;
 
--- Create User table (base table)
-CREATE TABLE IF NOT EXISTS users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
+-- Create users table
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
     phone_number VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    role VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL
 );
 
--- Create Customer table (extends User)
-CREATE TABLE IF NOT EXISTS customers (
-    user_id BIGINT PRIMARY KEY,
-    role ENUM('NORMAL', 'VIP', 'SVIP') DEFAULT 'NORMAL',
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+-- Create customers table
+CREATE TABLE customers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE,
+    role VARCHAR(20) NOT NULL,
+    user_id BIGINT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Create Engineer table (extends User)
-CREATE TABLE IF NOT EXISTS engineers (
-    user_id BIGINT PRIMARY KEY,
+-- Create engineers table
+CREATE TABLE engineers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE,
     category VARCHAR(50) NOT NULL,
     level INT NOT NULL,
-    current_ticket_count INT DEFAULT 0,
-    max_ticket_count INT DEFAULT 5,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    max_tickets INT NOT NULL,
+    current_tickets INT NOT NULL,
+    user_id BIGINT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Create Manager table (extends User)
-CREATE TABLE IF NOT EXISTS managers (
-    user_id BIGINT PRIMARY KEY,
+-- Create managers table
+CREATE TABLE managers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE,
     department VARCHAR(50) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    user_id BIGINT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Create Product table
-CREATE TABLE IF NOT EXISTS products (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
+-- Create products table
+CREATE TABLE products (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL
 );
 
--- Create Ticket Type table
-CREATE TABLE IF NOT EXISTS ticket_types (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL,
+-- Create ticket_types table
+CREATE TABLE ticket_types (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     description TEXT
 );
 
--- Create Session table
-CREATE TABLE IF NOT EXISTS sessions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+-- Create sessions table
+CREATE TABLE sessions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP,
+    last_activity TIMESTAMP NOT NULL,
     user_id BIGINT NOT NULL,
-    session_id VARCHAR(255) NOT NULL UNIQUE,
-    category VARCHAR(50) NOT NULL,
-    conversation_history TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Create Ticket table
-CREATE TABLE IF NOT EXISTS tickets (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    session_id BIGINT NOT NULL,
-    customer_id BIGINT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    engineer_id BIGINT,
-    status ENUM('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED') DEFAULT 'OPEN',
-    type_id BIGINT NOT NULL,
-    urgency ENUM('NORMAL', 'VIP', 'SVIP') DEFAULT 'NORMAL',
-    last_response_time TIMESTAMP,
-    product_id BIGINT,
+-- Create tickets table
+CREATE TABLE tickets (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    urgency VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
     resolved_at TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES sessions(id),
-    FOREIGN KEY (customer_id) REFERENCES customers(user_id),
-    FOREIGN KEY (engineer_id) REFERENCES engineers(user_id),
+    last_response_time TIMESTAMP,
+    customer_id BIGINT NOT NULL,
+    engineer_id BIGINT,
+    product_id BIGINT NOT NULL,
+    type_id BIGINT NOT NULL,
+    session_id BIGINT NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (engineer_id) REFERENCES engineers(id),
+    FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (type_id) REFERENCES ticket_types(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
 
--- Insert sample data
+-- Insert initial data
+INSERT INTO users (name, email, password, role, created_at) VALUES
+('Admin User', 'admin@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'ADMIN', CURRENT_TIMESTAMP),
+('Customer User', 'customer@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'CUSTOMER', CURRENT_TIMESTAMP),
+('Engineer User', 'engineer@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'ENGINEER', CURRENT_TIMESTAMP),
+('Manager User', 'manager@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'MANAGER', CURRENT_TIMESTAMP);
 
--- Insert Users
-INSERT INTO users (name, password, email, phone_number) VALUES
-('John Doe', 'password123', 'john@example.com', '1234567890'),
-('Jane Smith', 'password123', 'jane@example.com', '0987654321'),
-('Mike Johnson', 'password123', 'mike@example.com', '1122334455'),
-('Sarah Williams', 'password123', 'sarah@example.com', '5566778899'),
-('David Brown', 'password123', 'david@example.com', '9988776655');
+INSERT INTO customers (email, user_id, role) VALUES
+('customer@example.com', 2, 'STANDARD');
 
--- Insert Customers
-INSERT INTO customers (user_id, role) VALUES
-(1, 'NORMAL'),
-(2, 'VIP'),
-(3, 'SVIP');
+INSERT INTO engineers (email, user_id, category, level, max_tickets, current_tickets) VALUES
+('engineer@example.com', 3, 'Software', 1, 5, 0);
 
--- Insert Engineers
-INSERT INTO engineers (user_id, category, level, current_ticket_count) VALUES
-(4, 'Network', 2, 0),
-(5, 'Software', 3, 0);
+INSERT INTO managers (email, user_id, department) VALUES
+('manager@example.com', 4, 'IT');
 
--- Insert Products
-INSERT INTO products (name, description) VALUES
-('Router 8500', 'High-performance enterprise router'),
-('Switch 9400', 'Enterprise-grade network switch');
+INSERT INTO products (name, description, created_at) VALUES
+('Product A', 'Description for Product A', CURRENT_TIMESTAMP),
+('Product B', 'Description for Product B', CURRENT_TIMESTAMP);
 
--- Insert Ticket Types
 INSERT INTO ticket_types (name, description) VALUES
-('General', 'General support ticket'),
-('Product', 'Product-specific issue'),
-('Complaint', 'Customer complaint');
-
--- Insert Sessions
-INSERT INTO sessions (user_id, session_id, category, conversation_history) VALUES
-(1, 'session123', 'Support', 'Initial conversation started'),
-(2, 'session456', 'Technical', 'Product inquiry'),
-(3, 'session789', 'Complaint', 'Service issue');
-
--- Insert Tickets
-INSERT INTO tickets (session_id, customer_id, engineer_id, status, type_id, urgency, product_id) VALUES
-(1, 1, 4, 'OPEN', 1, 'NORMAL', 1),
-(2, 2, 5, 'IN_PROGRESS', 2, 'VIP', 2),
-(3, 3, 4, 'OPEN', 3, 'SVIP', 1); 
+('Technical Support', 'Technical support tickets'),
+('Feature Request', 'Feature request tickets'); 

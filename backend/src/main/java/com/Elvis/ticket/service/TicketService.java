@@ -1,8 +1,13 @@
 package com.Elvis.ticket.service;
 
-import com.Elvis.ticket.model.*;
+import com.Elvis.ticket.model.Ticket;
+import com.Elvis.ticket.model.TicketStatus;
+import com.Elvis.ticket.model.CustomerRole;
+import com.Elvis.ticket.model.Session;
+import com.Elvis.ticket.model.Engineer;
+import com.Elvis.ticket.model.Customer;
 import com.Elvis.ticket.repository.TicketRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.Elvis.ticket.repository.EngineerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,34 +18,45 @@ import java.util.Optional;
 @Service
 public class TicketService {
     private final TicketRepository ticketRepository;
-    private final EngineerService engineerService;
+    private final EngineerRepository engineerRepository;
     private final CustomerService customerService;
     private final SessionService sessionService;
 
-    @Autowired
     public TicketService(TicketRepository ticketRepository, 
-                        EngineerService engineerService,
+                        EngineerRepository engineerRepository,
                         CustomerService customerService,
                         SessionService sessionService) {
         this.ticketRepository = ticketRepository;
-        this.engineerService = engineerService;
+        this.engineerRepository = engineerRepository;
         this.customerService = customerService;
         this.sessionService = sessionService;
     }
 
+    @Transactional
+    public Ticket createTicket(Ticket ticket) {
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setUpdatedAt(LocalDateTime.now());
+        ticket.setStatus(TicketStatus.OPEN);
+        return ticketRepository.save(ticket);
+    }
+
+    @Transactional(readOnly = true)
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Ticket> getTicketById(Long id) {
         return ticketRepository.findById(id);
     }
 
-    public List<Ticket> getTicketsByCustomer(Long customerId) {
+    @Transactional(readOnly = true)
+    public List<Ticket> getTicketsByCustomerId(Long customerId) {
         return ticketRepository.findByCustomerId(customerId);
     }
 
-    public List<Ticket> getTicketsByEngineer(Long engineerId) {
+    @Transactional(readOnly = true)
+    public List<Ticket> getTicketsByEngineerId(Long engineerId) {
         return ticketRepository.findByEngineerId(engineerId);
     }
 
@@ -49,30 +65,44 @@ public class TicketService {
     }
 
     @Transactional
-    public Ticket createTicket(Ticket ticket) {
-        // Validate customer
-        Customer customer = customerService.getCustomerById(ticket.getCustomer().getId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+    public Ticket assignTicket(Long ticketId, Long engineerId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        
+        Engineer engineer = engineerRepository.findById(engineerId)
+                .orElseThrow(() -> new RuntimeException("Engineer not found"));
 
-        // Set customer role as ticket urgency
-        ticket.setUrgency(customer.getRole());
-
-        // Assign engineer based on category and availability
-        if (ticket.getEngineer() == null) {
-            List<Engineer> availableEngineers = engineerService.getAvailableEngineers();
-            if (!availableEngineers.isEmpty()) {
-                Engineer engineer = availableEngineers.get(0);
-                ticket.setEngineer(engineer);
-                engineerService.incrementTicketCount(engineer.getId());
-            }
+        if (engineer.getCurrentTickets() >= engineer.getMaxTickets()) {
+            throw new RuntimeException("Engineer has reached maximum ticket capacity");
         }
 
-        // Update session
-        Session session = sessionService.getSessionById(ticket.getSession().getId())
-                .orElseThrow(() -> new RuntimeException("Session not found"));
-        session.setLastActivity(LocalDateTime.now());
-        sessionService.updateSession(session);
+        ticket.setEngineer(engineer);
+        ticket.setStatus(TicketStatus.ASSIGNED);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        
+        engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
+        engineerRepository.save(engineer);
+        
+        return ticketRepository.save(ticket);
+    }
 
+    @Transactional
+    public Ticket updateTicketStatus(Long ticketId, TicketStatus status) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        
+        ticket.setStatus(status);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        
+        if (status == TicketStatus.RESOLVED) {
+            ticket.setResolvedAt(LocalDateTime.now());
+            if (ticket.getEngineer() != null) {
+                Engineer engineer = ticket.getEngineer();
+                engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
+                engineerRepository.save(engineer);
+            }
+        }
+        
         return ticketRepository.save(ticket);
     }
 
@@ -80,42 +110,18 @@ public class TicketService {
     public Ticket updateTicket(Long id, Ticket ticketDetails) {
         return ticketRepository.findById(id)
                 .map(existingTicket -> {
-                    // Update basic fields
-                    existingTicket.setStatus(ticketDetails.getStatus());
-                    existingTicket.setLastResponseTime(LocalDateTime.now());
-
-                    // Handle engineer assignment
-                    if (ticketDetails.getEngineer() != null && 
-                        !ticketDetails.getEngineer().getId().equals(existingTicket.getEngineer().getId())) {
-                        // Decrement old engineer's ticket count
-                        if (existingTicket.getEngineer() != null) {
-                            engineerService.decrementTicketCount(existingTicket.getEngineer().getId());
-                        }
-                        // Increment new engineer's ticket count
-                        engineerService.incrementTicketCount(ticketDetails.getEngineer().getId());
-                        existingTicket.setEngineer(ticketDetails.getEngineer());
-                    }
-
-                    // Update resolution time if status changed to RESOLVED
-                    if (ticketDetails.getStatus() == TicketStatus.RESOLVED && 
-                        existingTicket.getStatus() != TicketStatus.RESOLVED) {
-                        existingTicket.setResolvedAt(LocalDateTime.now());
-                    }
-
+                    existingTicket.setTitle(ticketDetails.getTitle());
+                    existingTicket.setDescription(ticketDetails.getDescription());
+                    existingTicket.setUrgency(ticketDetails.getUrgency());
+                    existingTicket.setUpdatedAt(LocalDateTime.now());
                     return ticketRepository.save(existingTicket);
                 })
-                .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
     }
 
     @Transactional
     public void deleteTicket(Long id) {
-        ticketRepository.findById(id).ifPresent(ticket -> {
-            // Decrement engineer's ticket count
-            if (ticket.getEngineer() != null) {
-                engineerService.decrementTicketCount(ticket.getEngineer().getId());
-            }
-            ticketRepository.deleteById(id);
-        });
+        ticketRepository.deleteById(id);
     }
 
     public List<Ticket> getTicketsByUrgency(CustomerRole urgency) {
@@ -128,5 +134,59 @@ public class TicketService {
 
     public List<Ticket> getTicketsByType(Long typeId) {
         return ticketRepository.findByTypeId(typeId);
+    }
+
+    @Transactional
+    public Ticket escalateTicket(Long ticketId) {
+        return ticketRepository.findById(ticketId)
+                .map(ticket -> {
+                    // Get current engineer and their category
+                    Engineer currentEngineer = ticket.getEngineer();
+                    if (currentEngineer == null) {
+                        throw new RuntimeException("Ticket has no assigned engineer to escalate from");
+                    }
+
+                    String category = currentEngineer.getCategory();
+                    int currentLevel = currentEngineer.getLevel();
+
+                    // Find available engineers in the same category with higher level
+                    List<Engineer> higherLevelEngineers = engineerRepository.findByCategoryAndLevelGreaterThan(category, currentLevel)
+                            .stream()
+                            .filter(e -> e.getCategory().equals(category) && e.getLevel() > currentLevel)
+                            .toList();
+
+                    if (higherLevelEngineers.isEmpty()) {
+                        throw new RuntimeException("No higher-level engineers available in category: " + category);
+                    }
+
+                    // Select the first available higher-level engineer
+                    Engineer newEngineer = higherLevelEngineers.get(0);
+
+                    // Decrement old engineer's ticket count
+                    currentEngineer.setCurrentTickets(currentEngineer.getCurrentTickets() - 1);
+                    engineerRepository.save(currentEngineer);
+
+                    // Update ticket with new engineer
+                    ticket.setEngineer(newEngineer);
+                    ticket.setStatus(TicketStatus.ESCALATED);
+                    ticket.setUpdatedAt(LocalDateTime.now());
+
+                    // Increment new engineer's ticket count
+                    newEngineer.setCurrentTickets(newEngineer.getCurrentTickets() + 1);
+                    engineerRepository.save(newEngineer);
+
+                    return ticketRepository.save(ticket);
+                })
+                .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Ticket> getTicketsByCustomer(Long customerId) {
+        return ticketRepository.findByCustomerId(customerId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Ticket> getTicketsByEngineer(Long engineerId) {
+        return ticketRepository.findByEngineerId(engineerId);
     }
 } 

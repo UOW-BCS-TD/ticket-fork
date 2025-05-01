@@ -1,78 +1,80 @@
 package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.Engineer;
+import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.repository.EngineerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.Elvis.ticket.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class EngineerService {
-    private final EngineerRepository engineerRepository;
 
-    @Autowired
-    public EngineerService(EngineerRepository engineerRepository) {
+    private final EngineerRepository engineerRepository;
+    private final UserRepository userRepository;
+
+    public EngineerService(EngineerRepository engineerRepository, UserRepository userRepository) {
         this.engineerRepository = engineerRepository;
+        this.userRepository = userRepository;
     }
 
+    @Transactional
+    public Engineer createEngineer(Engineer engineer) {
+        User user = userRepository.findByEmail(engineer.getEmail());
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + engineer.getEmail());
+        }
+        engineer.setUser(user);
+        return engineerRepository.save(engineer);
+    }
+
+    @Transactional(readOnly = true)
     public List<Engineer> getAllEngineers() {
         return engineerRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Engineer> getEngineerById(Long id) {
         return engineerRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public Engineer getEngineerByEmail(String email) {
         return engineerRepository.findByEmail(email);
     }
 
+    @Transactional(readOnly = true)
     public List<Engineer> getEngineersByCategory(String category) {
         return engineerRepository.findByCategory(category);
     }
 
+    @Transactional(readOnly = true)
     public List<Engineer> getAvailableEngineers() {
-        return engineerRepository.findByCurrentTicketCountLessThan(5);
+        return engineerRepository.findByCurrentTicketsLessThanMaxTickets();
     }
 
-    public Engineer createEngineer(Engineer engineer) {
-        return engineerRepository.save(engineer);
-    }
-
+    @Transactional
     public Engineer updateEngineer(Long id, Engineer engineerDetails) {
         return engineerRepository.findById(id)
-                .map(engineer -> {
-                    engineer.setCategory(engineerDetails.getCategory());
-                    engineer.setLevel(engineerDetails.getLevel());
-                    engineer.setCurrentTicketCount(engineerDetails.getCurrentTicketCount());
-                    return engineerRepository.save(engineer);
+                .map(existingEngineer -> {
+                    existingEngineer.setCategory(engineerDetails.getCategory());
+                    existingEngineer.setLevel(engineerDetails.getLevel());
+                    existingEngineer.setMaxTickets(engineerDetails.getMaxTickets());
+                    return engineerRepository.save(existingEngineer);
                 })
-                .orElseThrow(() -> new RuntimeException("Engineer not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Engineer not found"));
     }
 
+    @Transactional
     public void deleteEngineer(Long id) {
         engineerRepository.deleteById(id);
     }
 
-    public void incrementTicketCount(Long id) {
-        engineerRepository.findById(id)
-                .ifPresent(engineer -> {
-                    if (engineer.getCurrentTicketCount() < engineer.getMaxTicketCount()) {
-                        engineer.setCurrentTicketCount(engineer.getCurrentTicketCount() + 1);
-                        engineerRepository.save(engineer);
-                    }
-                });
-    }
-
-    public void decrementTicketCount(Long id) {
-        engineerRepository.findById(id)
-                .ifPresent(engineer -> {
-                    if (engineer.getCurrentTicketCount() > 0) {
-                        engineer.setCurrentTicketCount(engineer.getCurrentTicketCount() - 1);
-                        engineerRepository.save(engineer);
-                    }
-                });
+    @Transactional
+    public List<Engineer> findHigherLevelEngineers(String category, int currentLevel) {
+        return engineerRepository.findByCategoryAndLevelGreaterThan(category, currentLevel);
     }
 } 

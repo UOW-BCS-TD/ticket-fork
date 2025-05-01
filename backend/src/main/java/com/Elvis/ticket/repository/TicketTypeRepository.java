@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TicketTypeRepository extends JpaRepository<TicketType, Long> {
+    boolean existsByName(String name);
     TicketType findByName(String name);
 } 

@@ -1,10 +1,8 @@
 package com.Elvis.ticket.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.time.LocalDateTime;
 
-@Data
 @Entity
 @Table(name = "sessions")
 public class Session {
@@ -12,22 +10,57 @@ public class Session {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "start_time", nullable = false)
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @Column(name = "last_activity", nullable = false)
+    private LocalDateTime lastActivity;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "session_id", nullable = false, unique = true)
-    private String sessionId;
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
 
-    @Column(nullable = false)
-    private String category;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    @Column(name = "conversation_history", columnDefinition = "TEXT")
-    private String conversationHistory;
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
 
-    @Column(name = "last_activity")
-    private LocalDateTime lastActivity = LocalDateTime.now();
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public LocalDateTime getLastActivity() {
+        return lastActivity;
+    }
+
+    public void setLastActivity(LocalDateTime lastActivity) {
+        this.lastActivity = lastActivity;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 } 
