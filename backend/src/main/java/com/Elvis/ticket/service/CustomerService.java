@@ -2,6 +2,7 @@ package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.Customer;
 import com.Elvis.ticket.model.User;
+import com.Elvis.ticket.model.CustomerRole;
 import com.Elvis.ticket.repository.CustomerRepository;
 import com.Elvis.ticket.repository.UserRepository;
 import org.springframework.stereotype.Service;
