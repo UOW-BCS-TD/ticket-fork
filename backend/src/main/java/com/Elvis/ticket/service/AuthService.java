@@ -1,6 +1,7 @@
 package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.User;
+import com.Elvis.ticket.model.UserRole;
 import com.Elvis.ticket.repository.UserRepository;
 import com.Elvis.ticket.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,8 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(UserRole.USER.name());
+        user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
 } 

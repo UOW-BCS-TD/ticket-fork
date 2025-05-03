@@ -6,8 +6,14 @@ import com.Elvis.ticket.model.CustomerRole;
 import com.Elvis.ticket.model.Session;
 import com.Elvis.ticket.model.Engineer;
 import com.Elvis.ticket.model.Customer;
+import com.Elvis.ticket.model.Product;
+import com.Elvis.ticket.model.TicketType;
 import com.Elvis.ticket.repository.TicketRepository;
 import com.Elvis.ticket.repository.EngineerRepository;
+import com.Elvis.ticket.repository.CustomerRepository;
+import com.Elvis.ticket.repository.ProductRepository;
+import com.Elvis.ticket.repository.TicketTypeRepository;
+import com.Elvis.ticket.repository.SessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,24 +25,51 @@ import java.util.Optional;
 public class TicketService {
     private final TicketRepository ticketRepository;
     private final EngineerRepository engineerRepository;
-    private final CustomerService customerService;
-    private final SessionService sessionService;
+    private final CustomerRepository customerRepository;
+    private final ProductRepository productRepository;
+    private final TicketTypeRepository ticketTypeRepository;
+    private final SessionRepository sessionRepository;
 
     public TicketService(TicketRepository ticketRepository, 
                         EngineerRepository engineerRepository,
-                        CustomerService customerService,
-                        SessionService sessionService) {
+                        CustomerRepository customerRepository,
+                        ProductRepository productRepository,
+                        TicketTypeRepository ticketTypeRepository,
+                        SessionRepository sessionRepository) {
         this.ticketRepository = ticketRepository;
         this.engineerRepository = engineerRepository;
-        this.customerService = customerService;
-        this.sessionService = sessionService;
+        this.customerRepository = customerRepository;
+        this.productRepository = productRepository;
+        this.ticketTypeRepository = ticketTypeRepository;
+        this.sessionRepository = sessionRepository;
     }
 
     @Transactional
     public Ticket createTicket(Ticket ticket) {
+        // Validate all foreign key references exist
+        Customer customer = customerRepository.findById(ticket.getCustomer().getId())
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        
+        Product product = productRepository.findById(ticket.getProduct().getId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        
+        TicketType type = ticketTypeRepository.findById(ticket.getType().getId())
+                .orElseThrow(() -> new RuntimeException("Ticket type not found"));
+        
+        Session session = sessionRepository.findById(ticket.getSession().getId())
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+
+        // Set the validated entities
+        ticket.setCustomer(customer);
+        ticket.setProduct(product);
+        ticket.setType(type);
+        ticket.setSession(session);
+
+        // Set timestamps and status
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
         ticket.setStatus(TicketStatus.OPEN);
+
         return ticketRepository.save(ticket);
     }
 
@@ -110,6 +143,22 @@ public class TicketService {
     public Ticket updateTicket(Long id, Ticket ticketDetails) {
         return ticketRepository.findById(id)
                 .map(existingTicket -> {
+                    // Validate and update product if changed
+                    if (ticketDetails.getProduct() != null && 
+                        !ticketDetails.getProduct().getId().equals(existingTicket.getProduct().getId())) {
+                        Product product = productRepository.findById(ticketDetails.getProduct().getId())
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
+                        existingTicket.setProduct(product);
+                    }
+
+                    // Validate and update ticket type if changed
+                    if (ticketDetails.getType() != null && 
+                        !ticketDetails.getType().getId().equals(existingTicket.getType().getId())) {
+                        TicketType type = ticketTypeRepository.findById(ticketDetails.getType().getId())
+                                .orElseThrow(() -> new RuntimeException("Ticket type not found"));
+                        existingTicket.setType(type);
+                    }
+
                     existingTicket.setTitle(ticketDetails.getTitle());
                     existingTicket.setDescription(ticketDetails.getDescription());
                     existingTicket.setUrgency(ticketDetails.getUrgency());

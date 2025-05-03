@@ -3,6 +3,7 @@ package com.Elvis.ticket.service;
 import com.Elvis.ticket.model.Session;
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.repository.SessionRepository;
+import com.Elvis.ticket.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,15 +15,26 @@ import java.util.Optional;
 public class SessionService {
 
     private final SessionRepository sessionRepository;
+    private final UserRepository userRepository;
 
-    public SessionService(SessionRepository sessionRepository) {
+    public SessionService(SessionRepository sessionRepository, UserRepository userRepository) {
         this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
     public Session createSession(Session session) {
+        // Validate user exists
+        User user = userRepository.findById(session.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Set the validated user
+        session.setUser(user);
+        
+        // Set timestamps
         session.setStartTime(LocalDateTime.now());
         session.setLastActivity(LocalDateTime.now());
+        
         return sessionRepository.save(session);
     }
 
@@ -63,6 +75,9 @@ public class SessionService {
 
     @Transactional
     public void deleteSession(Long id) {
+        if (!sessionRepository.existsById(id)) {
+            throw new RuntimeException("Session not found");
+        }
         sessionRepository.deleteById(id);
     }
 
@@ -75,9 +90,10 @@ public class SessionService {
     public Session getSessionBySessionId(String sessionId) {
         try {
             Long id = Long.parseLong(sessionId);
-            return sessionRepository.findById(id).orElse(null);
+            return sessionRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Session not found"));
         } catch (NumberFormatException e) {
-            return null;
+            throw new RuntimeException("Invalid session ID format");
         }
     }
 
@@ -86,6 +102,14 @@ public class SessionService {
         if (!sessionRepository.existsById(session.getId())) {
             throw new RuntimeException("Session not found");
         }
+        
+        // Validate user if changed
+        if (session.getUser() != null) {
+            User user = userRepository.findById(session.getUser().getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            session.setUser(user);
+        }
+        
         return sessionRepository.save(session);
     }
 

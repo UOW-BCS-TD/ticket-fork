@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS users;
 
 -- Create users table
 CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -21,68 +21,72 @@ CREATE TABLE users (
 
 -- Create customers table
 CREATE TABLE customers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE,
     role VARCHAR(20) NOT NULL,
     user_id BIGINT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_customer_role CHECK (role IN ('STANDARD', 'PREMIUM', 'VIP'))
 );
 
 -- Create engineers table
 CREATE TABLE engineers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    engineer_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE,
     category VARCHAR(50) NOT NULL,
     level INT NOT NULL,
     max_tickets INT NOT NULL,
-    current_tickets INT NOT NULL,
+    current_tickets INT NOT NULL DEFAULT 0,
     user_id BIGINT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_engineer_level CHECK (level > 0),
+    CONSTRAINT chk_engineer_tickets CHECK (current_tickets <= max_tickets)
 );
 
 -- Create managers table
 CREATE TABLE managers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    manager_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE,
     department VARCHAR(50) NOT NULL,
     user_id BIGINT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 -- Create products table
 CREATE TABLE products (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create ticket_types table
 CREATE TABLE ticket_types (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    ticket_type_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT
 );
 
 -- Create sessions table
 CREATE TABLE sessions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    start_time TIMESTAMP NOT NULL,
+    session_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_time TIMESTAMP,
-    last_activity TIMESTAMP NOT NULL,
+    last_activity TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id BIGINT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_session_times CHECK (end_time IS NULL OR end_time > start_time)
 );
 
 -- Create tickets table
 CREATE TABLE tickets (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(20) NOT NULL,
     urgency VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP,
     last_response_time TIMESTAMP,
     customer_id BIGINT NOT NULL,
@@ -90,19 +94,25 @@ CREATE TABLE tickets (
     product_id BIGINT NOT NULL,
     type_id BIGINT NOT NULL,
     session_id BIGINT NOT NULL,
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (engineer_id) REFERENCES engineers(id),
-    FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (type_id) REFERENCES ticket_types(id),
-    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (engineer_id) REFERENCES engineers(engineer_id) ON DELETE SET NULL,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT,
+    FOREIGN KEY (type_id) REFERENCES ticket_types(ticket_type_id) ON DELETE RESTRICT,
+    FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    CONSTRAINT chk_ticket_status CHECK (status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED', 'ESCALATED')),
+    CONSTRAINT chk_ticket_urgency CHECK (urgency IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    CONSTRAINT chk_ticket_times CHECK (
+        (resolved_at IS NULL) OR 
+        (resolved_at >= created_at AND resolved_at >= updated_at)
+    )
 );
 
 -- Insert initial data
 INSERT INTO users (name, email, password, role, created_at) VALUES
-('Admin User', 'admin@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'ADMIN', CURRENT_TIMESTAMP),
-('Customer User', 'customer@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'CUSTOMER', CURRENT_TIMESTAMP),
-('Engineer User', 'engineer@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'ENGINEER', CURRENT_TIMESTAMP),
-('Manager User', 'manager@example.com', '$2a$10$rDm0mT.Ec1lN.UxGZjZoTOH2Xd0B3wqAws8xyNwQM3NPlbfKbPAyG', 'MANAGER', CURRENT_TIMESTAMP);
+('Admin User', 'admin@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ADMIN', CURRENT_TIMESTAMP),
+('Customer User', 'customer@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'CUSTOMER', CURRENT_TIMESTAMP),
+('Engineer User', 'engineer@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', CURRENT_TIMESTAMP),
+('Manager User', 'manager@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'MANAGER', CURRENT_TIMESTAMP);
 
 INSERT INTO customers (email, user_id, role) VALUES
 ('customer@example.com', 2, 'STANDARD');

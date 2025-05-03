@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-TicketApplication<ticket>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.Elvis.ticket.TicketApplication",
+            "projectName": "ticket",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

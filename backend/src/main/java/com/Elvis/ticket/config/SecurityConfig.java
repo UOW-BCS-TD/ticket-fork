@@ -28,8 +28,52 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/").permitAll()
+                
+                // User profile endpoint
+                .requestMatchers("/api/users/profile").authenticated()
+                
+                // User management endpoints (admin only)
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                
+                // Ticket endpoints
+                .requestMatchers("/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/tickets/{id}").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/tickets/customer/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/tickets/engineer/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
+                .requestMatchers("/api/tickets/status/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
+                .requestMatchers("/api/tickets/urgency/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
+                .requestMatchers("/api/tickets/product/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
+                .requestMatchers("/api/tickets/type/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
+                .requestMatchers("/api/tickets/{id}/escalate").hasAnyRole("ADMIN", "MANAGER")
+                
+                // Customer management endpoints
+                .requestMatchers("/api/customers").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/customers/{id}").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/customers/email/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/customers/{id}/role").hasRole("ADMIN")
+                
+                // Engineer management endpoints
+                .requestMatchers("/api/engineers").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/engineers/{id}").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/engineers/email/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/engineers/category/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/engineers/available").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/engineers/create").hasAnyRole("ADMIN", "MANAGER")
+                
+                // Session management endpoints
+                .requestMatchers("/api/sessions").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/session/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/user/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/inactive").hasRole("ADMIN")
+                .requestMatchers("/api/sessions/{id}/end").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/{id}/activity").hasAnyRole("ADMIN", "MANAGER")
+                
+                // Any other request needs to be authenticated
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

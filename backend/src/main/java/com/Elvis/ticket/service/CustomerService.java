@@ -24,10 +24,16 @@ public class CustomerService {
 
     @Transactional
     public Customer createCustomer(Customer customer) {
-        User user = userRepository.findByEmail(customer.getEmail());
-        if (user == null) {
-            throw new RuntimeException("User not found with email: " + customer.getEmail());
+        // Validate user exists
+        User user = userRepository.findById(customer.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Validate customer role
+        if (!isValidCustomerRole(customer.getRole())) {
+            throw new RuntimeException("Invalid customer role. Must be one of: STANDARD, PREMIUM, VIP");
         }
+
+        // Set the validated user
         customer.setUser(user);
         return customerRepository.save(customer);
     }
@@ -59,6 +65,9 @@ public class CustomerService {
 
     @Transactional
     public void deleteCustomer(Long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new RuntimeException("Customer not found");
+        }
         customerRepository.deleteById(id);
     }
 
@@ -66,9 +75,21 @@ public class CustomerService {
     public Customer updateCustomerRole(Long id, CustomerRole role) {
         return customerRepository.findById(id)
                 .map(customer -> {
+                    if (!isValidCustomerRole(role.name())) {
+                        throw new RuntimeException("Invalid customer role. Must be one of: STANDARD, PREMIUM, VIP");
+                    }
                     customer.setRole(role.name());
                     return customerRepository.save(customer);
                 })
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
+    }
+
+    private boolean isValidCustomerRole(String role) {
+        try {
+            CustomerRole.valueOf(role);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 } 
