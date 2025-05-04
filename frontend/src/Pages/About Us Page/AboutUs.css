@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 .about-us-container {
-  font-family: 'Poppins', sans-serif;
   color: #333;
   background-color: #f8f9fa;
 }
@@ -12,12 +11,13 @@
   background-color: #f5f7fa;
   background-image: linear-gradient(135deg, #3090FF 0%, #1565c0 100%);
   color: white;
-  padding: 80px 0;
+  padding: 157px 0;
   text-align: center;
   position: relative;
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .about-us-header.animate-intro {
@@ -71,7 +71,6 @@
 .about-us-header p {
   font-size: 1.5rem;
   font-weight: 300;
-  max-width: 600px;
   margin: 0 auto;
   line-height: 1.5;
   opacity: 0;
@@ -94,6 +93,7 @@
 /* Main content */
 .about-us-main {
   padding: 2rem 100px;
+  box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.03);
 }
 
 /* Section styling */
@@ -133,6 +133,7 @@
   width: 100%;
   height: 400px;
   overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
 }
 
 .our-story-image img {
@@ -149,7 +150,6 @@
   font-size: 16px;
 }
 
-/* Values section */
 /* Values section */
 .values-container {
   display: grid;
@@ -192,7 +192,6 @@
 /* Team section */
 .team-intro {
   text-align: center;
-  max-width: 700px;
   margin: 0 auto 40px;
   color: #666;
   font-size: 18px;
@@ -368,97 +367,196 @@
   margin: 0;
 }
 
-/* Stats section */
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+/* Achievements section */
+.achievements-container {
+  display: flex;
+  flex-direction: column;
   gap: 30px;
-  text-align: center;
+  margin: 0 auto;
 }
 
-.stat-card {
+.achievements-row {
+  display: flex;
+  gap: 30px;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
   background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  position: relative;
+  flex: 1;
 }
 
-.stat-card:hover {
+.achievement-item:hover {
   transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
 }
 
-.stat-number {
-  font-size: 48px;
-  font-weight: 700;
+.achievement-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: #3090FF;
+  border-radius: 4px 0 0 4px;
+}
+
+.achievement-icon {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(48, 144, 255, 0.1);
+  border-radius: 50%;
+  margin-right: 25px;
+  flex-shrink: 0;
+}
+
+.achievement-icon i {
+  font-size: 28px;
   color: #3090FF;
-  margin-bottom: 10px;
 }
 
-.stat-label {
+.achievement-content {
+  flex: 1;
+}
+
+.achievement-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.achievement-label {
   color: #666;
   font-size: 16px;
   font-weight: 500;
+  margin-bottom: 12px;
 }
 
-/* CTA section */
-.contact-cta {
+.achievement-bar {
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
   background: linear-gradient(to right, #3090FF, #54a2ec);
+  border-radius: 4px;
+  transition: width 1.5s ease-in-out;
+}
+
+/* Get Started section */
+.get-started {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.get-started-container {
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 0;
+}
+
+.get-started-content {
   padding: 60px;
-  border-radius: 10px;
-  color: white;
-  text-align: center;
 }
 
-.cta-content h2 {
+.get-started-content h2 {
   font-size: 32px;
-  font-weight: 600;
-  margin-bottom: 15px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
 }
 
-.cta-content p {
+.get-started-content p {
   font-size: 18px;
+  color: #666;
+  line-height: 1.6;
   margin-bottom: 30px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.cta-buttons {
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 30px;
+}
+
+.benefits-list li {
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #555;
 }
 
-.primary-btn, .secondary-btn {
-  padding: 12px 30px;
+.benefits-list li i {
+  color: #3090FF;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.start-btn, .demo-btn {
+  padding: 14px 28px;
   border-radius: 30px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
 }
 
-.primary-btn {
+.start-btn {
+  background: #3090FF;
+  color: white;
+  box-shadow: 0 4px 15px rgba(48, 144, 255, 0.3);
+}
+
+.start-btn:hover {
+  background: #1a7dff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(48, 144, 255, 0.4);
+}
+
+.demo-btn {
   background: white;
   color: #3090FF;
+  border: 2px solid #3090FF;
 }
 
-.primary-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
+.demo-btn:hover {
+  background: rgba(48, 144, 255, 0.05);
   transform: translateY(-2px);
 }
 
-.secondary-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
+.get-started-image {
+  height: 100%;
+  overflow: hidden;
 }
 
-.secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+.get-started-image img {
+  width: 100%;
+  object-fit: cover;
 }
 
 /* Animations */
@@ -541,6 +639,14 @@
   .our-story-image {
     height: 350px;
   }
+
+  .get-started-content {
+    padding: 40px;
+  }
+  
+  .get-started-content h2 {
+    font-size: 28px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -604,6 +710,42 @@
   .timeline-item.right::after {
     left: 21px;
   }
+
+  .achievement-item {
+    padding: 20px;
+  }
+
+  .achievements-row {
+    flex-direction: column;
+  }
+  
+  .achievement-icon {
+    width: 60px;
+    height: 60px;
+    margin-right: 20px;
+  }
+  
+  .achievement-icon i {
+    font-size: 24px;
+  }
+  
+  .achievement-number {
+    font-size: 30px;
+  }
+  
+  .get-started-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .get-started-content {
+    padding: 40px 30px;
+    order: 2;
+  }
+  
+  .get-started-image {
+    order: 1;
+    height: 300px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -651,23 +793,42 @@
     padding: 20px;
   }
   
-  .cta-buttons {
+  .achievement-item {
     flex-direction: column;
-    gap: 15px;
-    max-width: 300px;
-    margin: 0 auto;
+    text-align: center;
+    padding: 25px 15px;
   }
   
-  .contact-cta {
-    padding: 40px 20px;
+  .achievement-item::before {
+    width: 100%;
+    height: 5px;
+    border-radius: 4px 4px 0 0;
   }
   
-  .cta-content h2 {
+  .achievement-icon {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+  
+  .get-started-content {
+    padding: 30px 20px;
+  }
+  
+  .get-started-content h2 {
     font-size: 24px;
   }
   
-  .cta-content p {
+  .get-started-content p {
     font-size: 16px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .start-btn, .demo-btn {
+    width: 100%;
+    padding: 12px 20px;
   }
 }
 
@@ -711,16 +872,15 @@
     height: 180px;
   }
   
-  .stat-number {
-    font-size: 36px;
+  .achievement-number {
+    font-size: 26px;
   }
   
-  .stat-label {
+  .achievement-label {
     font-size: 14px;
   }
   
-  .primary-btn, .secondary-btn {
-    padding: 10px 20px;
+  .benefits-list li {
     font-size: 14px;
   }
 }

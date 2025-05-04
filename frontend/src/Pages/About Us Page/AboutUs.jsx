@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './AboutUs.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -179,10 +180,7 @@ const AboutUs = () => {
             {teamMembers.map((member, index) => (
               <div className="team-member-card" key={index}>
                 <div className="member-image">
-                  <img src={member.image} alt={member.name} onError={(e) => {
-                    // e.target.onerror = null;
-                    // e.target.src = 'https://via.placeholder.com/150?text=Team+Member';
-                  }} />
+                  <img src={member.image} alt={member.name}/>
                 </div>
                 <div className="member-info">
                   <h3>{member.name}</h3>
@@ -223,38 +221,82 @@ const AboutUs = () => {
           </div>
         </section>
 
-        <section className="about-us-section our-stats">
+        <section className="about-us-section our-achievements">
           <div className="section-header">
-            <h2>Our Impact</h2>
+            <h2>Our Achievements</h2>
             <div className="section-divider"></div>
           </div>
-          <div className="stats-container">
-            <div className="stat-card">
-              <div className="stat-number">500+</div>
-              <div className="stat-label">Businesses Served</div>
+          <div className="achievements-container">
+            <div className="achievements-row">
+              <div className="achievement-item">
+                <div className="achievement-icon">
+                  <i className="fas fa-building"></i>
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-number">500+</div>
+                  <div className="achievement-label">Businesses Served</div>
+                  <div className="achievement-bar">
+                    <div className="bar-fill" style={{width: '80%'}}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="achievement-item">
+                <div className="achievement-icon">
+                  <i className="fas fa-ticket-alt"></i>
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-number">5M+</div>
+                  <div className="achievement-label">Tickets Processed</div>
+                  <div className="achievement-bar">
+                    <div className="bar-fill" style={{width: '95%'}}></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-number">5M+</div>
-              <div className="stat-label">Tickets Processed</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">98%</div>
-              <div className="stat-label">Customer Satisfaction</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">30+</div>
-              <div className="stat-label">Countries</div>
+            <div className="achievements-row">
+              <div className="achievement-item">
+                <div className="achievement-icon">
+                  <i className="fas fa-smile"></i>
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-number">98%</div>
+                  <div className="achievement-label">Customer Satisfaction</div>
+                  <div className="achievement-bar">
+                    <div className="bar-fill" style={{width: '98%'}}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="achievement-item">
+                <div className="achievement-icon">
+                  <i className="fas fa-globe-americas"></i>
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-number">30+</div>
+                  <div className="achievement-label">Countries</div>
+                  <div className="achievement-bar">
+                    <div className="bar-fill" style={{width: '60%'}}></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="about-us-section contact-cta">
-          <div className="cta-content">
-            <h2>Ready to transform your customer support?</h2>
-            <p>Join hundreds of businesses that trust TechCare for their support needs.</p>
-            <div className="cta-buttons">
-              <button className="primary-btn">Request Demo</button>
-              <button className="secondary-btn">Contact Us</button>
+        <section className="about-us-section get-started">
+          <div className="get-started-container">
+            <div className="get-started-content">
+              <h2>Elevate Your Customer Support Experience</h2>
+              <p>Join the growing community of businesses that have transformed their customer relationships with TechCare.</p>
+              <ul className="benefits-list">
+                <li><i className="fas fa-check-circle"></i> 24/7 Customer Support</li>
+                <li><i className="fas fa-check-circle"></i> AI-Powered Solutions</li>
+                <li><i className="fas fa-check-circle"></i> Seamless Integration</li>
+                <li><i className="fas fa-check-circle"></i> Customizable Workflows</li>
+              </ul>
+              <div className="action-buttons">
+                <Link to="/create-ticket"><button className="start-btn">Get Support Now</button></Link>
+                <Link to="/chatbot"><button className="demo-btn">Try AI Assistant</button></Link>
+              </div>
             </div>
           </div>
         </section>
