@@ -56,10 +56,12 @@ public class UserController {
 
     @PutMapping("/{id}/password")
     public ResponseEntity<Void> updatePassword(@PathVariable Long id, @RequestBody String newPassword) {
-        if (userService.updatePassword(id, newPassword)) {
+        try {
+            userService.updatePassword(id, newPassword);
             return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
