@@ -1,6 +1,16 @@
 # ticket
 
 Test spring and react on git
-oraclejdk24
-node 22.14
-npm10.9.2
+
+BackEnd
+IntelJ oraclejdk24
+
+
+
+FrontEnd
+node 22.14 (min)
+npm10.9.2 (min)
+
+npm install
+
+npm run dev
