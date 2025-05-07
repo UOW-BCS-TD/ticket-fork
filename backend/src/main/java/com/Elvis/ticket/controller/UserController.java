@@ -56,10 +56,12 @@ public class UserController {
 
     @PutMapping("/{id}/password")
     public ResponseEntity<Void> updatePassword(@PathVariable Long id, @RequestBody String newPassword) {
-        if (userService.updatePassword(id, newPassword)) {
+        try {
+            userService.updatePassword(id, newPassword);
             return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -68,5 +70,19 @@ public class UserController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateCurrentUserProfile(@RequestBody User userDetails) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userService.getUserByEmail(email)
+                .map(user -> {
+                    user.setName(userDetails.getName());
+                    user.setPhoneNumber(userDetails.getPhoneNumber());
+                    userService.updateUser(user.getId(), user);
+                    return ResponseEntity.ok(UserResponse.fromUser(user));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 } 

@@ -94,6 +94,14 @@
 - **Response**: Success status
 - **Access**: ADMIN only
 
+### Update Current User Profile
+- **URL**: `/api/users/profile`
+- **Method**: `PUT`
+- **Description**: Update the profile of the currently authenticated user
+- **Request Body**: User details to update
+- **Response**: Updated user details
+- **Access**: Any authenticated user
+
 ## Ticket Management
 
 ### Get All Tickets
@@ -101,7 +109,10 @@
 - **Method**: `GET`
 - **Description**: Get all tickets
 - **Response**: List of tickets
-- **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Access**:
+  - ADMIN and MANAGER can view all tickets
+  - CUSTOMERS can view their own tickets
+  - ENGINEERS can view tickets they are assigned to
 
 ### Get Ticket by ID
 - **URL**: `/api/tickets/{id}`
@@ -131,7 +142,7 @@
 - **Method**: `DELETE`
 - **Description**: Delete a ticket
 - **Response**: Success status
-- **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Access**: Only ADMIN and MANAGER
 
 ### Get Tickets by Customer
 - **URL**: `/api/tickets/customer/{customerId}`
@@ -322,6 +333,14 @@
 - **Description**: Update session activity
 - **Response**: Updated session details
 - **Access**: ADMIN, MANAGER
+
+### Create Session
+- **URL**: `/api/sessions`
+- **Method**: `POST`
+- **Description**: Create a new session
+- **Request Body**: Session details (e.g., user ID, session start time)
+- **Response**: Created session details
+- **Access**: CUSTOMER only
 
 ## Error Responses
 

@@ -3,7 +3,9 @@ package com.Elvis.ticket.controller;
 import com.Elvis.ticket.dto.SessionResponse;
 import com.Elvis.ticket.model.Session;
 import com.Elvis.ticket.service.SessionService;
+import com.Elvis.ticket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,14 +13,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import com.Elvis.ticket.model.User;
+
 @RestController
 @RequestMapping("/api/sessions")
 public class SessionController {
     private final SessionService sessionService;
+    private final UserService userService;
 
     @Autowired
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService, UserService userService) {
         this.sessionService = sessionService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -52,8 +59,17 @@ public class SessionController {
     }
 
     @PostMapping
-    public SessionResponse createSession(@RequestBody Session session) {
-        return SessionResponse.fromSession(sessionService.createSession(session));
+    public ResponseEntity<SessionResponse> createSession(Authentication authentication) {
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email).orElse(null);
+        if (user == null || !"CUSTOMER".equals(user.getRole())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Session session = new Session();
+        session.setUser(user);
+        // Timestamps are set in the service
+        Session created = sessionService.createSession(session);
+        return ResponseEntity.status(HttpStatus.CREATED).body(SessionResponse.fromSession(created));
     }
 
     @PutMapping("/{id}")
