@@ -1,2 +1,8 @@
 # Ignore log files
 /log/ 
+
+/chat_backend/chroma_db/
+
+*.pdf
+
+/venv/
