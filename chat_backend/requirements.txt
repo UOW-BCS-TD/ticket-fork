@@ -6,3 +6,4 @@ chromadb
 pypdf
 cryptography>=3.1
 mysql-connector-python
+PyJWT==2.8.0

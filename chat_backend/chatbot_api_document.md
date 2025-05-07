@@ -57,3 +57,52 @@ curl -X POST http://localhost:5000/query \
 - The `user_id` can be reused in subsequent requests to maintain the session.
 - Ensure the server is running locally before making API calls.
 - Use tools like Postman or cURL to test the API.
+
+# Setting Up a Virtual Environment (venv)
+
+A virtual environment helps isolate your Python dependencies for a specific project.
+
+## Step 1: Install Python
+Ensure Python is installed on your system. You can check by running:
+```bash
+python --version
+```
+If Python is not installed, download and install it from [python.org](https://www.python.org/).
+
+## Step 2: Create a Virtual Environment
+Navigate to your project directory:
+```bash
+cd "C:\Cyber\Test Chatbot"
+```
+
+Create a virtual environment named `venv`:
+```bash
+python -m venv venv
+```
+
+## Step 3: Activate the Virtual Environment
+On Windows, activate the virtual environment:
+```bash
+venv\Scripts\activate
+```
+
+You should see `(venv)` at the beginning of your command prompt, indicating the virtual environment is active.
+
+## Step 4: Install Dependencies
+Install the required dependencies listed in `requirements.txt`:
+```bash
+pip install -r requirements.txt
+```
+## Step 5: Run the Application
+Now you can run your Python application:
+```bash
+python app.py
+```
+Your application should now be running.
+
+## Deactivating the Virtual Environment
+When you're done working, deactivate the virtual environment:
+```bash
+deactivate
+```
+

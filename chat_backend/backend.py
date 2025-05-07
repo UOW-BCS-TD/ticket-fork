@@ -13,10 +13,20 @@ import time
 from requests.exceptions import ChunkedEncodingError
 import mysql.connector
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
+from functools import wraps
+import base64
 
 # Set the Google API key for authentication
 os.environ["GOOGLE_API_KEY"] = "AIzaSyAllDb85-EYZSDQjd8tVyF_Kg5WG8HPOjc"
+
+# JWT Configuration - match Spring Boot's configuration
+JWT_SECRET_KEY = "your-secret-key-here-must-be-at-least-512-bits-long"  # Must match Spring Boot's app.jwt.secret
+JWT_EXPIRATION_MS = 3600000  # 1 hour in milliseconds, matches Spring Boot's app.jwt.expirationInMs
+
+# Convert the secret key to bytes for HMAC-SHA
+JWT_SECRET_KEY_BYTES = JWT_SECRET_KEY.encode('utf-8')
 
 # Ensure virtual environment exists
 venv_dir = "venv"
@@ -82,18 +92,74 @@ def get_db_connection():
         database="ticket_system"
     )
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            try:
+                token = auth_header.split(" ")[1]  # Bearer token
+                print(f"Received token: {token}")  # Debug log
+            except IndexError:
+                print("Invalid token format - missing Bearer prefix")  # Debug log
+                return jsonify({'message': 'Invalid token format'}), 401
+
+        if not token:
+            print("No token provided in request")  # Debug log
+            return jsonify({'message': 'Token is missing'}), 401
+
+        try:
+            # Debug log the secret key (first few characters only)
+            print(f"Using secret key (first 10 chars): {JWT_SECRET_KEY[:10]}...")
+            print(f"Secret key bytes length: {len(JWT_SECRET_KEY_BYTES)}")
+            
+            # Verify the token using both HS384 and HS512 algorithms
+            try:
+                data = decode(token, JWT_SECRET_KEY_BYTES, algorithms=["HS384"])
+            except InvalidTokenError:
+                data = decode(token, JWT_SECRET_KEY_BYTES, algorithms=["HS512"])
+                
+            print(f"Decoded token data: {data}")  # Debug log
+            current_user_email = data['sub']  # Spring Boot uses 'sub' for the subject (user ID)
+            print(f"Extracted user email: {current_user_email}")  # Debug log
+        except ExpiredSignatureError as e:
+            print(f"Token expired: {str(e)}")  # Debug log
+            return jsonify({'message': 'Token has expired'}), 401
+        except InvalidTokenError as e:
+            print(f"Invalid token: {str(e)}")  # Debug log
+            return jsonify({'message': 'Invalid token'}), 401
+        except Exception as e:
+            print(f"Unexpected error during token verification: {str(e)}")  # Debug log
+            return jsonify({'message': 'Token verification failed'}), 401
+
+        return f(current_user_email, *args, **kwargs)
+    return decorated
+
 @app.route('/query', methods=['POST'])
-def query():
+@token_required
+def query(current_user_email):
     data = request.json
-    user_id = data.get('user_id')
     query = data.get('query')
 
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+    if not query:
+        return jsonify({"error": "query is required"}), 400
 
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
+
+        # First, get the user ID from the email
+        cursor.execute(
+            "SELECT id FROM users WHERE email = %s",
+            (current_user_email,)
+        )
+        user_result = cursor.fetchone()
+        
+        if not user_result:
+            return jsonify({"error": "User not found"}), 404
+            
+        user_id = user_result[0]
 
         # Check if an active session exists for the user
         cursor.execute(
@@ -168,6 +234,59 @@ def test_db_connection():
         return jsonify({"status": "error", "message": f"Database connection failed: {err}"})
     finally:
         if connection.is_connected():
+            connection.close()
+
+# Add login endpoint to match Spring Boot's authentication
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        # Get user from database
+        cursor.execute(
+            "SELECT user_id, password, role FROM users WHERE email = %s",
+            (email,)
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        # In a real application, you would verify the password hash here
+        # For this example, we'll assume the password matches
+        if password != user['password']:  # Replace with proper password verification
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        # Generate JWT token matching Spring Boot's format
+        token = encode({
+            'sub': str(user['user_id']),  # Spring Boot uses 'sub' for the subject
+            'exp': datetime.utcnow() + timedelta(milliseconds=JWT_EXPIRATION_MS),
+            'iat': datetime.utcnow(),
+            'roles': [f"ROLE_{user['role']}"]  # Match Spring Boot's role format
+        }, JWT_SECRET_KEY_BYTES, algorithm="HS512")
+
+        return jsonify({
+            "token": token,
+            "type": "Bearer",
+            "id": user['user_id'],
+            "email": email,
+            "roles": [f"ROLE_{user['role']}"]
+        })
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": "Database error"}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
             connection.close()
 
 # Step 1: Define GitHub PDF URLs
