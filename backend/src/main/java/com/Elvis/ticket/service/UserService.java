@@ -30,8 +30,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public Optional<User> getUserByEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
     }
 
     @Transactional(readOnly = true)
@@ -40,24 +40,27 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, User userDetails) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-        }
-        existingUser.setName(userDetails.getName());
-        existingUser.setEmail(userDetails.getEmail());
-        existingUser.setPhoneNumber(userDetails.getPhoneNumber());
-        existingUser.setRole(userDetails.getRole());
-        
-        return userRepository.save(existingUser);
+    public Optional<User> updateUser(Long id, User userDetails) {
+        return userRepository.findById(id)
+                .map(existingUser -> {
+                    if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+                        existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+                    }
+                    existingUser.setName(userDetails.getName());
+                    existingUser.setEmail(userDetails.getEmail());
+                    existingUser.setPhoneNumber(userDetails.getPhoneNumber());
+                    existingUser.setRole(userDetails.getRole());
+                    return userRepository.save(existingUser);
+                });
     }
 
     @Transactional
-    public void deleteUser(Long id) {
+    public boolean deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            return false;
+        }
         userRepository.deleteById(id);
+        return true;
     }
 
     @Transactional

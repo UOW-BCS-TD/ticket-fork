@@ -4,6 +4,8 @@ import com.Elvis.ticket.model.Session;
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.repository.SessionRepository;
 import com.Elvis.ticket.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,8 @@ import java.util.Optional;
 
 @Service
 public class SessionService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SessionService.class);
 
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
@@ -24,6 +28,7 @@ public class SessionService {
 
     @Transactional
     public Session createSession(Session session) {
+        logger.info("Attempting to create session for user ID: {}", session.getUser() != null ? session.getUser().getId() : null);
         // Validate user exists
         User user = userRepository.findById(session.getUser().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -35,7 +40,9 @@ public class SessionService {
         session.setStartTime(LocalDateTime.now());
         session.setLastActivity(LocalDateTime.now());
         
-        return sessionRepository.save(session);
+        Session saved = sessionRepository.save(session);
+        logger.info("Session saved with ID: {} for user ID: {}", saved.getId(), saved.getUser().getId());
+        return saved;
     }
 
     @Transactional(readOnly = true)
