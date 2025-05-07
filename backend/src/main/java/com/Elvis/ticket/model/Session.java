@@ -1,6 +1,7 @@
 package com.Elvis.ticket.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,12 +9,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Data
 @Entity
 @Table(name = "sessions")
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
@@ -27,65 +33,12 @@ public class Session {
     @Column(name = "history", columnDefinition = "LONGTEXT")
     private String history;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "conversation_file_path")
+    private String conversationFilePath;
 
-    @Transient
-    @JsonIgnore
-    private List<ChatMessage> chatHistory;
-
-    public static class ChatMessage {
-        private String role; // "user" or "assistant"
-        private String content;
-        private LocalDateTime timestamp;
-
-        public ChatMessage() {}
-
-        public ChatMessage(String role, String content) {
-            this.role = role;
-            this.content = content;
-            this.timestamp = LocalDateTime.now();
-        }
-
-        // Getters and setters
-        public String getRole() { return role; }
-        public void setRole(String role) { this.role = role; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
-        public LocalDateTime getTimestamp() { return timestamp; }
-        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
-    }
-
-    public void addMessage(String role, String content) {
-        if (chatHistory == null) {
-            chatHistory = new ArrayList<>();
-        }
-        chatHistory.add(new ChatMessage(role, content));
-        updateHistoryJson();
-    }
-
-    private void updateHistoryJson() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            this.history = mapper.writeValueAsString(chatHistory);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize chat history", e);
-        }
-    }
-
-    public List<ChatMessage> getChatHistory() {
-        if (chatHistory == null && history != null) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                chatHistory = mapper.readValue(history, 
-                    mapper.getTypeFactory().constructCollectionType(List.class, ChatMessage.class));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Failed to deserialize chat history", e);
-            }
-        }
-        return chatHistory != null ? chatHistory : new ArrayList<>();
-    }
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SessionStatus status;
 
     // Getters and Setters
     public Long getId() {
