@@ -1,13 +1,9 @@
-/* Import font */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
 .chat-container {
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f4f7ff;
   padding: 2rem 100px;
-  font-family: 'Poppins', sans-serif;
   background: linear-gradient(to bottom, #72b3f0, #54a2ec);
   position: relative;
 }

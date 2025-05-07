@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ResourcesAndGuides.css';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const ResourcesAndGuides = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -101,39 +100,37 @@ const ResourcesAndGuides = () => {
       </div>
 
       <div className="rg-main">
-        <section className="rg-section search-section">
-          <div className="rg-section-header">
-            <h2>Find What You Need</h2>
-            <div className="rg-section-divider"></div>
-          </div>
-          
-          <form className="rg-search-bar" onSubmit={handleSearch}>
-            <input 
-              type="text" 
-              placeholder="Search for guides, tutorials, and more..." 
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-            <button type="submit" className="rg-search-button">
-              <i className="fas fa-search"></i> Search
-            </button>
-          </form>
-          
-          <div className="rg-category-filters">
-            <button className="rg-category-filter active" onClick={() => setFilteredResources(resourcesData)}>
-              All
-            </button>
-            <button className="rg-category-filter" onClick={() => setFilteredResources(resourcesData.filter(r => r.category === 'beginner'))}>
-              Beginner
-            </button>
-            <button className="rg-category-filter" onClick={() => setFilteredResources(resourcesData.filter(r => r.category === 'intermediate'))}>
-              Intermediate
-            </button>
-            <button className="rg-category-filter" onClick={() => setFilteredResources(resourcesData.filter(r => r.category === 'advanced'))}>
-              Advanced
-            </button>
-          </div>
-        </section>
+      <section className="rg-section search-section">
+        <div className="rg-section-header">
+          <h2>Find What You Need</h2>
+          <div className="rg-section-divider"></div>
+        </div>
+        
+        <form className="search-bar" onSubmit={handleSearch}>
+          <input 
+            type="text" 
+            placeholder="Search for guides, tutorials, and more..." 
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <button type="submit" className="search-button">Search</button>
+        </form>
+        
+        <div className="rg-category-filters">
+          <button className="rg-category-filter active" onClick={() => setFilteredResources(resourcesData)}>
+            All
+          </button>
+          <button className="rg-category-filter" onClick={() => setFilteredResources(resourcesData.filter(r => r.category === 'beginner'))}>
+            Beginner
+          </button>
+          <button className="rg-category-filter" onClick={() => setFilteredResources(resourcesData.filter(r => r.category === 'intermediate'))}>
+            Intermediate
+          </button>
+          <button className="rg-category-filter" onClick={() => setFilteredResources(resourcesData.filter(r => r.category === 'advanced'))}>
+            Advanced
+          </button>
+        </div>
+      </section>
 
         <section className="rg-section resources-list">
           <div className="rg-section-header">
@@ -175,52 +172,6 @@ const ResourcesAndGuides = () => {
               </button>
             </div>
           )}
-        </section>
-
-        <section className="rg-section featured-resource">
-          <div className="rg-section-header">
-            <h2>Featured Resource</h2>
-            <div className="rg-section-divider"></div>
-          </div>
-          
-          <div className="rg-featured-content">
-            <div className="rg-featured-info">
-              <h3>Complete Guide to Customer Support Excellence</h3>
-              <p className="rg-featured-description">
-                Our comprehensive guide covers everything from building your support team to implementing 
-                advanced AI solutions for scalable customer service.
-              </p>
-              <p className="rg-featured-content">
-                This 50-page guide distills years of customer support expertise into actionable strategies 
-                that can transform your support operations. Learn how to reduce response times, increase 
-                customer satisfaction, and build a support team that becomes a competitive advantage for your business.
-              </p>
-              <div className="rg-featured-cta">
-                <Link to="/resources/featured" className="rg-download-btn">
-                  <i className="fas fa-download"></i> Download Guide
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="rg-section get-help">
-          <div className="rg-help-container">
-            <div className="rg-help-content">
-              <h2>Need Additional Help?</h2>
-              <p>Our support team is ready to assist you with any questions or challenges you're facing.</p>
-              <ul className="rg-help-options-list">
-                <li><i className="fas fa-headset"></i> Contact our 24/7 support team</li>
-                <li><i className="fas fa-video"></i> Schedule a one-on-one training session</li>
-                <li><i className="fas fa-users"></i> Join our community forum</li>
-                <li><i className="fas fa-calendar-alt"></i> Attend our weekly webinars</li>
-              </ul>
-              <div className="rg-help-buttons">
-                <Link to="/create-ticket" className="rg-contact-btn">Contact Support</Link>
-                <Link to="/chatbot" className="rg-chat-btn">Chat with AI Assistant</Link>
-              </div>
-            </div>
-          </div>
         </section>
       </div>
     </div>

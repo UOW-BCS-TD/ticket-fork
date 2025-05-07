@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './AboutUs.css';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const AboutUs = () => {
   const [isVisible, setIsVisible] = useState(false);

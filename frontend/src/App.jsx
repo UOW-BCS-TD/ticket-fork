@@ -33,7 +33,12 @@ const App = () => {
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/view-tickets" element={<TicketInformation />} />
           <Route path="/create-ticket" element={<CreateTicket />} />
-          <Route path="/resources" element={<ResourcesAndGuides />} />
+          <Route path="/resources" element={
+            <>
+              <ResourcesAndGuides />
+              <Footer />
+            </>
+          } />
           <Route path="/login" element={<Login />} />
         </Routes>
       </div>
