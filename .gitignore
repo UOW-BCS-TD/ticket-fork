@@ -1,7 +1,7 @@
 # Ignore log files
 /log/ 
 
-/chroma_db/
+/chat_backend/chroma_db/
 
 *.pdf
 
