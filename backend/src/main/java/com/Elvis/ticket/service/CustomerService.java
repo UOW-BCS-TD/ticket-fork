@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerService {
@@ -24,17 +25,18 @@ public class CustomerService {
 
     @Transactional
     public Customer createCustomer(Customer customer) {
-        // Validate user exists
-        User user = userRepository.findById(customer.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        // Validate customer role
-        if (!isValidCustomerRole(customer.getRole())) {
-            throw new RuntimeException("Invalid customer role. Must be one of: STANDARD, PREMIUM, VIP");
+        User user = userRepository.findByEmail(customer.getEmail());
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + customer.getEmail());
         }
-
-        // Set the validated user
         customer.setUser(user);
+        
+        // Generate unique chatbot ID
+        customer.setChatbotId(generateChatbotId());
+        
+        // Set default conversation file path
+        customer.setConversationFilePath(generateConversationFilePath(customer.getChatbotId()));
+        
         return customerRepository.save(customer);
     }
 
@@ -53,11 +55,19 @@ public class CustomerService {
         return customerRepository.findByEmail(email);
     }
 
+    @Transactional(readOnly = true)
+    public Customer getCustomerByChatbotId(String chatbotId) {
+        return customerRepository.findByChatbotId(chatbotId);
+    }
+
     @Transactional
     public Customer updateCustomer(Long id, Customer customerDetails) {
         return customerRepository.findById(id)
                 .map(existingCustomer -> {
                     existingCustomer.setRole(customerDetails.getRole());
+                    if (customerDetails.getConversationFilePath() != null) {
+                        existingCustomer.setConversationFilePath(customerDetails.getConversationFilePath());
+                    }
                     return customerRepository.save(existingCustomer);
                 })
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -91,5 +101,13 @@ public class CustomerService {
         } catch (IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private String generateChatbotId() {
+        return "CHAT-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private String generateConversationFilePath(String chatbotId) {
+        return "conversations/" + chatbotId + ".json";
     }
 } 

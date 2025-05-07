@@ -2,6 +2,7 @@ package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.Session;
 import com.Elvis.ticket.model.User;
+import com.Elvis.ticket.model.SessionStatus;
 import com.Elvis.ticket.repository.SessionRepository;
 import com.Elvis.ticket.repository.UserRepository;
 import org.slf4j.Logger;
@@ -33,12 +34,16 @@ public class SessionService {
         User user = userRepository.findById(session.getUser().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        // Set the validated user
+        // Set initial values
         session.setUser(user);
-        
-        // Set timestamps
         session.setStartTime(LocalDateTime.now());
         session.setLastActivity(LocalDateTime.now());
+        session.setStatus(SessionStatus.ACTIVE);
+
+        // Generate conversation file path if not provided
+        if (session.getConversationFilePath() == null) {
+            session.setConversationFilePath(generateConversationFilePath(session));
+        }
         
         Session saved = sessionRepository.save(session);
         logger.info("Session saved with ID: {} for user ID: {}", saved.getId(), saved.getUser().getId());
@@ -61,20 +66,31 @@ public class SessionService {
     }
 
     @Transactional
-    public Session updateLastActivity(Long id) {
-        return sessionRepository.findById(id)
-                .map(session -> {
-                    session.setLastActivity(LocalDateTime.now());
-                    return sessionRepository.save(session);
-                })
-                .orElseThrow(() -> new RuntimeException("Session not found"));
+    public Session updateSession(Session session) {
+        if (!sessionRepository.existsById(session.getId())) {
+            throw new RuntimeException("Session not found");
+        }
+        
+        // Validate user if changed
+        if (session.getUser() != null) {
+            User user = userRepository.findById(session.getUser().getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            session.setUser(user);
+        }
+        
+        // Update last activity
+        session.setLastActivity(LocalDateTime.now());
+        
+        return sessionRepository.save(session);
     }
 
     @Transactional
-    public Session endSession(Long id) {
+    public Session closeSession(Long id) {
         return sessionRepository.findById(id)
                 .map(session -> {
                     session.setEndTime(LocalDateTime.now());
+                    session.setStatus(SessionStatus.CLOSED);
+                    session.setLastActivity(LocalDateTime.now());
                     return sessionRepository.save(session);
                 })
                 .orElseThrow(() -> new RuntimeException("Session not found"));
@@ -104,24 +120,27 @@ public class SessionService {
         }
     }
 
-    @Transactional
-    public Session updateSession(Session session) {
-        if (!sessionRepository.existsById(session.getId())) {
-            throw new RuntimeException("Session not found");
-        }
-        
-        // Validate user if changed
-        if (session.getUser() != null) {
-            User user = userRepository.findById(session.getUser().getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            session.setUser(user);
-        }
-        
-        return sessionRepository.save(session);
-    }
-
     @Transactional(readOnly = true)
     public List<Session> getInactiveSessions(LocalDateTime threshold) {
         return sessionRepository.findByLastActivityBefore(threshold);
+    }
+
+    @Transactional
+    public void updateLastActivity(Long id) {
+        Session session = sessionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+        session.setLastActivity(LocalDateTime.now());
+        sessionRepository.save(session);
+    }
+
+    @Transactional
+    public Session endSession(Long id) {
+        return closeSession(id);
+    }
+
+    private String generateConversationFilePath(Session session) {
+        return String.format("conversations/session_%d_%s.json", 
+            session.getId(), 
+            LocalDateTime.now().toString().replace(":", "-"));
     }
 } 

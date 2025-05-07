@@ -1,6 +1,7 @@
 package com.Elvis.ticket.controller;
 
 import com.Elvis.ticket.dto.UserResponse;
+import com.Elvis.ticket.dto.PasswordChangeRequest;
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,12 +56,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}/password")
-    public ResponseEntity<Void> updatePassword(@PathVariable Long id, @RequestBody String newPassword) {
+    public ResponseEntity<?> updatePassword(@PathVariable Long id, @RequestBody PasswordChangeRequest request) {
         try {
-            userService.updatePassword(id, newPassword);
-            return ResponseEntity.ok().build();
+            User updatedUser = userService.updatePassword(id, request);
+            return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
