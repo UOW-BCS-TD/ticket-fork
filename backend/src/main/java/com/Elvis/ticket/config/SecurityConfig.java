@@ -3,6 +3,7 @@ package com.Elvis.ticket.config;
 import com.Elvis.ticket.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -65,7 +66,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/engineers/create").hasAnyRole("ADMIN", "MANAGER")
                 
                 // Session management endpoints
-                .requestMatchers("/api/sessions").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(HttpMethod.POST, "/api/sessions").hasRole("CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/sessions/session/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/sessions/user/**").hasAnyRole("ADMIN", "MANAGER")
