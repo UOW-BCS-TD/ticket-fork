@@ -71,4 +71,18 @@ public class UserController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateCurrentUserProfile(@RequestBody User userDetails) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userService.getUserByEmail(email)
+                .map(user -> {
+                    user.setName(userDetails.getName());
+                    user.setPhoneNumber(userDetails.getPhoneNumber());
+                    userService.updateUser(user.getId(), user);
+                    return ResponseEntity.ok(UserResponse.fromUser(user));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
 } 

@@ -3,9 +3,13 @@ package com.Elvis.ticket.controller;
 import com.Elvis.ticket.dto.TicketResponse;
 import com.Elvis.ticket.model.*;
 import com.Elvis.ticket.service.TicketService;
+import com.Elvis.ticket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,17 +19,34 @@ import java.util.stream.Collectors;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final UserService userService;
 
     @Autowired
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService, UserService userService) {
         this.ticketService = ticketService;
+        this.userService = userService;
     }
 
     @GetMapping
-    public List<TicketResponse> getAllTickets() {
-        return ticketService.getAllTickets().stream()
-                .map(TicketResponse::fromTicket)
-                .collect(Collectors.toList());
+    public List<TicketResponse> getAllTickets(Authentication authentication) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        if (role.equals("ROLE_ADMIN") || role.equals("ROLE_MANAGER")) {
+            return ticketService.getAllTickets().stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        } else if (role.equals("ROLE_CUSTOMER")) {
+            Long customerId = userService.getUserByEmail(userDetails.getUsername()).get().getId();
+            return ticketService.getTicketsByCustomerId(customerId).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        } else if (role.equals("ROLE_ENGINEER")) {
+            Long engineerId = userService.getUserByEmail(userDetails.getUsername()).get().getId();
+            return ticketService.getTicketsByEngineerId(engineerId).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        }
+        return List.of();
     }
 
     @GetMapping("/{id}")
@@ -52,9 +73,13 @@ public class TicketController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
-        ticketService.deleteTicket(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id, Authentication authentication) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        if (role.equals("ROLE_ADMIN") || role.equals("ROLE_MANAGER")) {
+            ticketService.deleteTicket(id);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @GetMapping("/customer/{customerId}")
