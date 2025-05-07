@@ -1,0 +1,8 @@
+Flask
+langchain
+langchain-google-genai
+langchain-community
+chromadb
+pypdf
+cryptography>=3.1
+mysql-connector-python

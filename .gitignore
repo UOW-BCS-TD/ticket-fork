@@ -1,2 +1,8 @@
 # Ignore log files
 /log/ 
+
+/chroma_db/
+
+*.pdf
+
+/venv/
