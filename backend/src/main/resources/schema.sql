@@ -70,6 +70,7 @@ CREATE TABLE ticket_types (
 -- Create sessions table
 CREATE TABLE sessions (
     session_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
     start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_time TIMESTAMP,
     last_activity TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

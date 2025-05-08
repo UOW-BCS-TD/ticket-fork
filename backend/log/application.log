@@ -375,7 +375,7 @@
         u1_0.email=?
 2025-05-08 12:36:34 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:36:34 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: customer@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -547,7 +547,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:44:17 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:44:17 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -716,7 +716,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:44:21 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:44:21 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -885,7 +885,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:45:43 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:45:43 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1054,7 +1054,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:46:25 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:46:25 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1223,7 +1223,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:46:52 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:46:52 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1392,7 +1392,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:50:31 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:50:31 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1561,7 +1561,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:51:12 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:51:12 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1730,7 +1730,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:51:41 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:51:41 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1899,7 +1899,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:14 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:14 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2068,7 +2068,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:31 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:31 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2237,7 +2237,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:34 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:34 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2406,7 +2406,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:37 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:37 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2575,7 +2575,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:19:45 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to find user 'd@1'
 2025-05-08 13:19:45 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: d@1
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:141)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
 	at com.Elvis.ticket.service.AuthService.authenticate(AuthService.java:34)
@@ -2743,7 +2743,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:20:37 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:20:37 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2912,7 +2912,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:21:03 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:21:03 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -3821,3 +3821,4 @@ org.springframework.security.authentication.BadCredentialsException: Bad credent
         users u1_0 
     where
         u1_0.email=?
+

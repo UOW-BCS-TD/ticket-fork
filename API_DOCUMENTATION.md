@@ -320,12 +320,27 @@
 - **Response**: List of sessions
 - **Access**: ADMIN only
 
+### Get Session History
+- **URL**: `/api/sessions/{id}/history`
+- **Method**: `GET`
+- **Description**: Get the chat history for a session
+- **Response**:
+  ```json
+  {
+    "history": [
+      { "role": "user", "content": "First message", "timestamp": "2024-06-01T12:00:00Z" },
+      { "role": "assistant", "content": "Hello! How can I help you?", "timestamp": "2024-06-01T12:00:01Z" }
+    ]
+  }
+  ```
+- **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
+
 ### End Session
 - **URL**: `/api/sessions/{id}/end`
 - **Method**: `PUT`
-- **Description**: End a session
+- **Description**: End a session. Can be called by ADMIN, MANAGER, or the session owner (CUSTOMER).
 - **Response**: Updated session details
-- **Access**: ADMIN, MANAGER
+- **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
 
 ### Update Session Activity
 - **URL**: `/api/sessions/{id}/activity`
@@ -337,9 +352,12 @@
 ### Create Session
 - **URL**: `/api/sessions`
 - **Method**: `POST`
-- **Description**: Create a new session
-- **Request Body**: Session details (e.g., user ID, session start time)
-- **Response**: Created session details
+- **Description**: Create a new session. The session title is set from the first user message.
+- **Request Body**:
+  ```json
+  { "title": "First user message" }
+  ```
+- **Response**: Created session details (includes `title` field)
 - **Access**: CUSTOMER only
 
 ## Error Responses
