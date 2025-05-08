@@ -9,7 +9,8 @@
 
 *.log
 
-/backend/log/*.log
+/backend/log/
 
 /.idea/
 /.vscode/
+backend/log/application.log
