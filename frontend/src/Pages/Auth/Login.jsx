@@ -1,0 +1,280 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import authService from '../../Services/auth';
+import './Login.css';
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (authService.isLoggedIn()) {
+      navigate('/profile');
+    }
+    
+    // Force a refresh of the Header component when this component mounts
+    window.dispatchEvent(new Event('authChange'));
+  }, [navigate]);
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      console.log('Attempting to login with:', email);
+      
+      // Use the authService to login
+      const response = await authService.login(email, password);
+      
+      console.log('Login successful:', response);
+      
+      // Dispatch custom event to update header
+      window.dispatchEvent(new Event('authChange'));
+      
+      // Redirect to home page after successful login
+      navigate('/profile');
+    } catch (err) {
+      console.error('Login failed:', err);
+      setError(err.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!regEmail || !regPassword || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (regPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      console.log('Attempting to register:', regEmail);
+      
+      // Extract name from email (username part)
+      const name = regEmail.split('@')[0];
+      
+      // Create user data object
+      const userData = {
+        name,
+        email: regEmail,
+        password: regPassword,
+        // Default role is CUSTOMER, but you might want to adjust this
+        // based on your application's requirements
+        role: 'CUSTOMER'
+      };
+      
+      // Use the authService to register
+      const response = await authService.register(userData);
+      
+      console.log('Registration successful:', response);
+      
+      // After successful registration, log the user in
+      await authService.login(regEmail, regPassword);
+      
+      // Dispatch custom event to update header
+      window.dispatchEvent(new Event('authChange'));
+      
+      // Redirect to home page after successful registration
+      navigate('/profile');
+    } catch (err) {
+      console.error('Registration failed:', err);
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSignUpMode(!isSignUpMode);
+    setError('');
+  };
+
+  const handleSocialLogin = (provider) => {
+    // Implementation would go here
+    console.log(`Social login with ${provider} not implemented yet`);
+  };
+
+  return (
+    <div className="login-page">
+      <div className={`login-container ${isSignUpMode ? 'sign-up-mode' : ''}`}>
+        <div className="forms-container">
+          <div className="signin-signup">
+            <form className="sign-in-form" onSubmit={handleLoginSubmit}>
+              <h2 className="title">Sign in</h2>
+              {error && <div className="error-message">{error}</div>}
+              <div className="input-field">
+                <i className="fas fa-user"></i>
+                <input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="input-field">
+                <i className="fas fa-lock"></i>
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="form-options">
+                <div className="remember-me">
+                  <input type="checkbox" id="remember" />
+                  <label htmlFor="remember">Remember me</label>
+                </div>
+                <Link to="/forgot-password" className="forgot-password">Forgot password?</Link>
+              </div>
+              <button type="submit" className="btn solid" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
+
+              <div className="social-login">
+                <p className="social-text">Or sign in with</p>
+                <div className="social-media">
+                  <button 
+                    type="button" 
+                    className="social-icon google"
+                    onClick={() => handleSocialLogin('Google')}
+                  >
+                    <i className="fab fa-google"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="social-icon facebook"
+                    onClick={() => handleSocialLogin('Facebook')}
+                  >
+                    <i className="fab fa-facebook-f"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="social-icon apple"
+                    onClick={() => handleSocialLogin('Apple')}
+                  >
+                    <i className="fab fa-apple"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+  
+            <form className="sign-up-form" onSubmit={handleRegisterSubmit}>
+              <h2 className="title">Sign up</h2>
+              {error && <div className="error-message">{error}</div>}
+              <div className="input-field">
+                <i className="fas fa-envelope"></i>
+                <input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="input-field">
+                <i className="fas fa-lock"></i>
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="input-field">
+                <i className="fas fa-lock"></i>
+                <input 
+                  type="password" 
+                  placeholder="Confirm Password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required 
+                />
+              </div>
+              <button type="submit" className="btn solid" disabled={isLoading}>
+                {isLoading ? 'Signing up...' : 'Sign up'}
+              </button>
+  
+              <div className="social-login">
+                <p className="social-text">Or sign up with</p>
+                <div className="social-media">
+                  <button 
+                    type="button" 
+                    className="social-icon google"
+                    onClick={() => handleSocialLogin('Google')}
+                  >
+                    <i className="fab fa-google"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="social-icon facebook"
+                    onClick={() => handleSocialLogin('Facebook')}
+                  >
+                    <i className="fab fa-facebook-f"></i>
+                  </button>
+                  <button 
+                    type="button" 
+                    className="social-icon apple"
+                    onClick={() => handleSocialLogin('Apple')}
+                  >
+                    <i className="fab fa-apple"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+  
+        <div className="panels-container">
+          <div className="panel left-panel">
+            <div className="content">
+              <h3>New here?</h3>
+              <p>Create an account and start your journey with us today!</p>
+              <button className="btn transparent" onClick={toggleMode} id="sign-up-btn">Sign up</button>
+            </div>
+          </div>
+  
+          <div className="panel right-panel">
+            <div className="content">
+              <h3>One of us?</h3>
+              <p>Sign in to access your account and continue your experience.</p>
+              <button className="btn transparent" onClick={toggleMode} id="sign-in-btn">Sign in</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

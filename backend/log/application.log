@@ -375,7 +375,7 @@
         u1_0.email=?
 2025-05-08 12:36:34 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:36:34 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: customer@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -547,7 +547,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:44:17 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:44:17 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -716,7 +716,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:44:21 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:44:21 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -885,7 +885,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:45:43 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:45:43 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1054,7 +1054,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:46:25 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:46:25 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1223,7 +1223,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:46:52 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:46:52 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1392,7 +1392,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:50:31 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:50:31 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1561,7 +1561,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:51:12 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:51:12 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1730,7 +1730,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 12:51:41 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 12:51:41 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -1899,7 +1899,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:14 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:14 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2068,7 +2068,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:31 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:31 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2237,7 +2237,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:34 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:34 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2406,7 +2406,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:17:37 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:17:37 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2575,7 +2575,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:19:45 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to find user 'd@1'
 2025-05-08 13:19:45 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: d@1
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:141)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
 	at com.Elvis.ticket.service.AuthService.authenticate(AuthService.java:34)
@@ -2743,7 +2743,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:20:37 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:20:37 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -2912,7 +2912,7 @@ org.springframework.security.authentication.BadCredentialsException: 憑證錯�
         u1_0.email=?
 2025-05-08 13:21:03 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Failed to authenticate since password does not match stored value
 2025-05-08 13:21:03 ERROR c.Elvis.ticket.service.AuthService - Authentication failed for user: admin@example.com
-org.springframework.security.authentication.BadCredentialsException: 憑證錯誤
+org.springframework.security.authentication.BadCredentialsException: æè­é¯èª¤
 	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:89)
 	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147)
 	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182)
@@ -3821,635 +3821,4 @@ org.springframework.security.authentication.BadCredentialsException: Bad credent
         users u1_0 
     where
         u1_0.email=?
-2025-05-08 17:43:31 INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
-2025-05-08 17:43:31 INFO  com.Elvis.ticket.TicketApplication - Starting TicketApplication using Java 17.0.10 with PID 4380 (C:\Cyber\ticket\backend\target\classes started by elvis in C:\Cyber\ticket\backend)
-2025-05-08 17:43:31 DEBUG com.Elvis.ticket.TicketApplication - Running with Spring Boot v3.2.3, Spring v6.1.4
-2025-05-08 17:43:31 INFO  com.Elvis.ticket.TicketApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-08 17:43:35 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-08 17:43:35 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 128 ms. Found 8 JPA repository interfaces.
-2025-05-08 17:43:38 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8082 (http)
-2025-05-08 17:43:38 INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 17:43:38 INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-08 17:43:38 INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
-2025-05-08 17:43:38 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-08 17:43:38 INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 6710 ms
-2025-05-08 17:43:39 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-08 17:43:41 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@42f9873e
-2025-05-08 17:43:41 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-08 17:43:41 INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:mysql://localhost:3306/ticket_system?createDatabaseIfNotExist=true'
-2025-05-08 17:43:41 INFO  c.E.ticket.security.JwtTokenProvider - Initializing JWT token provider with secret key length: 51
-2025-05-08 17:43:41 INFO  c.E.ticket.security.JwtTokenProvider - Generated HMAC-SHA key with algorithm: HmacSHA384
-2025-05-08 17:43:42 INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-08 17:43:43 INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
-2025-05-08 17:43:43 INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-08 17:43:44 INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-08 17:43:44 WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-08 17:43:44 WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-08 17:43:49 INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-08 17:43:49 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 17:43:50 DEBUG c.E.t.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-08 17:43:50 DEBUG c.E.ticket.security.JwtRequestFilter - Filter 'jwtRequestFilter' configured for use
-2025-05-08 17:43:51 INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-08 17:43:56 INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
-2025-05-08 17:43:56 INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1483ecad, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7118a1b9, org.springframework.security.web.context.SecurityContextHolderFilter@1cfca845, org.springframework.security.web.header.HeaderWriterFilter@7fc8930f, org.springframework.web.filter.CorsFilter@3ca9e72d, org.springframework.security.web.authentication.logout.LogoutFilter@1be62793, com.Elvis.ticket.security.JwtAuthenticationFilter@1018552d, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@264e0b8e, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@45070db0, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4dcb8e8b, org.springframework.security.web.session.SessionManagementFilter@3e5f458f, org.springframework.security.web.access.ExceptionTranslationFilter@13b0755e, org.springframework.security.web.access.intercept.AuthorizationFilter@6eb8fd79]
-2025-05-08 17:43:58 INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 17:43:58 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8082 (http) with context path ''
-2025-05-08 17:43:58 INFO  com.Elvis.ticket.TicketApplication - Started TicketApplication in 28.544 seconds (process running for 30.112)
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        c1_0.id 
-    from
-        customers c1_0 
-    where
-        c1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        e1_0.id 
-    from
-        engineers e1_0 
-    where
-        e1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        m1_0.id 
-    from
-        managers m1_0 
-    where
-        m1_0.email=? 
-    limit
-        ?
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        count(*) 
-    from
-        products p1_0
-2025-05-08 17:43:58 DEBUG org.hibernate.SQL - 
-    select
-        count(*) 
-    from
-        ticket_types tt1_0
-2025-05-08 17:44:00 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-05-08 17:44:00 INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2025-05-08 17:44:00 INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
-2025-05-08 17:45:02 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/auth/login
-2025-05-08 17:45:02 DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/auth/login
-2025-05-08 17:45:02 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
-2025-05-08 17:45:02 DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/auth/login
-2025-05-08 17:45:02 DEBUG c.Elvis.ticket.service.AuthService - Attempting to authenticate user with email: admin@example.com
-2025-05-08 17:45:02 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:45:02 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Authenticated user
-2025-05-08 17:45:02 DEBUG c.E.ticket.security.JwtTokenProvider - Created token with subject: admin@example.com, expiry: Thu May 08 18:45:02 HKT 2025
-2025-05-08 17:45:02 INFO  c.E.ticket.security.JwtTokenProvider - Generated token for user: admin@example.com
-2025-05-08 17:45:02 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:45:09 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 17:45:09 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 17:47:31 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 17:47:31 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 17:48:36 DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/auth/login
-2025-05-08 17:48:36 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
-2025-05-08 17:48:36 DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/auth/login
-2025-05-08 17:48:36 DEBUG c.Elvis.ticket.service.AuthService - Attempting to authenticate user with email: admin@example.com
-2025-05-08 17:48:36 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:48:36 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Authenticated user
-2025-05-08 17:48:36 DEBUG c.E.ticket.security.JwtTokenProvider - Created token with subject: admin@example.com, expiry: Thu May 08 18:48:36 HKT 2025
-2025-05-08 17:48:36 INFO  c.E.ticket.security.JwtTokenProvider - Generated token for user: admin@example.com
-2025-05-08 17:48:36 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:56:22 DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions/
-2025-05-08 17:56:22 DEBUG c.E.ticket.security.JwtTokenProvider - Validating token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc0NjY5NzcxNiwiZXhwIjoxNzQ2NzAxMzE2fQ.m1aLVJ4B-JIHJlwZPZJBV30dtNPghODsRggoPDGG55Y6cJ7QkSeHPDGP89LMT8dq
-2025-05-08 17:56:22 INFO  c.E.ticket.security.JwtTokenProvider - Token validation result: true
-2025-05-08 17:56:22 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:56:22 DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions/
-2025-05-08 17:56:22 DEBUG o.s.security.web.FilterChainProxy - Securing GET /error
-2025-05-08 17:56:22 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
-2025-05-08 17:56:22 DEBUG o.s.s.w.a.Http403ForbiddenEntryPoint - Pre-authenticated entry point called. Rejecting access
-2025-05-08 17:56:55 DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/sessions
-2025-05-08 17:56:55 DEBUG c.E.ticket.security.JwtTokenProvider - Validating token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc0NjY5NzcxNiwiZXhwIjoxNzQ2NzAxMzE2fQ.m1aLVJ4B-JIHJlwZPZJBV30dtNPghODsRggoPDGG55Y6cJ7QkSeHPDGP89LMT8dq
-2025-05-08 17:56:55 INFO  c.E.ticket.security.JwtTokenProvider - Token validation result: true
-2025-05-08 17:56:55 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 17:56:55 DEBUG o.s.security.web.FilterChainProxy - Secured GET /api/sessions
-2025-05-08 17:56:55 DEBUG org.hibernate.SQL - 
-    select
-        s1_0.id,
-        s1_0.conversation_file_path,
-        s1_0.end_time,
-        s1_0.history,
-        s1_0.last_activity,
-        s1_0.start_time,
-        s1_0.status,
-        s1_0.user_id 
-    from
-        sessions s1_0
-2025-05-08 17:56:55 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.id=?
-2025-05-08 21:36:33 WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3h39m21s570ms71�s400ns).
-2025-05-08 21:49:50 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 21:51:59 INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
-2025-05-08 21:51:59 INFO  com.Elvis.ticket.TicketApplication - Starting TicketApplication using Java 17.0.10 with PID 24528 (C:\Cyber\ticket\backend\target\classes started by elvis in C:\Cyber\ticket\backend)
-2025-05-08 21:51:59 DEBUG com.Elvis.ticket.TicketApplication - Running with Spring Boot v3.2.3, Spring v6.1.4
-2025-05-08 21:51:59 INFO  com.Elvis.ticket.TicketApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-08 21:52:01 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-08 21:52:01 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 200 ms. Found 8 JPA repository interfaces.
-2025-05-08 21:52:04 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8082 (http)
-2025-05-08 21:52:04 INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:52:04 INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-08 21:52:04 INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
-2025-05-08 21:52:04 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-08 21:52:04 INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 4642 ms
-2025-05-08 21:52:04 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-08 21:52:05 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5ee6fdc4
-2025-05-08 21:52:05 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-08 21:52:05 INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:mysql://localhost:3306/ticket_system?createDatabaseIfNotExist=true'
-2025-05-08 21:52:05 INFO  c.E.ticket.security.JwtTokenProvider - Initializing JWT token provider with secret key length: 51
-2025-05-08 21:52:05 INFO  c.E.ticket.security.JwtTokenProvider - Generated HMAC-SHA key with algorithm: HmacSHA384
-2025-05-08 21:52:05 INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-08 21:52:06 INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
-2025-05-08 21:52:06 INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-08 21:52:08 INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-08 21:52:08 WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-08 21:52:08 WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-08 21:52:12 INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-08 21:52:12 DEBUG org.hibernate.SQL - 
-    alter table sessions 
-       add column title varchar(255)
-2025-05-08 21:52:13 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:52:15 DEBUG c.E.t.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-08 21:52:15 DEBUG c.E.ticket.security.JwtRequestFilter - Filter 'jwtRequestFilter' configured for use
-2025-05-08 21:52:16 INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-08 21:52:21 INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
-2025-05-08 21:52:21 INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@35570a84, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7ba821ef, org.springframework.security.web.context.SecurityContextHolderFilter@3e492199, org.springframework.security.web.header.HeaderWriterFilter@45070db0, org.springframework.web.filter.CorsFilter@7cb8109, org.springframework.security.web.authentication.logout.LogoutFilter@4dcb8e8b, com.Elvis.ticket.security.JwtAuthenticationFilter@175c4ae5, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@186149f9, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@1be62793, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2779acb2, org.springframework.security.web.session.SessionManagementFilter@7d5238b4, org.springframework.security.web.access.ExceptionTranslationFilter@1cfca845, org.springframework.security.web.access.intercept.AuthorizationFilter@76b195d]
-2025-05-08 21:52:23 INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:52:23 WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
-2025-05-08 21:52:23 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:52:23 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-05-08 21:52:23 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
-2025-05-08 21:52:24 INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
 
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2025-05-08 21:52:24 ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
-
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Web server failed to start. Port 8082 was already in use.
-
-Action:
-
-Identify and stop the process that's listening on port 8082 or configure this application to listen on another port.
-
-2025-05-08 21:53:43 INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
-2025-05-08 21:53:43 INFO  com.Elvis.ticket.TicketApplication - Starting TicketApplication using Java 17.0.10 with PID 29104 (C:\Cyber\ticket\backend\target\classes started by elvis in C:\Cyber\ticket\backend)
-2025-05-08 21:53:43 DEBUG com.Elvis.ticket.TicketApplication - Running with Spring Boot v3.2.3, Spring v6.1.4
-2025-05-08 21:53:43 INFO  com.Elvis.ticket.TicketApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-08 21:53:45 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-08 21:53:45 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 109 ms. Found 8 JPA repository interfaces.
-2025-05-08 21:53:47 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8082 (http)
-2025-05-08 21:53:47 INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:53:47 INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-08 21:53:47 INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
-2025-05-08 21:53:47 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-08 21:53:47 INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3413 ms
-2025-05-08 21:53:47 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-08 21:53:48 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@38929da
-2025-05-08 21:53:48 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-08 21:53:48 INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:mysql://localhost:3306/ticket_system?createDatabaseIfNotExist=true'
-2025-05-08 21:53:48 INFO  c.E.ticket.security.JwtTokenProvider - Initializing JWT token provider with secret key length: 51
-2025-05-08 21:53:48 INFO  c.E.ticket.security.JwtTokenProvider - Generated HMAC-SHA key with algorithm: HmacSHA384
-2025-05-08 21:53:48 INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-08 21:53:48 INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
-2025-05-08 21:53:48 INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-08 21:53:49 INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-08 21:53:49 WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-08 21:53:49 WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-08 21:53:51 INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-08 21:53:51 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:53:52 DEBUG c.E.t.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-08 21:53:52 DEBUG c.E.ticket.security.JwtRequestFilter - Filter 'jwtRequestFilter' configured for use
-2025-05-08 21:53:52 INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-08 21:53:53 INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
-2025-05-08 21:53:54 INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@2365facb, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@65b9ebee, org.springframework.security.web.context.SecurityContextHolderFilter@40e28324, org.springframework.security.web.header.HeaderWriterFilter@12e33c7b, org.springframework.web.filter.CorsFilter@7e2cebdf, org.springframework.security.web.authentication.logout.LogoutFilter@7d5238b4, com.Elvis.ticket.security.JwtAuthenticationFilter@6b26839d, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4f90b4c9, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3e5f458f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@25c5fc41, org.springframework.security.web.session.SessionManagementFilter@3ef2816a, org.springframework.security.web.access.ExceptionTranslationFilter@33b3e47, org.springframework.security.web.access.intercept.AuthorizationFilter@356c8fa9]
-2025-05-08 21:53:54 INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:53:54 WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
-2025-05-08 21:53:54 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:53:54 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-05-08 21:53:54 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
-2025-05-08 21:53:54 INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
-
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2025-05-08 21:53:54 ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
-
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Web server failed to start. Port 8082 was already in use.
-
-Action:
-
-Identify and stop the process that's listening on port 8082 or configure this application to listen on another port.
-
-2025-05-08 21:54:34 INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
-2025-05-08 21:54:34 INFO  com.Elvis.ticket.TicketApplication - Starting TicketApplication using Java 17.0.10 with PID 4512 (C:\Cyber\ticket\backend\target\classes started by elvis in C:\Cyber\ticket\backend)
-2025-05-08 21:54:34 DEBUG com.Elvis.ticket.TicketApplication - Running with Spring Boot v3.2.3, Spring v6.1.4
-2025-05-08 21:54:34 INFO  com.Elvis.ticket.TicketApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-08 21:54:35 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-08 21:54:36 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 103 ms. Found 8 JPA repository interfaces.
-2025-05-08 21:54:37 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8082 (http)
-2025-05-08 21:54:37 INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:54:37 INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-08 21:54:37 INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
-2025-05-08 21:54:37 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-08 21:54:37 INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3287 ms
-2025-05-08 21:54:37 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-08 21:54:38 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7ab1ad9
-2025-05-08 21:54:38 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-08 21:54:38 INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:mysql://localhost:3306/ticket_system?createDatabaseIfNotExist=true'
-2025-05-08 21:54:38 INFO  c.E.ticket.security.JwtTokenProvider - Initializing JWT token provider with secret key length: 51
-2025-05-08 21:54:38 INFO  c.E.ticket.security.JwtTokenProvider - Generated HMAC-SHA key with algorithm: HmacSHA384
-2025-05-08 21:54:38 INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-08 21:54:38 INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
-2025-05-08 21:54:38 INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-08 21:54:39 INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-08 21:54:39 WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-08 21:54:39 WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-08 21:54:40 INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-08 21:54:41 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:54:41 DEBUG c.E.t.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-08 21:54:41 DEBUG c.E.ticket.security.JwtRequestFilter - Filter 'jwtRequestFilter' configured for use
-2025-05-08 21:54:42 INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-08 21:54:44 INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
-2025-05-08 21:54:44 INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@2365facb, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@65b9ebee, org.springframework.security.web.context.SecurityContextHolderFilter@40e28324, org.springframework.security.web.header.HeaderWriterFilter@12e33c7b, org.springframework.web.filter.CorsFilter@7e2cebdf, org.springframework.security.web.authentication.logout.LogoutFilter@7d5238b4, com.Elvis.ticket.security.JwtAuthenticationFilter@3f213e97, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4f90b4c9, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3e5f458f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@25c5fc41, org.springframework.security.web.session.SessionManagementFilter@3ef2816a, org.springframework.security.web.access.ExceptionTranslationFilter@33b3e47, org.springframework.security.web.access.intercept.AuthorizationFilter@356c8fa9]
-2025-05-08 21:54:44 INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:54:44 WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
-2025-05-08 21:54:44 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:54:44 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-05-08 21:54:44 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
-2025-05-08 21:54:44 INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
-
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2025-05-08 21:54:44 ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
-
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Web server failed to start. Port 8082 was already in use.
-
-Action:
-
-Identify and stop the process that's listening on port 8082 or configure this application to listen on another port.
-
-2025-05-08 21:55:08 INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
-2025-05-08 21:55:08 INFO  com.Elvis.ticket.TicketApplication - Starting TicketApplication using Java 17.0.10 with PID 6544 (C:\Cyber\ticket\backend\target\classes started by elvis in C:\Cyber\ticket\backend)
-2025-05-08 21:55:08 DEBUG com.Elvis.ticket.TicketApplication - Running with Spring Boot v3.2.3, Spring v6.1.4
-2025-05-08 21:55:08 INFO  com.Elvis.ticket.TicketApplication - No active profile set, falling back to 1 default profile: "default"
-2025-05-08 21:55:10 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-05-08 21:55:10 INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 292 ms. Found 8 JPA repository interfaces.
-2025-05-08 21:55:12 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8082 (http)
-2025-05-08 21:55:12 INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:55:12 INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-2025-05-08 21:55:12 INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.19]
-2025-05-08 21:55:13 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-2025-05-08 21:55:13 INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 4800 ms
-2025-05-08 21:55:13 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
-2025-05-08 21:55:14 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7fe87c0e
-2025-05-08 21:55:14 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
-2025-05-08 21:55:14 INFO  o.s.b.a.h.H2ConsoleAutoConfiguration - H2 console available at '/h2-console'. Database available at 'jdbc:mysql://localhost:3306/ticket_system?createDatabaseIfNotExist=true'
-2025-05-08 21:55:14 INFO  c.E.ticket.security.JwtTokenProvider - Initializing JWT token provider with secret key length: 51
-2025-05-08 21:55:14 INFO  c.E.ticket.security.JwtTokenProvider - Generated HMAC-SHA key with algorithm: HmacSHA384
-2025-05-08 21:55:16 INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-05-08 21:55:16 INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
-2025-05-08 21:55:16 INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
-2025-05-08 21:55:17 INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-05-08 21:55:17 WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-05-08 21:55:17 WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
-2025-05-08 21:55:21 INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-05-08 21:55:21 INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-05-08 21:55:23 DEBUG c.E.t.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
-2025-05-08 21:55:23 DEBUG c.E.ticket.security.JwtRequestFilter - Filter 'jwtRequestFilter' configured for use
-2025-05-08 21:55:24 INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-05-08 21:55:25 INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
-2025-05-08 21:55:25 INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@106277d6, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@61186191, org.springframework.security.web.context.SecurityContextHolderFilter@4b27a3fc, org.springframework.security.web.header.HeaderWriterFilter@41d0b71d, org.springframework.web.filter.CorsFilter@1761383f, org.springframework.security.web.authentication.logout.LogoutFilter@735d1db7, com.Elvis.ticket.security.JwtAuthenticationFilter@3ed1446c, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1b94df68, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@49842c0d, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@abb1c3e, org.springframework.security.web.session.SessionManagementFilter@6f6d2847, org.springframework.security.web.access.ExceptionTranslationFilter@60483dcf, org.springframework.security.web.access.intercept.AuthorizationFilter@21aa0ec5]
-2025-05-08 21:55:26 INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-0.0.0.0-8082"]
-2025-05-08 21:55:26 INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8082 (http) with context path ''
-2025-05-08 21:55:26 INFO  com.Elvis.ticket.TicketApplication - Started TicketApplication in 18.799 seconds (process running for 19.681)
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id 
-    from
-        users u1_0 
-    where
-        u1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        c1_0.id 
-    from
-        customers c1_0 
-    where
-        c1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        e1_0.id 
-    from
-        engineers e1_0 
-    where
-        e1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        m1_0.id 
-    from
-        managers m1_0 
-    where
-        m1_0.email=? 
-    limit
-        ?
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        count(*) 
-    from
-        products p1_0
-2025-05-08 21:55:26 DEBUG org.hibernate.SQL - 
-    select
-        count(*) 
-    from
-        ticket_types tt1_0
-2025-05-08 21:55:29 INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-05-08 21:55:29 INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2025-05-08 21:55:29 INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
-2025-05-08 21:57:09 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/auth/login
-2025-05-08 21:57:09 DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/auth/login
-2025-05-08 21:57:09 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
-2025-05-08 21:57:09 DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/auth/login
-2025-05-08 21:57:09 DEBUG c.Elvis.ticket.service.AuthService - Attempting to authenticate user with email: admin@example.com
-2025-05-08 21:57:10 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 21:57:10 DEBUG o.s.s.a.d.DaoAuthenticationProvider - Authenticated user
-2025-05-08 21:57:10 DEBUG c.E.ticket.security.JwtTokenProvider - Created token with subject: admin@example.com, expiry: Thu May 08 22:57:10 HKT 2025
-2025-05-08 21:57:10 INFO  c.E.ticket.security.JwtTokenProvider - Generated token for user: admin@example.com
-2025-05-08 21:57:10 DEBUG org.hibernate.SQL - 
-    select
-        u1_0.id,
-        u1_0.created_at,
-        u1_0.email,
-        u1_0.name,
-        u1_0.password,
-        u1_0.phone_number,
-        u1_0.role 
-    from
-        users u1_0 
-    where
-        u1_0.email=?
-2025-05-08 23:30:39 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 23:30:39 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/sessions
-2025-05-08 23:30:46 WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h30m1s928ms982�s900ns).
