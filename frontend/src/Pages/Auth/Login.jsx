@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import authService from '../../Services/auth';
 import './Login.css';
 
 const Login = () => {
@@ -10,9 +11,20 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (authService.isLoggedIn()) {
+      navigate('/profile');
+    }
+    
+    // Force a refresh of the Header component when this component mounts
+    window.dispatchEvent(new Event('authChange'));
+  }, [navigate]);
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     
     // Basic validation
@@ -21,14 +33,31 @@ const Login = () => {
       return;
     }
     
-    // Here you would typically make an API call to authenticate the user
-    console.log('Login attempt with:', { email, password });
+    setIsLoading(true);
+    setError('');
     
-    // Redirect to home page after successful login
-    navigate('/');
+    try {
+      console.log('Attempting to login with:', email);
+      
+      // Use the authService to login
+      const response = await authService.login(email, password);
+      
+      console.log('Login successful:', response);
+      
+      // Dispatch custom event to update header
+      window.dispatchEvent(new Event('authChange'));
+      
+      // Redirect to home page after successful login
+      navigate('/profile');
+    } catch (err) {
+      console.error('Login failed:', err);
+      setError(err.message || 'Invalid email or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     
     // Basic validation
@@ -42,23 +71,54 @@ const Login = () => {
       return;
     }
     
-    // Here you would typically make an API call to register the user
-    console.log('Registration attempt with:', { email: regEmail, password: regPassword });
+    setIsLoading(true);
+    setError('');
     
-    // Redirect to home page after successful registration
-    navigate('/');
-  };
-
-  const handleSocialLogin = (provider) => {
-    // Here you would implement the social media authentication
-    console.log(`Attempting to login with ${provider}`);
-    // After successful authentication, redirect to home page
-    // navigate('/');
+    try {
+      console.log('Attempting to register:', regEmail);
+      
+      // Extract name from email (username part)
+      const name = regEmail.split('@')[0];
+      
+      // Create user data object
+      const userData = {
+        name,
+        email: regEmail,
+        password: regPassword,
+        // Default role is CUSTOMER, but you might want to adjust this
+        // based on your application's requirements
+        role: 'CUSTOMER'
+      };
+      
+      // Use the authService to register
+      const response = await authService.register(userData);
+      
+      console.log('Registration successful:', response);
+      
+      // After successful registration, log the user in
+      await authService.login(regEmail, regPassword);
+      
+      // Dispatch custom event to update header
+      window.dispatchEvent(new Event('authChange'));
+      
+      // Redirect to home page after successful registration
+      navigate('/profile');
+    } catch (err) {
+      console.error('Registration failed:', err);
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleMode = () => {
     setIsSignUpMode(!isSignUpMode);
     setError('');
+  };
+
+  const handleSocialLogin = (provider) => {
+    // Implementation would go here
+    console.log(`Social login with ${provider} not implemented yet`);
   };
 
   return (
@@ -96,7 +156,9 @@ const Login = () => {
                 </div>
                 <Link to="/forgot-password" className="forgot-password">Forgot password?</Link>
               </div>
-              <button type="submit" className="btn solid">Login</button>
+              <button type="submit" className="btn solid" disabled={isLoading}>
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
 
               <div className="social-login">
                 <p className="social-text">Or sign in with</p>
@@ -125,7 +187,7 @@ const Login = () => {
                 </div>
               </div>
             </form>
-
+  
             <form className="sign-up-form" onSubmit={handleRegisterSubmit}>
               <h2 className="title">Sign up</h2>
               {error && <div className="error-message">{error}</div>}
@@ -159,8 +221,10 @@ const Login = () => {
                   required 
                 />
               </div>
-              <button type="submit" className="btn solid">Sign up</button>
-
+              <button type="submit" className="btn solid" disabled={isLoading}>
+                {isLoading ? 'Signing up...' : 'Sign up'}
+              </button>
+  
               <div className="social-login">
                 <p className="social-text">Or sign up with</p>
                 <div className="social-media">
@@ -190,7 +254,7 @@ const Login = () => {
             </form>
           </div>
         </div>
-
+  
         <div className="panels-container">
           <div className="panel left-panel">
             <div className="content">
@@ -199,7 +263,7 @@ const Login = () => {
               <button className="btn transparent" onClick={toggleMode} id="sign-up-btn">Sign up</button>
             </div>
           </div>
-
+  
           <div className="panel right-panel">
             <div className="content">
               <h3>One of us?</h3>
