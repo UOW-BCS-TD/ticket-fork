@@ -54,6 +54,25 @@ user_sessions = {}
 def initialize_qa_chain():
     from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain.chains import RetrievalQA
+    from langchain.prompts import PromptTemplate
+
+    # Custom prompt template
+    techcare_prompt_template = """You are a friendly and helpful customer support bot for Techcare, 
+    a technology products and services company. Your role is to assist customers with their inquiries 
+    about products, services, orders, troubleshooting, and general company information.
+
+    Follow these guidelines:
+    - Be polite, patient, and professional
+    - Provide accurate information based on the context
+    - If you don't know the answer, say you'll connect them with a human representative
+    - Keep responses concise but helpful
+    - For technical issues, provide step-by-step guidance when possible
+
+    Context: {context}
+
+    Question: {question}
+
+    Helpful Answer:"""
 
     # Initialize Gemini model
     llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.2)
