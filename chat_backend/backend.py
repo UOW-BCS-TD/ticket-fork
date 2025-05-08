@@ -54,25 +54,6 @@ user_sessions = {}
 def initialize_qa_chain():
     from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain.chains import RetrievalQA
-    from langchain.prompts import PromptTemplate
-
-    # Custom prompt template
-    techcare_prompt_template = """You are a friendly and helpful customer support bot for Techcare, 
-    a technology products and services company. Your role is to assist customers with their inquiries 
-    about products, services, orders, troubleshooting, and general company information.
-
-    Follow these guidelines:
-    - Be polite, patient, and professional
-    - Provide accurate information based on the context
-    - If you don't know the answer, say you'll connect them with a human representative
-    - Keep responses concise but helpful
-    - For technical issues, provide step-by-step guidance when possible
-
-    Context: {context}
-
-    Question: {question}
-
-    Helpful Answer:"""
 
     # Initialize Gemini model
     llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.2)
@@ -328,18 +309,48 @@ os.makedirs(chroma_directory, exist_ok=True)
 
 # Step 2: Check if all PDFs are already downloaded
 pdf_files = []
+all_files_exist = True
 
 for url in pdf_urls:
     filename = os.path.join(pdf_directory, url.split("/")[-1])
     pdf_files.append(filename)
     if not os.path.exists(filename):
+        all_files_exist = False
 
+if not all_files_exist:
+    print("🔄 Downloading missing PDF files...")
+    for url in pdf_urls:
+        filename = os.path.join(pdf_directory, url.split("/")[-1])
+        if not os.path.exists(filename):
+            for attempt in range(3):  # Retry up to 3 times
+                try:
+                    with requests.get(url, stream=True) as response:
+                        response.raise_for_status()
+                        with open(filename, "wb") as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                if chunk:  # Filter out keep-alive chunks
+                                    f.write(chunk)
+                    print(f"✅ Successfully downloaded: {filename}")
+                    break
+                except (ChunkedEncodingError, requests.exceptions.RequestException) as e:
+                    print(f"⚠️ Attempt {attempt + 1} failed for {filename}: {e}")
+                    time.sleep(2)  # Wait before retrying
+            else:
+                print(f"❌ Failed to download: {filename} after 3 attempts")
+else:
+    print("✅ All PDF files are already downloaded.")
+
+# Step 3: Check if Chroma database already exists
+if os.path.exists(chroma_directory) and os.listdir(chroma_directory):
+    print("✅ Chroma database already exists. Skipping chunking and embedding.")
     vectorstore = Chroma(
         persist_directory=chroma_directory,
         embedding_function=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     )
 else:
-
+    print("🔄 Chunking and embedding PDF files...")
+    all_docs = []
+    for file in pdf_files:
         try:
             loader = PyPDFLoader(file)
             pages = loader.load()
@@ -350,7 +361,7 @@ else:
         except Exception as e:
             print(f"❌ Failed to load {file}: {e}")
 
-
+    # Step 4: Embed and store in Chroma
     embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vectorstore = Chroma.from_documents(
         documents=all_docs,
@@ -358,7 +369,6 @@ else:
         persist_directory=chroma_directory
     )
     print(f"\n✅ Total embedded chunks: {len(all_docs)}")
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
