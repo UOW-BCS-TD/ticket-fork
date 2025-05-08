@@ -39,7 +39,7 @@ public class SessionService {
         session.setStartTime(LocalDateTime.now());
         session.setLastActivity(LocalDateTime.now());
         session.setStatus(SessionStatus.ACTIVE);
-
+        // Title is set by controller if provided
         // Generate conversation file path if not provided
         if (session.getConversationFilePath() == null) {
             session.setConversationFilePath(generateConversationFilePath(session));

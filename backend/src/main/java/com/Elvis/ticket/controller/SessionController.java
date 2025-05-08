@@ -59,7 +59,7 @@ public class SessionController {
     }
 
     @PostMapping
-    public ResponseEntity<SessionResponse> createSession(Authentication authentication) {
+    public ResponseEntity<SessionResponse> createSession(Authentication authentication, @RequestBody(required = false) Session sessionRequest) {
         String email = authentication.getName();
         User user = userService.getUserByEmail(email).orElse(null);
         if (user == null || !"CUSTOMER".equals(user.getRole())) {
@@ -67,6 +67,9 @@ public class SessionController {
         }
         Session session = new Session();
         session.setUser(user);
+        if (sessionRequest != null && sessionRequest.getTitle() != null) {
+            session.setTitle(sessionRequest.getTitle());
+        }
         // Timestamps are set in the service
         Session created = sessionService.createSession(session);
         return ResponseEntity.status(HttpStatus.CREATED).body(SessionResponse.fromSession(created));
@@ -89,8 +92,23 @@ public class SessionController {
     }
 
     @PutMapping("/{id}/end")
-    public ResponseEntity<SessionResponse> endSession(@PathVariable Long id) {
+    public ResponseEntity<SessionResponse> endSession(@PathVariable Long id, Authentication authentication) {
         try {
+            String email = authentication.getName();
+            User user = userService.getUserByEmail(email).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            Session session = sessionService.getSessionById(id).orElse(null);
+            if (session == null) {
+                return ResponseEntity.notFound().build();
+            }
+            // Allow if admin/manager or session owner
+            boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
+            boolean isSessionOwner = session.getUser().getId().equals(user.getId());
+            if (!isAdminOrManager && !isSessionOwner) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             Session endedSession = sessionService.endSession(id);
             return ResponseEntity.ok(SessionResponse.fromSession(endedSession));
         } catch (RuntimeException e) {
