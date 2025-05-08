@@ -1,112 +1,193 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import './Chatbot.css';
 
 const Chatbot = () => {
-
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [chatHistory, setChatHistory] = useState([
-    { text: 'Hello! How can I help you today?', sender: 'support', timestamp: '2023/02/19' },
-  ]);
-
+  const [chatHistory, setChatHistory] = useState([]);
   const [activeChat, setActiveChat] = useState('');
   const [chatStarted, setChatStarted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatList, setChatList] = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(null);
 
   const chatListRef = useRef(null);
 
-  const chatList = [
-    { name: 'Payment gateway issue', date: '2023/02/19', message: 'My transaction failed but I was still charged. Transaction ID: TXN-78945612' },
-    { name: 'Account access question', date: '2023/02/18', message: 'I can\'t reset my password. The reset email is not arriving in my inbox.' },
-    { name: 'Feature inquiry', date: '2023/02/17', message: 'Does your platform support integration with Shopify? I need to connect my store.' },
-    { name: 'Subscription upgrade', date: '2023/02/15', message: 'I want to upgrade from Basic to Pro plan. What are the additional features?' },
-    { name: 'Mobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'aobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'bobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'cobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'dobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'eobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-    { name: 'fobile app bug', date: '2023/02/14', message: 'The app crashes when I try to upload profile picture on Android 12.' },
-
-  ];
-
-  const sendMessage = () => {
-    if (message.trim()) {
-      setChatHistory([...chatHistory, { text: message, sender: 'user', timestamp: new Date().toISOString() }]);
-      setMessage('');
-      if (!chatStarted) {
-        setChatStarted(true);
+  // Fetch chat sessions on mount
+  useEffect(() => {
+    const fetchChatList = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to view chat history.');
+          return;
+        }
+        const response = await axios.get('http://localhost:8082/api/sessions', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setChatList(response.data);
+      } catch (error) {
+        console.error('Error fetching chat list:', error);
+        alert('Failed to fetch chat history.');
       }
+    };
+    fetchChatList();
+  }, []);
+
+  // Send message (and create session if needed)
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You must be logged in to use the chatbot.');
+      return;
+    }
+    try {
+      let sessionId = activeSessionId;
+      // If no session, create one with the first message as the title
+      if (!chatStarted) {
+        const sessionResponse = await axios.post(
+          'http://localhost:8082/api/sessions',
+          { title: message },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        sessionId = sessionResponse.data.id;
+        setActiveSessionId(sessionId);
+        setActiveChat(sessionResponse.data.title);
+        setChatStarted(true);
+        setChatList((prev) => [sessionResponse.data, ...prev]);
+        setChatHistory([
+          { text: message, sender: 'user', timestamp: new Date().toISOString() },
+        ]);
+        setMessage('');
+        return;
+      }
+      // Add user message to chat history
+      setChatHistory((prev) => [...prev, { text: message, sender: 'user', timestamp: new Date().toISOString() }]);
+      setMessage('');
+      // Send the query to the backend (your chatbot backend, not Spring Boot)
+      await axios.post(
+        'http://localhost:5000/query',
+        { query: message },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.error('Error sending message or creating session:', error);
+      alert('Failed to send message or create session.');
     }
   };
 
+  // Handle pressing Enter in input
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
+    if (e.key === 'Enter') sendMessage();
   };
 
-  const handleChatItemClick = (chatName) => {
-    setActiveChat(chatName);
+  // Select a chat session and load its history
+  const handleChatItemClick = (session) => {
+    setActiveChat(session.title);
+    setActiveSessionId(session.id);
     setChatStarted(true);
-    // Close sidebar after selecting a chat on mobile
+    setChatHistory([]);
+    const fetchChatHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to view chat history.');
+          return;
+        }
+        const response = await axios.get(`http://localhost:8082/api/sessions/${session.id}/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        let history = response.data.history;
+        if (typeof history === 'string') {
+          try { history = JSON.parse(history); } catch { history = []; }
+        }
+        setChatHistory(
+          Array.isArray(history)
+            ? history.map((msg) => ({
+                text: msg.content,
+                sender: msg.role === 'assistant' ? 'support' : 'user',
+                timestamp: msg.timestamp,
+              }))
+            : []
+        );
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
+        alert('Failed to fetch chat history.');
+      }
+    };
+    fetchChatHistory();
     setSidebarOpen(false);
   };
 
+  // Start a new chat
   const handleNewChat = () => {
     setChatStarted(false);
     setActiveChat('');
+    setActiveSessionId(null);
     setChatHistory([]);
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+  // End the current session
+  const handleEndSession = async () => {
+    if (!activeSessionId) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You must be logged in to end the session.');
+      return;
+    }
+    try {
+      await axios.put(
+        `http://localhost:8082/api/sessions/${activeSessionId}/end`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setChatList((prev) => prev.filter((s) => s.id !== activeSessionId));
+      handleNewChat();
+      alert('Session ended.');
+    } catch (error) {
+      console.error('Error ending session:', error);
+      alert('Failed to end session.');
+    }
   };
 
-  // Close sidebar when clicking outside
+  // Sidebar close on outside click
   useEffect(() => {
     function handleClickOutside(event) {
-      if (chatListRef.current && 
-          !chatListRef.current.contains(event.target) && 
-          !event.target.classList.contains('sidebar-toggle') && 
-          !event.target.parentElement?.classList.contains('sidebar-toggle')) {
+      if (
+        chatListRef.current &&
+        !chatListRef.current.contains(event.target) &&
+        !event.target.classList.contains('sidebar-toggle') &&
+        !event.target.parentElement?.classList.contains('sidebar-toggle')
+      ) {
         setSidebarOpen(false);
       }
     }
-    
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  const filteredChats = chatList.filter(chat => 
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    chat.message.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter chat list by search
+  const filteredChats = chatList.filter(
+    (chat) =>
+      (chat.title && chat.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-
-  // Chat-items style
-  // const limitedChats = filteredChats.slice(0, 5);
 
   return (
     <div className="chat-container">
-      <div 
-        className={`sidebar-toggle ${sidebarOpen ? 'active' : ''}`} 
-        onClick={toggleSidebar}
-      >
+      <div className={`sidebar-toggle ${sidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(!sidebarOpen)}>
         <span></span>
         <span></span>
         <span></span>
       </div>
 
-      <div 
-        ref={chatListRef}
-        className={`chat-list ${sidebarOpen ? 'active' : ''}`}
-      >
+      <div ref={chatListRef} className={`chat-list ${sidebarOpen ? 'active' : ''}`}>
         <div className="chat-list-header">
           <h2>Chat History</h2>
         </div>
-
         <div className="search-container">
           <input
             type="text"
@@ -116,24 +197,22 @@ const Chatbot = () => {
             className="search-input"
           />
         </div>
-        
         <div className="chat-items-container">
-          {filteredChats.map((chat, index) => (
-            <div 
-              key={index} 
-              className={`chat-item ${activeChat === chat.name ? 'active' : ''}`}
-              onClick={() => handleChatItemClick(chat.name)}
+          {filteredChats.map((chat) => (
+            <div
+              key={chat.id}
+              className={`chat-item ${activeSessionId === chat.id ? 'active' : ''}`}
+              onClick={() => handleChatItemClick(chat)}
             >
               <div className="chat-item-header">
-                <h4>{chat.name}</h4>
-                <span className="chat-date">{chat.date}</span>
+                <h4>{chat.title}</h4>
+                <span className="chat-date">{chat.startTime ? new Date(chat.startTime).toLocaleDateString() : ''}</span>
               </div>
-              <p className="chat-preview">{chat.message}</p>
             </div>
           ))}
         </div>
       </div>
-      
+
       <div className="chat-main">
         {chatStarted && (
           <div className="chat-header">
@@ -143,17 +222,20 @@ const Chatbot = () => {
             </div>
             <div className="chat-header-actions">
               <button className="quick-action-btn" onClick={handleNewChat}><i className="new-chat-icon">+</i> New Chat</button>
+              <button className="quick-action-btn" onClick={handleEndSession}><i className="end-chat-icon">✖</i> End Session</button>
             </div>
           </div>
         )}
-        
+
         {chatStarted && (
           <div className="chat-messages">
             {chatHistory.map((chat, index) => (
               <div key={index} className={`message ${chat.sender}-message`}>
                 <div className="message-content">
                   <p>{chat.text}</p>
-                  <span className="message-timestamp">{new Date(chat.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                  <span className="message-timestamp">
+                    {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               </div>
             ))}
@@ -171,7 +253,7 @@ const Chatbot = () => {
             </div>
           </div>
         )}
-        
+
         <div className={`chat-input-container ${!chatStarted ? 'centered-input' : ''}`}>
           <div className="chat-input">
             <input
