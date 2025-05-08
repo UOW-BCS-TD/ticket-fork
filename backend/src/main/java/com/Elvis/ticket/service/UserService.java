@@ -2,6 +2,7 @@ package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.repository.UserRepository;
+import com.Elvis.ticket.dto.PasswordChangeRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,10 +65,17 @@ public class UserService {
     }
 
     @Transactional
-    public User updatePassword(Long id, String newPassword) {
+    public User updatePassword(Long id, PasswordChangeRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setPassword(passwordEncoder.encode(newPassword));
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Update to new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         return userRepository.save(user);
     }
 

@@ -73,6 +73,7 @@ CREATE TABLE sessions (
     start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_time TIMESTAMP,
     last_activity TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    history LONGTEXT,
     user_id BIGINT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_session_times CHECK (end_time IS NULL OR end_time > start_time)
