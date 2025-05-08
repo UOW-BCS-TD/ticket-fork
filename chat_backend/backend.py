@@ -318,49 +318,76 @@ pdf_urls = [
     "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/cybertruck.pdf"
 ]
 
-# Step 2: Download PDFs with retry and streaming
+# Directory to store downloaded PDFs and Chroma database
+pdf_directory = "./pdf_files"
+chroma_directory = "./chroma_db"
+
+# Ensure the directories exist
+os.makedirs(pdf_directory, exist_ok=True)
+os.makedirs(chroma_directory, exist_ok=True)
+
+# Step 2: Check if all PDFs are already downloaded
 pdf_files = []
+all_files_exist = True
+
 for url in pdf_urls:
-    filename = url.split("/")[-1]
-    for attempt in range(3):  # Retry up to 3 times
+    filename = os.path.join(pdf_directory, url.split("/")[-1])
+    pdf_files.append(filename)
+    if not os.path.exists(filename):
+        all_files_exist = False
+
+if not all_files_exist:
+    print("🔄 Downloading missing PDF files...")
+    for url in pdf_urls:
+        filename = os.path.join(pdf_directory, url.split("/")[-1])
+        if not os.path.exists(filename):
+            for attempt in range(3):  # Retry up to 3 times
+                try:
+                    with requests.get(url, stream=True) as response:
+                        response.raise_for_status()
+                        with open(filename, "wb") as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                if chunk:  # Filter out keep-alive chunks
+                                    f.write(chunk)
+                    print(f"✅ Successfully downloaded: {filename}")
+                    break
+                except (ChunkedEncodingError, requests.exceptions.RequestException) as e:
+                    print(f"⚠️ Attempt {attempt + 1} failed for {filename}: {e}")
+                    time.sleep(2)  # Wait before retrying
+            else:
+                print(f"❌ Failed to download: {filename} after 3 attempts")
+else:
+    print("✅ All PDF files are already downloaded.")
+
+# Step 3: Check if Chroma database already exists
+if os.path.exists(chroma_directory) and os.listdir(chroma_directory):
+    print("✅ Chroma database already exists. Skipping chunking and embedding.")
+    vectorstore = Chroma(
+        persist_directory=chroma_directory,
+        embedding_function=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    )
+else:
+    print("🔄 Chunking and embedding PDF files...")
+    all_docs = []
+    for file in pdf_files:
         try:
-            with requests.get(url, stream=True) as response:
-                response.raise_for_status()
-                with open(filename, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:  # Filter out keep-alive chunks
-                            f.write(chunk)
-            pdf_files.append(filename)
-            print(f"✅ Successfully downloaded: {filename}")
-            break
-        except (ChunkedEncodingError, requests.exceptions.RequestException) as e:
-            print(f"⚠️ Attempt {attempt + 1} failed for {filename}: {e}")
-            time.sleep(2)  # Wait before retrying
-    else:
-        print(f"❌ Failed to download: {filename} after 3 attempts")
+            loader = PyPDFLoader(file)
+            pages = loader.load()
+            splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+            chunks = splitter.split_documents(pages)
+            all_docs.extend(chunks)
+            print(f"✅ Loaded: {file} ({len(chunks)} chunks)")
+        except Exception as e:
+            print(f"❌ Failed to load {file}: {e}")
 
-# Step 3: Load, split, and chunk all PDFs
-all_docs = []
-for file in pdf_files:
-    try:
-        loader = PyPDFLoader(file)
-        pages = loader.load()
-        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-        chunks = splitter.split_documents(pages)
-        all_docs.extend(chunks)
-        print(f"✅ Loaded: {file} ({len(chunks)} chunks)")
-    except Exception as e:
-        print(f"❌ Failed to load {file}: {e}")
-
-# Step 4: Embed and store in Chroma
-embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-vectorstore = Chroma.from_documents(
-    documents=all_docs,
-    embedding=embedding,
-    persist_directory="./chroma_db"
-)
-
-print(f"\n✅ Total embedded chunks: {len(all_docs)}")
+    # Step 4: Embed and store in Chroma
+    embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    vectorstore = Chroma.from_documents(
+        documents=all_docs,
+        embedding=embedding,
+        persist_directory=chroma_directory
+    )
+    print(f"\n✅ Total embedded chunks: {len(all_docs)}")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
