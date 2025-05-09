@@ -4,6 +4,7 @@ import subprocess
 import sys
 import requests
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import uuid
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -17,6 +18,11 @@ from datetime import datetime, timedelta
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 from functools import wraps
 import base64
+import warnings
+import shutil
+
+# Suppress NumPy warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning)
 
 # Set the Google API key for authentication
 os.environ["GOOGLE_API_KEY"] = "AIzaSyAllDb85-EYZSDQjd8tVyF_Kg5WG8HPOjc"
@@ -48,6 +54,16 @@ print(f"Please manually activate the virtual environment using: {activate_script
 # Initialize Flask app
 app = Flask(__name__)
 
+# Configure CORS
+CORS(app, resources={
+    r"/*": {
+        "origins": ["http://localhost:5173"],  # Your frontend URL
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept"],
+        "supports_credentials": True
+    }
+})
+
 # Store user sessions
 user_sessions = {}
 
@@ -55,8 +71,12 @@ def initialize_qa_chain():
     from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain.chains import RetrievalQA
 
-    # Initialize Gemini model
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.2)
+    # Initialize Gemini model with system message conversion
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",
+        temperature=0.2,
+        convert_system_message_to_human=True
+    )
 
     # Load vectorstore (ensure chroma_db directory exists)
     vectorstore = Chroma(
@@ -146,6 +166,9 @@ def query(current_user_email):
         return jsonify({"error": "query is required"}), 400
 
     try:
+        print(f"Processing query: {query}")
+        print(f"Current user email: {current_user_email}")
+        
         connection = get_db_connection()
         cursor = connection.cursor()
 
@@ -157,9 +180,11 @@ def query(current_user_email):
         user_result = cursor.fetchone()
         
         if not user_result:
+            print(f"User not found for email: {current_user_email}")
             return jsonify({"error": "User not found"}), 404
             
         user_id = user_result[0]
+        print(f"Found user ID: {user_id}")
 
         # Check if an active session exists for the user
         cursor.execute(
@@ -170,10 +195,12 @@ def query(current_user_email):
 
         if session:
             session_id, history_json = session
+            print(f"Found existing session: {session_id}")
             # Parse existing history or create new list
             chat_history = json.loads(history_json) if history_json else []
         else:
             # Create a new session if none exists
+            print("Creating new session")
             cursor.execute(
                 "INSERT INTO sessions (user_id, start_time, last_activity) VALUES (%s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
                 (user_id,)
@@ -191,10 +218,21 @@ def query(current_user_email):
 
         # Convert history to string for context
         context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history])
+        print(f"Context for query: {context}")
 
-        # Process the query using the chatbot
-        response = qa_chain.invoke({"query": context})
-        answer = response["result"]
+        try:
+            # Process the query using the chatbot
+            print("Invoking QA chain...")
+            response = qa_chain.invoke({"query": context})
+            print(f"QA chain response: {response}")
+            answer = response["result"]
+            print(f"Generated answer: {answer}")
+        except Exception as e:
+            print(f"Error in QA chain: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            answer = "I apologize, but I'm having trouble processing your request. Please try again later."
 
         # Add bot response to history
         chat_history.append({
@@ -212,17 +250,27 @@ def query(current_user_email):
         connection.commit()
 
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"Database Error: {err}")
         return jsonify({"error": "Database error"}), 500
     except json.JSONDecodeError as err:
         print(f"JSON Error: {err}")
         return jsonify({"error": "Invalid history format"}), 500
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
-    return jsonify({"session_id": session_id, "answer": answer})
+    return jsonify({
+        "session_id": session_id,
+        "answer": answer,
+        "history": chat_history  # This is the full updated history
+    })
 
 @app.route('/test_db_connection', methods=['GET'])
 def test_db_connection():
@@ -289,6 +337,13 @@ def login():
             cursor.close()
             connection.close()
 
+pdf_directory = "./pdf_files"
+chroma_directory = "./chroma_db"
+
+# Ensure the directories exist
+os.makedirs(pdf_directory, exist_ok=True)
+os.makedirs(chroma_directory, exist_ok=True)
+
 # Step 1: Define GitHub PDF URLs
 pdf_urls = [
     "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/tesla%20testing.pdf",
@@ -299,18 +354,9 @@ pdf_urls = [
     "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/cybertruck.pdf"
 ]
 
-# Directory to store downloaded PDFs and Chroma database
-pdf_directory = "./pdf_files"
-chroma_directory = "./chroma_db"
-
-# Ensure the directories exist
-os.makedirs(pdf_directory, exist_ok=True)
-os.makedirs(chroma_directory, exist_ok=True)
-
-# Step 2: Check if all PDFs are already downloaded
+# Step 2: Download missing PDFs
 pdf_files = []
 all_files_exist = True
-
 for url in pdf_urls:
     filename = os.path.join(pdf_directory, url.split("/")[-1])
     pdf_files.append(filename)
@@ -328,19 +374,39 @@ if not all_files_exist:
                         response.raise_for_status()
                         with open(filename, "wb") as f:
                             for chunk in response.iter_content(chunk_size=8192):
-                                if chunk:  # Filter out keep-alive chunks
+                                if chunk:
                                     f.write(chunk)
                     print(f"✅ Successfully downloaded: {filename}")
                     break
                 except (ChunkedEncodingError, requests.exceptions.RequestException) as e:
                     print(f"⚠️ Attempt {attempt + 1} failed for {filename}: {e}")
-                    time.sleep(2)  # Wait before retrying
+                    time.sleep(2)
             else:
                 print(f"❌ Failed to download: {filename} after 3 attempts")
 else:
     print("✅ All PDF files are already downloaded.")
 
-# Step 3: Check if Chroma database already exists
+# Step 3: Check if any PDF is newer than the chroma_db directory (AFTER download)
+def needs_rechunking(pdf_directory, chroma_directory):
+    if not os.path.exists(chroma_directory):
+        return True
+    chroma_mtime = os.path.getmtime(chroma_directory)
+    for filename in os.listdir(pdf_directory):
+        if filename.lower().endswith('.pdf'):
+            pdf_path = os.path.join(pdf_directory, filename)
+            if os.path.getmtime(pdf_path) > chroma_mtime:
+                return True
+    return False
+
+if needs_rechunking(pdf_directory, chroma_directory):
+    print("Detected new or updated PDFs. Re-chunking and re-embedding all documents...")
+    if os.path.exists(chroma_directory):
+        shutil.rmtree(chroma_directory)
+    # Proceed with chunking and embedding all PDFs as usual
+else:
+    print("No new PDFs detected. Using existing Chroma database.")
+
+# Step 4: Check if Chroma database already exists
 if os.path.exists(chroma_directory) and os.listdir(chroma_directory):
     print("✅ Chroma database already exists. Skipping chunking and embedding.")
     vectorstore = Chroma(
@@ -361,7 +427,7 @@ else:
         except Exception as e:
             print(f"❌ Failed to load {file}: {e}")
 
-    # Step 4: Embed and store in Chroma
+    # Step 5: Embed and store in Chroma
     embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vectorstore = Chroma.from_documents(
         documents=all_docs,

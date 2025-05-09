@@ -1,13 +1,15 @@
-# Ignore log files
-/log/ 
+# Ignore Python virtual environment in chat_backend
+chat_backend/venv/
 
-/chat_backend/chroma_db/
+# Ignore Chroma vectorstore database in chat_backend
+chat_backend/chroma_db/
 
-*.pdf
+# Ignore PDF files directory in chat_backend
+chat_backend/pdf_files/
 
-/venv/
-
+# Ignore log files and log directory in backend
+backend/log/
 *.log
 
-/backend/log/
-
+# Ignore all PDF files globally
+*.pdf
