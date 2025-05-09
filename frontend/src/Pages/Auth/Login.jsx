@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import authService from '../../Services/auth';
+import auth from '../../Services/auth';
 import './Login.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,8 +16,9 @@ const Login = () => {
   const navigate = useNavigate();
   
   // Redirect if already logged in
+  // In the useEffect hook
   useEffect(() => {
-    if (authService.isLoggedIn()) {
+    if (auth.isLoggedIn()) {
       navigate('/profile');
     }
     
@@ -24,6 +26,7 @@ const Login = () => {
     window.dispatchEvent(new Event('authChange'));
   }, [navigate]);
 
+  // In handleLoginSubmit
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     
@@ -39,13 +42,10 @@ const Login = () => {
     try {
       console.log('Attempting to login with:', email);
       
-      // Use the authService to login
-      const response = await authService.login(email, password);
+      // Use the auth service's Login function
+      const userData = await auth.login(email, password);
       
-      console.log('Login successful:', response);
-      
-      // Dispatch custom event to update header
-      window.dispatchEvent(new Event('authChange'));
+      console.log('Login successful:', userData);
       
       // Redirect to home page after successful login
       navigate('/profile');
@@ -57,11 +57,12 @@ const Login = () => {
     }
   };
 
+  // In handleRegisterSubmit
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     
     // Basic validation
-    if (!regEmail || !regPassword || !confirmPassword) {
+    if (!regName || !regEmail || !regPassword || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
@@ -77,29 +78,10 @@ const Login = () => {
     try {
       console.log('Attempting to register:', regEmail);
       
-      // Extract name from email (username part)
-      const name = regEmail.split('@')[0];
+      // Use the auth service's register function (lowercase r)
+      const userData = await auth.register(regName, regEmail, regPassword);
       
-      // Create user data object
-      const userData = {
-        name,
-        email: regEmail,
-        password: regPassword,
-        // Default role is CUSTOMER, but you might want to adjust this
-        // based on your application's requirements
-        role: 'CUSTOMER'
-      };
-      
-      // Use the authService to register
-      const response = await authService.register(userData);
-      
-      console.log('Registration successful:', response);
-      
-      // After successful registration, log the user in
-      await authService.login(regEmail, regPassword);
-      
-      // Dispatch custom event to update header
-      window.dispatchEvent(new Event('authChange'));
+      console.log('Registration successful:', userData);
       
       // Redirect to home page after successful registration
       navigate('/profile');
@@ -192,6 +174,16 @@ const Login = () => {
               <h2 className="title">Sign up</h2>
               {error && <div className="error-message">{error}</div>}
               <div className="input-field">
+                <i className="fas fa-user"></i>
+                <input 
+                  type="text" 
+                  placeholder="Full Name" 
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="input-field">
                 <i className="fas fa-envelope"></i>
                 <input 
                   type="email" 
@@ -225,7 +217,7 @@ const Login = () => {
                 {isLoading ? 'Signing up...' : 'Sign up'}
               </button>
   
-              <div className="social-login">
+              {/* <div className="social-login">
                 <p className="social-text">Or sign up with</p>
                 <div className="social-media">
                   <button 
@@ -250,7 +242,7 @@ const Login = () => {
                     <i className="fab fa-apple"></i>
                   </button>
                 </div>
-              </div>
+              </div> */}
             </form>
           </div>
         </div>

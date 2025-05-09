@@ -1,157 +1,196 @@
-// Configuration constants
-const AUTH_CONFIG = {
-  BASE_URL: 'http://localhost:8082/api/auth',
-  HEADERS: {
-    'Content-Type': 'application/json',
-  },
-  STORAGE_KEYS: {
-    TOKEN: 'token',
-    USER: 'user'
-  },
-  ROLES: {
-    ADMIN: 'ADMIN',
-    MANAGER: 'MANAGER',
-    ENGINEER: 'ENGINEER',
-    CUSTOMER: 'CUSTOMER'
+/**
+ * Authentication service for managing user authentication state
+ */
+
+// Keys used for storing auth data in localStorage
+const TOKEN_KEY = 'token';
+const ROLE_KEY = 'role';
+const NAME_KEY = 'name';
+const USER_ID_KEY = 'userId';
+const EMAIL_KEY = 'email';
+const CREATED_AT_KEY = 'createdAt';
+const PHONE_NUMBER_KEY = 'phoneNumber';
+
+// Base API URL
+const API_BASE_URL = 'http://localhost:8082/api';
+
+/**
+ * Store user data in localStorage
+ * @param {Object} userData - User data object
+ * @returns {boolean} - Success status
+ */
+const storeUserData = (userData) => {
+  localStorage.setItem(TOKEN_KEY, userData.token || 'mock-jwt-token-' + Math.random());
+  localStorage.setItem(ROLE_KEY, userData.role);
+  localStorage.setItem(NAME_KEY, userData.name);
+  localStorage.setItem(USER_ID_KEY, userData.id);
+  localStorage.setItem(EMAIL_KEY, userData.email);
+  
+  if (userData.createdAt) {
+    localStorage.setItem(CREATED_AT_KEY, userData.createdAt);
   }
+  
+  if (userData.phoneNumber) {
+    localStorage.setItem(PHONE_NUMBER_KEY, userData.phoneNumber);
+  }
+  
+  // Dispatch custom event to notify other components
+  window.dispatchEvent(new Event('authChange'));
+  
+  return true;
 };
 
-// Storage utility functions
-const storage = {
-  get: (key) => localStorage.getItem(key),
-  set: (key, value) => localStorage.setItem(key, value),
-  remove: (key) => localStorage.removeItem(key),
-  getObject: (key) => {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  },
-  setObject: (key, value) => localStorage.setItem(key, JSON.stringify(value))
+/**
+ * Clear user data from localStorage
+ */
+const clearUserData = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ROLE_KEY);
+  localStorage.removeItem(NAME_KEY);
+  localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(EMAIL_KEY);
+  localStorage.removeItem(CREATED_AT_KEY);
+  localStorage.removeItem(PHONE_NUMBER_KEY);
+  
+  // Dispatch custom event to notify other components
+  window.dispatchEvent(new Event('authChange'));
 };
 
-// Helper function for making fetch requests to auth endpoints
-const fetchAuth = async (endpoint, options = {}) => {
-  const url = `${AUTH_CONFIG.BASE_URL}${endpoint}`;
+/**
+ * Check if a user is currently logged in
+ * @returns {boolean} - True if logged in, false otherwise
+ */
+const isLoggedIn = () => {
+  return !!localStorage.getItem(TOKEN_KEY);
+};
+
+/**
+ * Get the current user's authentication token
+ * @returns {string|null} - The token or null if not logged in
+ */
+const getToken = () => {
+  return localStorage.getItem(TOKEN_KEY);
+};
+
+/**
+ * Get the current user object from localStorage
+ * @returns {Object|null} - User object or null if not logged in
+ */
+const getCurrentUser = () => {
+  if (!isLoggedIn()) {
+    return null;
+  }
   
-  // Set default headers
-  const headers = { ...AUTH_CONFIG.HEADERS };
-  
-  // Merge options
-  const fetchOptions = {
-    ...options,
-    headers: {
-      ...headers,
-      ...options.headers
-    }
+  return {
+    name: localStorage.getItem(NAME_KEY),
+    role: localStorage.getItem(ROLE_KEY),
+    userId: localStorage.getItem(USER_ID_KEY),
+    email: localStorage.getItem(EMAIL_KEY),
+    createdAt: localStorage.getItem(CREATED_AT_KEY),
+    phoneNumber: localStorage.getItem(PHONE_NUMBER_KEY)
   };
-  
+};
+
+/**
+ * Check if the current user has a specific role
+ * @param {string} role - The role to check
+ * @returns {boolean} - True if user has the role, false otherwise
+ */
+const hasRole = (role) => {
+  return localStorage.getItem(ROLE_KEY) === role;
+};
+
+/**
+ * Login function that uses the API
+ * @param {string} email - User email
+ * @param {string} password - User password
+ * @returns {Promise} - Promise that resolves with user data or rejects with error
+ */
+const apiLogin = async (email, password) => {
   try {
-    const response = await fetch(url, fetchOptions);
-    
-    // Check if response is ok (status in the range 200-299)
+    // Call the API login endpoint
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Auth request failed with status ${response.status}`);
+      throw new Error(errorData.message || `Invalid email or password`);
     }
+
+    const userData = await response.json();
     
-    // Parse JSON response
-    const data = await response.json();
-    return data;
+    // Store user data in localStorage
+    storeUserData(userData);
+    
+    return userData;
   } catch (error) {
-    console.error('Auth request failed:', error);
+    console.error('Login failed:', error);
     throw error;
   }
 };
 
-// Authentication service
-const authService = {
-  // Login user and get JWT token
-  login: async (email, password) => {
-    try {
-      const data = await fetchAuth('/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
-      
-      if (data) {
-        if (data.token) {
-          storage.set(AUTH_CONFIG.STORAGE_KEYS.TOKEN, data.token);
-        }
-        
-        if (data.user) {
-          storage.setObject(AUTH_CONFIG.STORAGE_KEYS.USER, data.user);
-        }
-      }
-      
-      return data;
-    } catch (error) {
-      throw error;
+/**
+ * Register a new user
+ * @param {string} name - User's full name
+ * @param {string} email - User's email address
+ * @param {string} password - User's password
+ * @param {string} role - User's role (defaults to "CUSTOMER")
+ * @returns {Promise} - Promise that resolves with user data or rejects with error
+ */
+const apiRegister = async (name, email, password, role = "CUSTOMER") => {
+  try {
+    // Call the API register endpoint
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, password, role }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Registration failed`);
     }
-  },
-  
-  // Register a new user
-  register: async (userData) => {
-    try {
-      const data = await fetchAuth('/register', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  },
-  
-  // Logout user
-  logout: () => {
-    storage.remove(AUTH_CONFIG.STORAGE_KEYS.TOKEN);
-    storage.remove(AUTH_CONFIG.STORAGE_KEYS.USER);
+
+    const userData = await response.json();
     
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event('authChange'));
-  },
-  
-  // Get current user from localStorage
-  getCurrentUser: () => storage.getObject(AUTH_CONFIG.STORAGE_KEYS.USER),
-  
-  // Check if user is logged in
-  isLoggedIn: () => !!storage.get(AUTH_CONFIG.STORAGE_KEYS.TOKEN),
-  
-  // Get token from localStorage
-  getToken: () => storage.get(AUTH_CONFIG.STORAGE_KEYS.TOKEN),
-  
-  // Check if user has specific role
-  hasRole: (role) => {
-    const user = authService.getCurrentUser();
-    return user && user.role === role;
-  },
-  
-  // Role-specific checkers
-  isAdmin: () => authService.hasRole(AUTH_CONFIG.ROLES.ADMIN),
-  
-  isManager: () => authService.hasRole(AUTH_CONFIG.ROLES.MANAGER),
-  
-  isEngineer: () => authService.hasRole(AUTH_CONFIG.ROLES.ENGINEER),
-  
-  isCustomer: () => authService.hasRole(AUTH_CONFIG.ROLES.CUSTOMER),
-  
-  // Get user role display name
-  getUserRoleDisplay: () => {
-    const user = authService.getCurrentUser();
-    if (!user) return null;
+    // Store user data in localStorage
+    storeUserData(userData);
     
-    switch(user.role) {
-      case AUTH_CONFIG.ROLES.ADMIN:
-        return 'Administrator';
-      case AUTH_CONFIG.ROLES.MANAGER:
-        return 'Support Manager';
-      case AUTH_CONFIG.ROLES.ENGINEER:
-        return 'Support Engineer';
-      case AUTH_CONFIG.ROLES.CUSTOMER:
-        return 'Customer';
-      default:
-        return user.role;
-    }
+    return userData;
+  } catch (error) {
+    console.error('Registration failed:', error);
+    throw error;
   }
 };
 
-export default authService;
+/**
+ * Logout function
+ */
+const apiLogout = () => {
+  clearUserData();
+};
+
+// Export authentication functions
+const auth = {
+  login: apiLogin,
+  register: apiRegister, // Add the register function
+  logout: apiLogout,
+  isLoggedIn,
+  getToken,
+  getCurrentUser,
+  hasRole,
+  isAdmin: () => hasRole('ADMIN'),
+  isManager: () => hasRole('MANAGER'),
+  isEngineer: () => hasRole('ENGINEER'),
+  isCustomer: () => hasRole('CUSTOMER')
+};
+
+
+export default auth;

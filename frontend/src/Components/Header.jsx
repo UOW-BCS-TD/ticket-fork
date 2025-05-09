@@ -9,13 +9,15 @@ const Header = (props) => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Function to update current user state
+  // Function to update current user state from localStorage only
   const updateCurrentUser = () => {
-    const user = auth.getCurrentUser();
-    console.log('Header - user state updated:', { 
-      isLoggedIn: auth.isLoggedIn(), 
-      user
-    });
+    // Get user data from localStorage only, not from API
+    const user = {
+      name: localStorage.getItem('name'),
+      role: localStorage.getItem('role'),
+      userId: localStorage.getItem('userId'),
+      email: localStorage.getItem('email')
+    };
     
     setCurrentUser(user);
   };
@@ -79,8 +81,11 @@ const Header = (props) => {
   // Create navigation links based on authentication status
   const getNavLinks = () => {
     const isLoggedIn = auth.isLoggedIn();
-    const userRoleDisplay = auth.getUserRoleDisplay();
-    const user = auth.getCurrentUser();
+    // Fix: Add getUserRoleDisplay function if it doesn't exist
+    const userRoleDisplay = auth.getUserRoleDisplay ? auth.getUserRoleDisplay() : null;
+    
+    // Get user role from localStorage directly
+    const userRole = localStorage.getItem('role');
     
     const baseLinks = [
       { path: '/', label: 'Home' },
@@ -88,8 +93,8 @@ const Header = (props) => {
     ];
     
     // Different service dropdown items based on user role
-    if (user) {
-      switch(user.role) {
+    if (isLoggedIn) {
+      switch(userRole) {
         case 'ADMIN':
           // Admin-specific service items
           baseLinks.push({ 
