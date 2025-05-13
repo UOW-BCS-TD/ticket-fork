@@ -197,4 +197,12 @@ public class SessionService {
             session.getId(), 
             LocalDateTime.now().toString().replace(":", "-"));
     }
+
+    @Transactional
+    public Session updateSessionTitleOnly(Long id, String newTitle) {
+        Session session = sessionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+        session.setTitle(newTitle);
+        return sessionRepository.save(session);
+    }
 } 

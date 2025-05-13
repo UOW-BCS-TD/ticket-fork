@@ -360,6 +360,17 @@
 - **Response**: Created session details (includes `title` field)
 - **Access**: CUSTOMER only
 
+### Update Session Title
+- **URL**: `/api/sessions/{id}/title`
+- **Method**: `PUT`
+- **Description**: Update only the title of a session
+- **Request Body**:
+  ```json
+  { "title": "New Title" }
+  ```
+- **Response**: Updated session details (includes `title` field)
+- **Access**: ADMIN, MANAGER, or session owner (CUSTOMER)
+
 ## Error Responses
 
 ### 400 Bad Request
@@ -413,4 +424,11 @@
 3. Timestamps are in ISO 8601 format
 4. IDs are numeric and auto-generated
 5. All endpoints return JSON responses
-6. Error responses include detailed messages and timestamps 
+6. Error responses include detailed messages and timestamps
+
+## Logging Behavior
+
+- On each application run, a new log file is created in the `log/` directory.
+- The log file is named `application.<PID>.log`, where `<PID>` is the process ID of the running Java application.
+- Only one log file is created per run; there is no daily or time-based rolling.
+- Example: `log/application.12345.log` 

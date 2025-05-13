@@ -73,12 +73,12 @@ public class SecurityConfig {
                 // Session management endpoints
                 .requestMatchers(HttpMethod.POST, "/api/sessions").hasRole("CUSTOMER")
                 .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/sessions/session/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/sessions/user/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/sessions/session/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/sessions/user/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/sessions/inactive").hasRole("ADMIN")
-                .requestMatchers("/api/sessions/{id}/end").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/sessions/{id}/activity").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/sessions/{id}/end").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/sessions/{id}/activity").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/sessions/{id}/history").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/sessions/list").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 

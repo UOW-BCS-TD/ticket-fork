@@ -244,4 +244,32 @@ public class SessionController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PutMapping("/{id}/title")
+    public ResponseEntity<SessionResponse> updateSessionTitle(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Session session = sessionService.getSessionById(id).orElse(null);
+        if (session == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Allow if admin/manager or session owner
+        boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
+        boolean isSessionOwner = session.getUser().getId().equals(user.getId());
+        if (!isAdminOrManager && !isSessionOwner) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        String newTitle = body.get("title");
+        if (newTitle == null || newTitle.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        Session updated = sessionService.updateSessionTitleOnly(id, newTitle);
+        return ResponseEntity.ok(SessionResponse.fromSession(updated));
+    }
 } 

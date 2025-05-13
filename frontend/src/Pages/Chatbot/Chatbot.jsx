@@ -104,13 +104,24 @@ const Chatbot = () => {
           setActiveChat(sessionResponse.data.title);
           setChatStarted(true);
           setChatList((prev) => [sessionResponse.data, ...prev]);
+          await fetchChatList();
         } catch (err) {
           console.error('Error creating session:', err);
           alert('Failed to create session. Please check your login and try again.');
           return;
         }
       }
-      // Save user message to session history and get bot response and full history
+      // Optimistically update chat history with user message and loading bot message
+      const userMessage = {
+        text: message,
+        sender: 'user',
+        timestamp: new Date().toISOString(),
+      };
+      setChatHistory((prev) => [
+        ...prev,
+        userMessage,
+        { text: '', sender: 'support', loading: true, timestamp: new Date().toISOString() }
+      ]);
       setMessage('');
       try {
         const response = await axios.post(
@@ -133,6 +144,8 @@ const Chatbot = () => {
         }));
         setChatHistory(formattedMessages);
       } catch (chatbotError) {
+        // Remove the loading message if error
+        setChatHistory((prev) => prev.filter((msg, idx) => !(msg.loading && idx === prev.length - 1)));
         console.error('Error communicating with chatbot:', chatbotError);
         alert('Failed to get response from chatbot.');
       }
@@ -190,7 +203,8 @@ const Chatbot = () => {
 
   // Start a new chat
   const handleNewChat = async () => {
-    if (activeSessionId) {
+    const currentSession = chatList.find((s) => s.id === activeSessionId);
+    if (currentSession && currentSession.status === 'ACTIVE') {
       const confirmEnd = window.confirm('You can only have one active session. The current session will be ended and a new chat will start. Continue?');
       if (!confirmEnd) return;
       // End the current session before starting a new one
@@ -203,6 +217,7 @@ const Chatbot = () => {
             { headers: { Authorization: `Bearer ${token}` } }
           );
           setChatList((prev) => prev.map((s) => s.id === activeSessionId ? { ...s, status: 'CLOSED' } : s));
+          await fetchChatList();
         } catch (error) {
           alert('Failed to end previous session.');
         }
@@ -231,6 +246,7 @@ const Chatbot = () => {
       setChatList((prev) => prev.filter((s) => s.id !== activeSessionId));
       handleNewChat();
       alert('Session ended.');
+      await fetchChatList();
     } catch (error) {
       console.error('Error ending session:', error);
       alert('Failed to end session.');
@@ -338,7 +354,7 @@ const Chatbot = () => {
                 onClick={() => handleChatItemClick(chat)}
               >
                 <div className="chat-item-header">
-                  <span className="session-title">{chat.title || 'Untitled Chat'}</span>
+                  <span className="session-title">{(chat.title && chat.title.length > 20) ? chat.title.slice(0, 20) + '...' : (chat.title || 'Untitled Chat')}</span>
                   <span className="session-meta">
                     <span className={`status-badge ${chat.status}`}>{chat.status}</span>
                     <span className="session-time">
@@ -357,11 +373,16 @@ const Chatbot = () => {
           <div className="chat-header">
             <div className="chat-header-info">
               <h3>{activeChat}</h3>
-              <span className="online-tag">Online</span>
+              {(() => {
+                const currentSession = chatList.find((s) => s.id === activeSessionId);
+                return currentSession ? (
+                  <span className={`status-badge ${currentSession.status}`}>{currentSession.status}</span>
+                ) : null;
+              })()}
             </div>
             <div className="chat-header-actions">
-              <button className="quick-action-btn" onClick={handleNewChat}><i className="new-chat-icon">+</i> New Chat</button>
-              <button className="quick-action-btn" onClick={handleEndSession}><i className="end-chat-icon">✖</i> End Session</button>
+              <button className="quick-action-btn" onClick={handleNewChat}><b className="new-chat-icon">+</b> New Chat</button>
+              <button className="quick-action-btn" onClick={handleEndSession}><b className="end-chat-icon">✖</b> End Session</button>
             </div>
           </div>
         )}
@@ -405,14 +426,23 @@ const Chatbot = () => {
 
         <div className={`chat-input-container ${!chatStarted ? 'centered-input' : ''}`}>
           <div className="chat-input">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
-            />
-            <button onClick={sendMessage}><i className="send-icon">➤</i>Send</button>
+            {(() => {
+              const currentSession = chatList.find((s) => s.id === activeSessionId);
+              const isClosed = currentSession && currentSession.status === 'CLOSED';
+              return (
+                <>
+                  <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={isClosed ? 'This session is closed. You cannot send messages.' : 'Type your message...'}
+                    disabled={isClosed}
+                  />
+                  <button onClick={sendMessage} disabled={isClosed}><i className="send-icon">➤</i>Send</button>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

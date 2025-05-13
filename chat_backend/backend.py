@@ -1,116 +1,227 @@
-# backend.py
+# backend.py - Simplified Version
 import os
-import subprocess
-import sys
+import time
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import uuid
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-import time
-from requests.exceptions import ChunkedEncodingError
+from langchain.chains import RetrievalQA
 import mysql.connector
 import json
 from datetime import datetime, timedelta
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 from functools import wraps
-import base64
-import warnings
 import shutil
+import psutil
+import tempfile
+import atexit
+import gc
+from contextlib import contextmanager
+import warnings
+import traceback
+import sys
 
-# Suppress NumPy warnings
-warnings.filterwarnings('ignore', category=RuntimeWarning)
-
-# Set the Google API key for authentication
+# Configuration
+warnings.filterwarnings('ignore')
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["GOOGLE_API_KEY"] = "AIzaSyAllDb85-EYZSDQjd8tVyF_Kg5WG8HPOjc"
 
-# JWT Configuration - match Spring Boot's configuration
-JWT_SECRET_KEY = "your-secret-key-here-must-be-at-least-512-bits-long"  # Must match Spring Boot's app.jwt.secret
-JWT_EXPIRATION_MS = 3600000  # 1 hour in milliseconds, matches Spring Boot's app.jwt.expirationInMs
-
-# Convert the secret key to bytes for HMAC-SHA
-JWT_SECRET_KEY_BYTES = JWT_SECRET_KEY.encode('utf-8')
-
-# Ensure virtual environment exists
-venv_dir = "venv"
-if not os.path.exists(venv_dir):
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
-
-# Check if the virtual environment was created successfully
-activate_script = os.path.join(venv_dir, "Scripts", "activate") if os.name == "nt" else os.path.join(venv_dir, "bin", "activate")
-if not os.path.exists(activate_script):
-    raise FileNotFoundError(f"Virtual environment activation script not found: {activate_script}. Ensure the virtual environment is created correctly.")
-
-# Activate virtual environment and install required modules
-pip_executable = os.path.join(venv_dir, "Scripts", "pip") if os.name == "nt" else os.path.join(venv_dir, "bin", "pip")
-subprocess.run([pip_executable, "install", "-r", "requirements.txt"])
-
-# Inform the user to manually activate the virtual environment
-print(f"Please manually activate the virtual environment using: {activate_script}")
-
-# Initialize Flask app
+# Initialize Flask
 app = Flask(__name__)
-
-# Configure CORS
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:5173"],  # Your frontend URL
+        "origins": ["http://localhost:5173"],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "Accept"],
         "supports_credentials": True
     }
 })
 
-# Store user sessions
-user_sessions = {}
+# Constants
+JWT_SECRET_KEY = "your-secret-key-here-must-be-at-least-64-bytes-long-12345678901234567890"
+JWT_EXPIRATION_MS = 604800000  # 7 days
+PDF_DIR = "./pdf_files"
+CHROMA_DIR = "./chroma_db"
+LOCK_FILE = os.path.join(CHROMA_DIR, ".lock")
+COLLECTION_NAME = "tesla_manual_v3"  # Updated collection name
 
-def initialize_qa_chain():
-    from langchain_google_genai import ChatGoogleGenerativeAI
-    from langchain.chains import RetrievalQA
-
-    # Initialize Gemini model with system message conversion
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.2,
-        convert_system_message_to_human=True
-    )
-
-    # Load vectorstore (ensure chroma_db directory exists)
-    vectorstore = Chroma(
-        persist_directory="./chroma_db",
-        embedding_function=embedding  # Pass the embedding object directly
-    )
-
-    # Build the QA chain
-    return RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        return_source_documents=True
-    )
-
-# Ensure the embedding object is defined before using it
+# Global State
+vectorstore = None
+qa_chain = None
 embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-# Initialize the vectorstore with the embedding function
-vectorstore = Chroma(
-    persist_directory="./chroma_db",
-    embedding_function=embedding  # Pass the embedding object directly
-)
+# --------------------------
+# Core Utility Functions
+# --------------------------
 
-# Initialize QA chain
-qa_chain = initialize_qa_chain()
+def setup_directories():
+    """Ensure required directories exist"""
+    os.makedirs(PDF_DIR, exist_ok=True)
+    os.makedirs(CHROMA_DIR, exist_ok=True)
 
-# Establish a connection to the MySQL database
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="1234",
-        database="ticket_system"
-    )
+@contextmanager
+def chroma_lock():
+    """File-based lock for Chroma operations"""
+    max_wait = 30
+    start = time.time()
+    
+    while os.path.exists(LOCK_FILE):
+        if time.time() - start > max_wait:
+            raise TimeoutError("Could not acquire lock")
+        time.sleep(1)
+    
+    try:
+        with open(LOCK_FILE, 'w') as f:
+            f.write(str(os.getpid()))
+        yield
+    finally:
+        try:
+            os.remove(LOCK_FILE)
+        except:
+            pass
+
+def kill_processes_using_path(path):
+    """Kill processes using files at given path"""
+    for proc in psutil.process_iter():
+        try:
+            for f in proc.open_files():
+                if os.path.abspath(path) in os.path.abspath(f.path):
+                    print(f"🔫 Killing process {proc.pid} ({proc.name()})")
+                    proc.kill()
+                    time.sleep(0.5)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+def force_delete_directory(path):
+    """Forcefully delete directory"""
+    for attempt in range(3):
+        try:
+            if os.path.exists(path):
+                kill_processes_using_path(path)
+                shutil.rmtree(path, ignore_errors=True)
+                return True
+        except Exception as e:
+            print(f"⚠️ Delete attempt {attempt+1} failed: {e}")
+            time.sleep(2)
+    return False
+
+def cleanup_resources():
+    """Clean up resources on shutdown"""
+    global vectorstore
+    if vectorstore is not None:
+        try:
+            if hasattr(vectorstore, 'delete_collection'):
+                vectorstore.delete_collection()
+        except Exception as e:
+            print(f"⚠️ Cleanup error: {e}")
+        vectorstore = None
+    gc.collect()
+
+# --------------------------
+# Chroma DB Functions
+# --------------------------
+
+def initialize_chroma():
+    """Initialize or load Chroma DB with proper persistence"""
+    global vectorstore
+    
+    try:
+        # Try to load existing DB
+        if os.path.exists(CHROMA_DIR) and os.listdir(CHROMA_DIR):
+            vectorstore = Chroma(
+                persist_directory=CHROMA_DIR,
+                embedding_function=embedding,
+                collection_name=COLLECTION_NAME
+            )
+            print(f"✅ Loaded existing Chroma DB (Documents: {vectorstore._collection.count()})")
+            return True
+        
+        # If no DB exists, create a new one
+        print("🔄 No existing Chroma DB found - creating new one...")
+        return build_chroma_db()
+        
+    except Exception as e:
+        print(f"❌ Chroma initialization failed: {e}")
+        traceback.print_exc()
+        return False
+
+def build_chroma_db():
+    """Build a fresh Chroma DB with proper persistence"""
+    try:
+        with chroma_lock():
+            # Clear existing DB if it exists
+            if os.path.exists(CHROMA_DIR):
+                print("🧹 Cleaning existing Chroma DB...")
+                if not force_delete_directory(CHROMA_DIR):
+                    print("❌ Failed to clean existing DB")
+                    return False
+            
+            # Get all PDF files in the directory
+            pdf_files = [os.path.join(PDF_DIR, f) for f in os.listdir(PDF_DIR) if f.endswith('.pdf')]
+            
+            if not pdf_files:
+                print("❌ No PDF files found in directory")
+                return False
+            
+            # Process PDFs
+            all_docs = []
+            for file in pdf_files:
+                try:
+                    print(f"📄 Processing {os.path.basename(file)}...")
+                    loader = PyPDFLoader(file)
+                    pages = loader.load()
+                    
+                    splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=1000,
+                        chunk_overlap=200,
+                        separators=["\n\n", "\n", " ", ""]
+                    )
+                    chunks = splitter.split_documents(pages)
+                    
+                    if not chunks:
+                        print(f"⚠️ No chunks from {os.path.basename(file)}")
+                        continue
+                        
+                    all_docs.extend(chunks)
+                    print(f"   Added {len(chunks)} chunks")
+                    
+                except Exception as e:
+                    print(f"❌ Failed to process {file}: {e}")
+                    continue
+            
+            if not all_docs:
+                print("❌ No documents processed")
+                return False
+            
+            # Create new persistent DB
+            global vectorstore
+            vectorstore = Chroma.from_documents(
+                documents=all_docs,
+                embedding=embedding,
+                persist_directory=CHROMA_DIR,
+                collection_name=COLLECTION_NAME,
+                collection_metadata={"hnsw:space": "cosine"}
+            )
+            
+            # Verify persistence
+            if vectorstore._collection.count() == 0:
+                print("❌ Failed to persist documents")
+                return False
+            
+            print(f"✅ Saved {vectorstore._collection.count()} documents")
+            return True
+            
+    except Exception as e:
+        print(f"❌ Build failed: {e}")
+        traceback.print_exc()
+        return False
+
+# --------------------------
+# Authentication
+# --------------------------
 
 def token_required(f):
     @wraps(f)
@@ -119,74 +230,80 @@ def token_required(f):
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             try:
-                token = auth_header.split(" ")[1]  # Bearer token
-                print(f"Received token: {token}")  # Debug log
+                token = auth_header.split(" ")[1]
             except IndexError:
-                print("Invalid token format - missing Bearer prefix")  # Debug log
                 return jsonify({'message': 'Invalid token format'}), 401
 
         if not token:
-            print("No token provided in request")  # Debug log
             return jsonify({'message': 'Token is missing'}), 401
 
         try:
-            # Debug log the secret key (first few characters only)
-            print(f"Using secret key (first 10 chars): {JWT_SECRET_KEY[:10]}...")
-            print(f"Secret key bytes length: {len(JWT_SECRET_KEY_BYTES)}")
-            
-            # Verify the token using both HS384 and HS512 algorithms
-            try:
-                data = decode(token, JWT_SECRET_KEY_BYTES, algorithms=["HS384"])
-            except InvalidTokenError:
-                data = decode(token, JWT_SECRET_KEY_BYTES, algorithms=["HS512"])
-                
-            print(f"Decoded token data: {data}")  # Debug log
-            current_user_email = data['sub']  # Spring Boot uses 'sub' for the subject (user ID)
-            print(f"Extracted user email: {current_user_email}")  # Debug log
-        except ExpiredSignatureError as e:
-            print(f"Token expired: {str(e)}")  # Debug log
+            data = decode(token, JWT_SECRET_KEY.encode('utf-8'), algorithms=["HS512"])
+            current_user_email = data['sub']
+        except ExpiredSignatureError:
             return jsonify({'message': 'Token has expired'}), 401
-        except InvalidTokenError as e:
-            print(f"Invalid token: {str(e)}")  # Debug log
+        except InvalidTokenError:
             return jsonify({'message': 'Invalid token'}), 401
-        except Exception as e:
-            print(f"Unexpected error during token verification: {str(e)}")  # Debug log
+        except Exception:
             return jsonify({'message': 'Token verification failed'}), 401
 
         return f(current_user_email, *args, **kwargs)
     return decorated
 
+# --------------------------
+# QA Chain Initialization
+# --------------------------
+
+def initialize_qa_chain():
+    """Initialize QA chain with persistent retriever"""
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",
+        temperature=0.2,
+        convert_system_message_to_human=True
+    )
+
+    retriever = vectorstore.as_retriever(
+        search_type="mmr",
+        search_kwargs={
+            "k": 5,
+            "score_threshold": 0.5,
+            "fetch_k": 20
+        }
+    )
+
+    return RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=True,
+        chain_type="stuff"
+    )
+
+# --------------------------
+# API Endpoints
+# --------------------------
+
 @app.route('/query', methods=['POST'])
 @token_required
 def query(current_user_email):
+    """Handle user queries with source documents"""
     data = request.json
-    query = data.get('query')
+    query_text = data.get('query')
 
-    if not query:
-        return jsonify({"error": "query is required"}), 400
+    if not query_text:
+        return jsonify({"error": "Query is required"}), 400
 
     try:
-        print(f"Processing query: {query}")
-        print(f"Current user email: {current_user_email}")
-        
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        # First, get the user ID from the email
-        cursor.execute(
-            "SELECT id FROM users WHERE email = %s",
-            (current_user_email,)
-        )
+        # Get user ID
+        cursor.execute("SELECT id FROM users WHERE email = %s", (current_user_email,))
         user_result = cursor.fetchone()
-        
         if not user_result:
-            print(f"User not found for email: {current_user_email}")
             return jsonify({"error": "User not found"}), 404
-            
         user_id = user_result[0]
-        print(f"Found user ID: {user_id}")
 
-        # Check if an active session exists for the user
+        # Get or create session
         cursor.execute(
             "SELECT id, history FROM sessions WHERE user_id = %s AND end_time IS NULL",
             (user_id,)
@@ -195,15 +312,11 @@ def query(current_user_email):
 
         if session:
             session_id, history_json = session
-            print(f"Found existing session: {session_id}")
-            # Parse existing history or create new list
             chat_history = json.loads(history_json) if history_json else []
         else:
-            # Create a new session if none exists
-            print("Creating new session")
             cursor.execute(
-                "INSERT INTO sessions (user_id, start_time, last_activity) VALUES (%s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                (user_id,)
+                "INSERT INTO sessions (user_id, start_time, last_activity, title) VALUES (%s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s)",
+                (user_id, query_text)
             )
             connection.commit()
             session_id = cursor.lastrowid
@@ -212,27 +325,29 @@ def query(current_user_email):
         # Add user message to history
         chat_history.append({
             "role": "user",
-            "content": query,
+            "content": query_text,
             "timestamp": datetime.now().isoformat()
         })
 
-        # Convert history to string for context
-        context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history])
-        print(f"Context for query: {context}")
-
+        # Get response with source documents
+        print(f"\n🔍 Query: {query_text}")
         try:
-            # Process the query using the chatbot
-            print("Invoking QA chain...")
-            response = qa_chain.invoke({"query": context})
-            print(f"QA chain response: {response}")
+            response = qa_chain.invoke({
+                "query": query_text,
+                "context": "\n".join([msg['content'] for msg in chat_history if msg['role'] == 'user'])
+            })
             answer = response["result"]
-            print(f"Generated answer: {answer}")
+            sources = response.get("source_documents", [])
+            
+            print(f"📚 Retrieved {len(sources)} source chunks")
+            for i, source in enumerate(sources):
+                print(f"   Source {i+1}: {source.page_content[:200]}...")
+                
         except Exception as e:
-            print(f"Error in QA chain: {str(e)}")
-            print(f"Error type: {type(e)}")
-            import traceback
-            print(f"Traceback: {traceback.format_exc()}")
-            answer = "I apologize, but I'm having trouble processing your request. Please try again later."
+            print(f"❌ QA error: {e}")
+            traceback.print_exc()
+            answer = "I'm having trouble processing your request. Please try again."
+            sources = []
 
         # Add bot response to history
         chat_history.append({
@@ -241,200 +356,116 @@ def query(current_user_email):
             "timestamp": datetime.now().isoformat()
         })
 
-        # Update the session with the new history and last activity
-        updated_history = json.dumps(chat_history)
+        # Update session
         cursor.execute(
             "UPDATE sessions SET history = %s, last_activity = CURRENT_TIMESTAMP WHERE id = %s",
-            (updated_history, session_id)
+            (json.dumps(chat_history), session_id)
         )
         connection.commit()
 
-    except mysql.connector.Error as err:
-        print(f"Database Error: {err}")
-        return jsonify({"error": "Database error"}), 500
-    except json.JSONDecodeError as err:
-        print(f"JSON Error: {err}")
-        return jsonify({"error": "Invalid history format"}), 500
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")
-        print(f"Error type: {type(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
-        return jsonify({"error": "Internal server error"}), 500
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
-
-    return jsonify({
-        "session_id": session_id,
-        "answer": answer,
-        "history": chat_history  # This is the full updated history
-    })
-
-@app.route('/test_db_connection', methods=['GET'])
-def test_db_connection():
-    try:
-        connection = get_db_connection()
-        if connection.is_connected():
-            return jsonify({"status": "success", "message": "Database connection successful."})
-    except mysql.connector.Error as err:
-        return jsonify({"status": "error", "message": f"Database connection failed: {err}"})
-    finally:
-        if connection.is_connected():
-            connection.close()
-
-# Add login endpoint to match Spring Boot's authentication
-@app.route('/api/auth/login', methods=['POST'])
-def login():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
-
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
-
-    try:
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-
-        # Get user from database
-        cursor.execute(
-            "SELECT user_id, password, role FROM users WHERE email = %s",
-            (email,)
-        )
-        user = cursor.fetchone()
-
-        if not user:
-            return jsonify({"error": "Invalid credentials"}), 401
-
-        # In a real application, you would verify the password hash here
-        # For this example, we'll assume the password matches
-        if password != user['password']:  # Replace with proper password verification
-            return jsonify({"error": "Invalid credentials"}), 401
-
-        # Generate JWT token matching Spring Boot's format
-        token = encode({
-            'sub': str(user['user_id']),  # Spring Boot uses 'sub' for the subject
-            'exp': datetime.utcnow() + timedelta(milliseconds=JWT_EXPIRATION_MS),
-            'iat': datetime.utcnow(),
-            'roles': [f"ROLE_{user['role']}"]  # Match Spring Boot's role format
-        }, JWT_SECRET_KEY_BYTES, algorithm="HS512")
-
         return jsonify({
-            "token": token,
-            "type": "Bearer",
-            "id": user['user_id'],
-            "email": email,
-            "roles": [f"ROLE_{user['role']}"]
+            "session_id": session_id,
+            "answer": answer,
+            "history": chat_history,
+            "sources": [{
+                "content": s.page_content[:500],
+                "metadata": s.metadata
+            } for s in sources]
         })
 
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"❌ Database error: {err}")
         return jsonify({"error": "Database error"}), 500
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error"}), 500
     finally:
-        if connection.is_connected():
+        if 'connection' in locals() and connection.is_connected():
             cursor.close()
             connection.close()
 
-pdf_directory = "./pdf_files"
-chroma_directory = "./chroma_db"
+@app.route('/debug_collection', methods=['GET'])
+def debug_collection():
+    """Inspect the Chroma collection"""
+    if not vectorstore:
+        return jsonify({"error": "Vectorstore not initialized"}), 400
+        
+    collection = vectorstore._collection
+    return jsonify({
+        "count": collection.count(),
+        "metadata": collection.metadata,
+        "sample_ids": collection.get(limit=2)['ids']
+    })
 
-# Ensure the directories exist
-os.makedirs(pdf_directory, exist_ok=True)
-os.makedirs(chroma_directory, exist_ok=True)
+@app.route('/debug_query', methods=['POST'])
+def debug_query():
+    """Test raw retrieval"""
+    data = request.json
+    query = data.get('query')
+    
+    if not query or not vectorstore:
+        return jsonify({"error": "Invalid request"}), 400
+        
+    try:
+        docs = vectorstore.similarity_search(query, k=3)
+        return jsonify({
+            "results": [{
+                "content": d.page_content[:500],
+                "metadata": d.metadata
+            } for d in docs]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# Step 1: Define GitHub PDF URLs
-pdf_urls = [
-    "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/tesla%20testing.pdf",
-    "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/model3.pdf",
-    "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/modelY.pdf",
-    "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/modelS.pdf",
-    "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/modelX.pdf",
-    "https://raw.githubusercontent.com/Elvificent/ticket/add-chatbot-data/cybertruck.pdf"
-]
+# --------------------------
+# Database Connection
+# --------------------------
 
-# Step 2: Download missing PDFs
-pdf_files = []
-all_files_exist = True
-for url in pdf_urls:
-    filename = os.path.join(pdf_directory, url.split("/")[-1])
-    pdf_files.append(filename)
-    if not os.path.exists(filename):
-        all_files_exist = False
-
-if not all_files_exist:
-    print("🔄 Downloading missing PDF files...")
-    for url in pdf_urls:
-        filename = os.path.join(pdf_directory, url.split("/")[-1])
-        if not os.path.exists(filename):
-            for attempt in range(3):  # Retry up to 3 times
-                try:
-                    with requests.get(url, stream=True) as response:
-                        response.raise_for_status()
-                        with open(filename, "wb") as f:
-                            for chunk in response.iter_content(chunk_size=8192):
-                                if chunk:
-                                    f.write(chunk)
-                    print(f"✅ Successfully downloaded: {filename}")
-                    break
-                except (ChunkedEncodingError, requests.exceptions.RequestException) as e:
-                    print(f"⚠️ Attempt {attempt + 1} failed for {filename}: {e}")
-                    time.sleep(2)
-            else:
-                print(f"❌ Failed to download: {filename} after 3 attempts")
-else:
-    print("✅ All PDF files are already downloaded.")
-
-# Step 3: Check if any PDF is newer than the chroma_db directory (AFTER download)
-def needs_rechunking(pdf_directory, chroma_directory):
-    if not os.path.exists(chroma_directory):
-        return True
-    chroma_mtime = os.path.getmtime(chroma_directory)
-    for filename in os.listdir(pdf_directory):
-        if filename.lower().endswith('.pdf'):
-            pdf_path = os.path.join(pdf_directory, filename)
-            if os.path.getmtime(pdf_path) > chroma_mtime:
-                return True
-    return False
-
-if needs_rechunking(pdf_directory, chroma_directory):
-    print("Detected new or updated PDFs. Re-chunking and re-embedding all documents...")
-    if os.path.exists(chroma_directory):
-        shutil.rmtree(chroma_directory)
-    # Proceed with chunking and embedding all PDFs as usual
-else:
-    print("No new PDFs detected. Using existing Chroma database.")
-
-# Step 4: Check if Chroma database already exists
-if os.path.exists(chroma_directory) and os.listdir(chroma_directory):
-    print("✅ Chroma database already exists. Skipping chunking and embedding.")
-    vectorstore = Chroma(
-        persist_directory=chroma_directory,
-        embedding_function=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+def get_db_connection():
+    """Create a new database connection"""
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1234",
+        database="ticket_system"
     )
-else:
-    print("🔄 Chunking and embedding PDF files...")
-    all_docs = []
-    for file in pdf_files:
-        try:
-            loader = PyPDFLoader(file)
-            pages = loader.load()
-            splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-            chunks = splitter.split_documents(pages)
-            all_docs.extend(chunks)
-            print(f"✅ Loaded: {file} ({len(chunks)} chunks)")
-        except Exception as e:
-            print(f"❌ Failed to load {file}: {e}")
 
-    # Step 5: Embed and store in Chroma
-    embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    vectorstore = Chroma.from_documents(
-        documents=all_docs,
-        embedding=embedding,
-        persist_directory=chroma_directory
-    )
-    print(f"\n✅ Total embedded chunks: {len(all_docs)}")
+# --------------------------
+# Application Initialization
+# --------------------------
+
+def initialize_app():
+    """Initialize all application components"""
+    print("\n🚀 Initializing application...")
+    setup_directories()
+    
+    if not initialize_chroma():
+        print("❌ Failed to initialize Chroma DB")
+        return False
+    
+    global qa_chain
+    qa_chain = initialize_qa_chain()
+    atexit.register(cleanup_resources)
+    print("\n🏁 Application ready")
+    return True
+
+# --------------------------
+# Main Execution
+# --------------------------
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    try:
+        if initialize_app():
+            port = int(os.environ.get('PORT', 5000))
+            print(f"\n🌐 Server running on http://0.0.0.0:{port}")
+            app.run(host='0.0.0.0', port=port)
+        else:
+            print("\n💥 Failed to initialize application")
+            sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n🛑 Server stopped")
+    except Exception as e:
+        print(f"\n💥 Fatal error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
