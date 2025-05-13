@@ -99,4 +99,20 @@ public class Session {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public SessionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SessionStatus status) {
+        this.status = status;
+    }
+
+    public String getConversationFilePath() {
+        return conversationFilePath;
+    }
+
+    public void setConversationFilePath(String conversationFilePath) {
+        this.conversationFilePath = conversationFilePath;
+    }
 } 
