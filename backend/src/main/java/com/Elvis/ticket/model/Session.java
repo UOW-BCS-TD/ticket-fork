@@ -1,14 +1,25 @@
 package com.Elvis.ticket.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Data
 @Entity
 @Table(name = "sessions")
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
@@ -19,9 +30,18 @@ public class Session {
     @Column(name = "last_activity", nullable = false)
     private LocalDateTime lastActivity;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "history", columnDefinition = "LONGTEXT")
+    private String history;
+
+    @Column(name = "conversation_file_path")
+    private String conversationFilePath;
+
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SessionStatus status;
+
+    @Column(name = "title")
+    private String title;
 
     // Getters and Setters
     public Long getId() {
@@ -56,11 +76,43 @@ public class Session {
         this.lastActivity = lastActivity;
     }
 
+    public String getHistory() {
+        return history;
+    }
+
+    public void setHistory(String history) {
+        this.history = history;
+    }
+
     public User getUser() {
         return user;
     }
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public SessionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SessionStatus status) {
+        this.status = status;
+    }
+
+    public String getConversationFilePath() {
+        return conversationFilePath;
+    }
+
+    public void setConversationFilePath(String conversationFilePath) {
+        this.conversationFilePath = conversationFilePath;
     }
 } 

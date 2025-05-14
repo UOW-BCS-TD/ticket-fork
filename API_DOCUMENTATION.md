@@ -94,6 +94,14 @@
 - **Response**: Success status
 - **Access**: ADMIN only
 
+### Update Current User Profile
+- **URL**: `/api/users/profile`
+- **Method**: `PUT`
+- **Description**: Update the profile of the currently authenticated user
+- **Request Body**: User details to update
+- **Response**: Updated user details
+- **Access**: Any authenticated user
+
 ## Ticket Management
 
 ### Get All Tickets
@@ -101,7 +109,10 @@
 - **Method**: `GET`
 - **Description**: Get all tickets
 - **Response**: List of tickets
-- **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Access**:
+  - ADMIN and MANAGER can view all tickets
+  - CUSTOMERS can view their own tickets
+  - ENGINEERS can view tickets they are assigned to
 
 ### Get Ticket by ID
 - **URL**: `/api/tickets/{id}`
@@ -131,7 +142,7 @@
 - **Method**: `DELETE`
 - **Description**: Delete a ticket
 - **Response**: Success status
-- **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Access**: Only ADMIN and MANAGER
 
 ### Get Tickets by Customer
 - **URL**: `/api/tickets/customer/{customerId}`
@@ -309,12 +320,27 @@
 - **Response**: List of sessions
 - **Access**: ADMIN only
 
+### Get Session History
+- **URL**: `/api/sessions/{id}/history`
+- **Method**: `GET`
+- **Description**: Get the chat history for a session
+- **Response**:
+  ```json
+  {
+    "history": [
+      { "role": "user", "content": "First message", "timestamp": "2024-06-01T12:00:00Z" },
+      { "role": "assistant", "content": "Hello! How can I help you?", "timestamp": "2024-06-01T12:00:01Z" }
+    ]
+  }
+  ```
+- **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
+
 ### End Session
 - **URL**: `/api/sessions/{id}/end`
 - **Method**: `PUT`
-- **Description**: End a session
+- **Description**: End a session. Can be called by ADMIN, MANAGER, or the session owner (CUSTOMER).
 - **Response**: Updated session details
-- **Access**: ADMIN, MANAGER
+- **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
 
 ### Update Session Activity
 - **URL**: `/api/sessions/{id}/activity`
@@ -322,6 +348,28 @@
 - **Description**: Update session activity
 - **Response**: Updated session details
 - **Access**: ADMIN, MANAGER
+
+### Create Session
+- **URL**: `/api/sessions`
+- **Method**: `POST`
+- **Description**: Create a new session. The session title is set from the first user message.
+- **Request Body**:
+  ```json
+  { "title": "First user message" }
+  ```
+- **Response**: Created session details (includes `title` field)
+- **Access**: CUSTOMER only
+
+### Update Session Title
+- **URL**: `/api/sessions/{id}/title`
+- **Method**: `PUT`
+- **Description**: Update only the title of a session
+- **Request Body**:
+  ```json
+  { "title": "New Title" }
+  ```
+- **Response**: Updated session details (includes `title` field)
+- **Access**: ADMIN, MANAGER, or session owner (CUSTOMER)
 
 ## Error Responses
 
@@ -376,4 +424,11 @@
 3. Timestamps are in ISO 8601 format
 4. IDs are numeric and auto-generated
 5. All endpoints return JSON responses
-6. Error responses include detailed messages and timestamps 
+6. Error responses include detailed messages and timestamps
+
+## Logging Behavior
+
+- On each application run, a new log file is created in the `log/` directory.
+- The log file is named `application.<PID>.log`, where `<PID>` is the process ID of the running Java application.
+- Only one log file is created per run; there is no daily or time-based rolling.
+- Example: `log/application.12345.log` 

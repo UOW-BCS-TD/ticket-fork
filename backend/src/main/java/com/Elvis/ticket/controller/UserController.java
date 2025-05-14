@@ -1,6 +1,7 @@
 package com.Elvis.ticket.controller;
 
 import com.Elvis.ticket.dto.UserResponse;
+import com.Elvis.ticket.dto.PasswordChangeRequest;
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,11 +56,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}/password")
-    public ResponseEntity<Void> updatePassword(@PathVariable Long id, @RequestBody String newPassword) {
-        if (userService.updatePassword(id, newPassword)) {
-            return ResponseEntity.ok().build();
+    public ResponseEntity<?> updatePassword(@PathVariable Long id, @RequestBody PasswordChangeRequest request) {
+        try {
+            User updatedUser = userService.updatePassword(id, request);
+            return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
@@ -68,5 +71,19 @@ public class UserController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateCurrentUserProfile(@RequestBody User userDetails) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userService.getUserByEmail(email)
+                .map(user -> {
+                    user.setName(userDetails.getName());
+                    user.setPhoneNumber(userDetails.getPhoneNumber());
+                    userService.updateUser(user.getId(), user);
+                    return ResponseEntity.ok(UserResponse.fromUser(user));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 } 

@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Ignore all files in the logs directory
+backend/log/*
+
+# Ignore all files in the logs directory
+backend/logs/*
+

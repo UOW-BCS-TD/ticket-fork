@@ -70,12 +70,17 @@ CREATE TABLE ticket_types (
 -- Create sessions table
 CREATE TABLE sessions (
     session_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
     start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_time TIMESTAMP,
     last_activity TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    history LONGTEXT,
+    conversation_file_path VARCHAR(255),
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     user_id BIGINT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    CONSTRAINT chk_session_times CHECK (end_time IS NULL OR end_time > start_time)
+    CONSTRAINT chk_session_times CHECK (end_time IS NULL OR end_time > start_time),
+    CONSTRAINT chk_session_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'CLOSED'))
 );
 
 -- Create tickets table

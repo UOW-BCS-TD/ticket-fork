@@ -2,6 +2,7 @@ package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.repository.UserRepository;
+import com.Elvis.ticket.dto.PasswordChangeRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +31,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public Optional<User> getUserByEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
     }
 
     @Transactional(readOnly = true)
@@ -40,31 +41,41 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, User userDetails) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+    public Optional<User> updateUser(Long id, User userDetails) {
+        return userRepository.findById(id)
+                .map(existingUser -> {
+                    if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+                        existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+                    }
+                    existingUser.setName(userDetails.getName());
+                    existingUser.setEmail(userDetails.getEmail());
+                    existingUser.setPhoneNumber(userDetails.getPhoneNumber());
+                    existingUser.setRole(userDetails.getRole());
+                    return userRepository.save(existingUser);
+                });
+    }
+
+    @Transactional
+    public boolean deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            return false;
         }
-        existingUser.setName(userDetails.getName());
-        existingUser.setEmail(userDetails.getEmail());
-        existingUser.setPhoneNumber(userDetails.getPhoneNumber());
-        existingUser.setRole(userDetails.getRole());
-        
-        return userRepository.save(existingUser);
-    }
-
-    @Transactional
-    public void deleteUser(Long id) {
         userRepository.deleteById(id);
+        return true;
     }
 
     @Transactional
-    public User updatePassword(Long id, String newPassword) {
+    public User updatePassword(Long id, PasswordChangeRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setPassword(passwordEncoder.encode(newPassword));
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Update to new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         return userRepository.save(user);
     }
 
