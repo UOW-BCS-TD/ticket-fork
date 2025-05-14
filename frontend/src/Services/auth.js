@@ -1,157 +1,271 @@
-// Configuration constants
-const AUTH_CONFIG = {
-  BASE_URL: 'http://localhost:8082/api/auth',
-  HEADERS: {
-    'Content-Type': 'application/json',
-  },
-  STORAGE_KEYS: {
-    TOKEN: 'token',
-    USER: 'user'
-  },
-  ROLES: {
-    ADMIN: 'ADMIN',
-    MANAGER: 'MANAGER',
-    ENGINEER: 'ENGINEER',
-    CUSTOMER: 'CUSTOMER'
-  }
-};
+import { authService, userService } from './api';
 
-// Storage utility functions
-const storage = {
-  get: (key) => localStorage.getItem(key),
-  set: (key, value) => localStorage.setItem(key, value),
-  remove: (key) => localStorage.removeItem(key),
-  getObject: (key) => {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  },
-  setObject: (key, value) => localStorage.setItem(key, JSON.stringify(value))
-};
-
-// Helper function for making fetch requests to auth endpoints
-const fetchAuth = async (endpoint, options = {}) => {
-  const url = `${AUTH_CONFIG.BASE_URL}${endpoint}`;
-  
-  // Set default headers
-  const headers = { ...AUTH_CONFIG.HEADERS };
-  
-  // Merge options
-  const fetchOptions = {
-    ...options,
-    headers: {
-      ...headers,
-      ...options.headers
-    }
-  };
-  
-  try {
-    const response = await fetch(url, fetchOptions);
-    
-    // Check if response is ok (status in the range 200-299)
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Auth request failed with status ${response.status}`);
-    }
-    
-    // Parse JSON response
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Auth request failed:', error);
-    throw error;
-  }
-};
-
-// Authentication service
-const authService = {
-  // Login user and get JWT token
+// Authentication service functions
+const authFunctions = {
+  // Login user - aligned with backend JwtResponse structure
   login: async (email, password) => {
     try {
-      const data = await fetchAuth('/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
+      const response = await authService.login({ email, password });
+      console.log('Login response:', response); // Debug log
       
-      if (data) {
-        if (data.token) {
-          storage.set(AUTH_CONFIG.STORAGE_KEYS.TOKEN, data.token);
+      // Store token in localStorage
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
         }
         
-        if (data.user) {
-          storage.setObject(AUTH_CONFIG.STORAGE_KEYS.USER, data.user);
-        }
+        return {
+          success: true,
+          ...response
+        };
       }
       
-      return data;
+      console.error('No token in response:', response);
+      return {
+        success: false,
+        message: 'Authentication failed: No token received'
+      };
     } catch (error) {
-      throw error;
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed. Please check your credentials.'
+      };
     }
   },
-  
-  // Register a new user
+
+  // Register new user - aligned with UserResponseDTO
   register: async (userData) => {
     try {
-      const data = await fetchAuth('/register', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-      return data;
+      if (!userData.email || !userData.password) {
+        return {
+          success: false,
+          message: 'Email and password are required'
+        };
+      }
+
+      if (userData.password !== userData.confirmPassword) {
+        return {
+          success: false,
+          message: 'Passwords do not match'
+        };
+      }
+
+      if (userData.password.length < 8) {
+        return {
+          success: false,
+          message: 'Password must be at least 8 characters long'
+        };
+      }
+
+      const { confirmPassword, ...dataToSend } = userData;
+    
+      const response = await authService.register(dataToSend);
+      
+      // Auto-login after successful registration (optional)
+      if (response && !response.error) {
+        try {
+          await authFunctions.login(userData.email, userData.password);
+        } catch (loginError) {
+          console.warn('Auto-login after registration failed:', loginError);
+        }
+      }
+
+      return {
+        success: true,
+        ...response
+      };
     } catch (error) {
+      console.error('Registration error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Registration failed. Please try again.'
+      };
+    }
+  },
+
+  // Logout user
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  // Get current authenticated user
+  getCurrentUser: () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr && userStr !== 'undefined') {
+        return JSON.parse(userStr);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+      return null;
+    }
+  },
+
+  // Get current user profile from API
+  getCurrentUserProfile: async () => {
+    try {
+      // Get the user profile from the API using userService instead of authService
+      const userProfile = await userService.getCurrentUserProfile();
+      
+      // // Update the user in localStorage with the latest data
+      if (userProfile) {
+        const currentUser = authFunctions.getCurrentUser();
+        const updatedUser = { ...currentUser, ...userProfile };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+      
+      return userProfile;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
       throw error;
     }
   },
-  
-  // Logout user
-  logout: () => {
-    storage.remove(AUTH_CONFIG.STORAGE_KEYS.TOKEN);
-    storage.remove(AUTH_CONFIG.STORAGE_KEYS.USER);
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event('authChange'));
+
+  // Update current user profile from API
+  updateUserProfile: async (userData) => {
+    try {
+      // Only send name and phoneNumber to match backend expectations
+      const profileUpdateData = {
+        name: userData.name,
+        phoneNumber: userData.phoneNumber
+      };
+      
+      const response = await userService.updateUserProfile(profileUpdateData);
+      
+      if (response) {
+        // Get current user from localStorage
+        const currentUser = authFunctions.getCurrentUser();
+        
+        if (currentUser) {
+          // Update only the name and phoneNumber fields
+          const updatedUser = { 
+            ...currentUser,
+            name: response.name || currentUser.name,
+            phoneNumber: response.phoneNumber || currentUser.phoneNumber
+          };
+          
+          // Save updated user to localStorage
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          
+          return updatedUser;
+        }
+        
+        return response;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      throw error;
+    }
   },
-  
-  // Get current user from localStorage
-  getCurrentUser: () => storage.getObject(AUTH_CONFIG.STORAGE_KEYS.USER),
-  
+
   // Check if user is logged in
-  isLoggedIn: () => !!storage.get(AUTH_CONFIG.STORAGE_KEYS.TOKEN),
-  
-  // Get token from localStorage
-  getToken: () => storage.get(AUTH_CONFIG.STORAGE_KEYS.TOKEN),
-  
+  isLoggedIn: () => {
+    return !!localStorage.getItem('token');
+  },
+
+  // Get authentication token
+  getToken: () => {
+    return localStorage.getItem('token');
+  },
+
   // Check if user has specific role
   hasRole: (role) => {
-    const user = authService.getCurrentUser();
-    return user && user.role === role;
-  },
-  
-  // Role-specific checkers
-  isAdmin: () => authService.hasRole(AUTH_CONFIG.ROLES.ADMIN),
-  
-  isManager: () => authService.hasRole(AUTH_CONFIG.ROLES.MANAGER),
-  
-  isEngineer: () => authService.hasRole(AUTH_CONFIG.ROLES.ENGINEER),
-  
-  isCustomer: () => authService.hasRole(AUTH_CONFIG.ROLES.CUSTOMER),
-  
-  // Get user role display name
-  getUserRoleDisplay: () => {
-    const user = authService.getCurrentUser();
-    if (!user) return null;
-    
-    switch(user.role) {
-      case AUTH_CONFIG.ROLES.ADMIN:
-        return 'Administrator';
-      case AUTH_CONFIG.ROLES.MANAGER:
-        return 'Support Manager';
-      case AUTH_CONFIG.ROLES.ENGINEER:
-        return 'Support Engineer';
-      case AUTH_CONFIG.ROLES.CUSTOMER:
-        return 'Customer';
-      default:
-        return user.role;
+    const user = authFunctions.getCurrentUser();
+    if (user && user.role) {
+      return user.role === role;
     }
+    return false;
+  },
+
+  // Check if user is admin
+  isAdmin: () => {
+    return authFunctions.hasRole('ADMIN');
+  },
+
+  // Check if user is manager
+  isManager: () => {
+    return authFunctions.hasRole('MANAGER');
+  },
+
+  // Check if user is engineer
+  isEngineer: () => {
+    return authFunctions.hasRole('ENGINEER');
+  },
+
+  // Check if user is customer
+  isCustomer: () => {
+    return authFunctions.hasRole('CUSTOMER');
   }
 };
 
-export default authService;
+// User management functions
+export const userManagement = {
+  // Get all users (admin only)
+  getAllUsers: async () => {
+    try {
+      return await userService.getAllUsers();
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      throw error;
+    }
+  },
+
+  // Get user by ID (admin only)
+  getUserById: async (id) => {
+    try {
+      return await userService.getUserById(id);
+    } catch (error) {
+      console.error(`Error fetching user with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Create a new user (admin only)
+  createUser: async (userData) => {
+    try {
+      return await userService.createUser(userData);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  },
+
+  // Update user (admin only)
+  updateUser: async (id, userData) => {
+    try {
+      return await userService.updateUser(id, userData);
+    } catch (error) {
+      console.error(`Error updating user with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Update user password (admin only)
+  updateUserPassword: async (id, passwordData) => {
+    try {
+      return await userService.updateUserPassword(id, passwordData);
+    } catch (error) {
+      console.error(`Error updating password for user with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Delete user (admin only)
+  deleteUser: async (id) => {
+    try {
+      return await userService.deleteUser(id);
+    } catch (error) {
+      console.error(`Error deleting user with ID ${id}:`, error);
+      throw error;
+    }
+  },
+};
+
+export default authFunctions;

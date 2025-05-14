@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import auth from '../Services/auth';
+import { Link, useNavigate } from 'react-router-dom';
 import './Header.css';
+import auth from '../Services/auth';
 
 const Header = (props) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
 
-  // Function to update current user state
+  // Function to update current user state from localStorage only
   const updateCurrentUser = () => {
+    // Get user data from auth service
     const user = auth.getCurrentUser();
-    console.log('Header - user state updated:', { 
-      isLoggedIn: auth.isLoggedIn(), 
-      user
-    });
-    
     setCurrentUser(user);
   };
 
@@ -38,7 +35,7 @@ const Header = (props) => {
 
   // Handle localStorage changes (for when user logs in/out in another tab)
   const handleStorageChange = (e) => {
-    if (e.key === 'role' || e.key === 'token' || e.key === 'name' || e.key === null) {
+    if (e.key === 'role' || e.key === 'token' || e.key === 'name' || e.key === 'user' || e.key === null) {
       updateCurrentUser();
     }
   };
@@ -74,13 +71,17 @@ const Header = (props) => {
 
     // Dispatch custom event to notify other components
     window.dispatchEvent(new Event('authChange'));
+    
+    // Redirect to login page after logout
+    navigate('/login');
   };
 
   // Create navigation links based on authentication status
   const getNavLinks = () => {
     const isLoggedIn = auth.isLoggedIn();
-    const userRoleDisplay = auth.getUserRoleDisplay();
-    const user = auth.getCurrentUser();
+    
+    // Get user role from current user
+    const userRole = currentUser?.role || '';
     
     const baseLinks = [
       { path: '/', label: 'Home' },
@@ -88,8 +89,8 @@ const Header = (props) => {
     ];
     
     // Different service dropdown items based on user role
-    if (user) {
-      switch(user.role) {
+    if (isLoggedIn) {
+      switch(userRole) {
         case 'ADMIN':
           // Admin-specific service items
           baseLinks.push({ 
@@ -180,6 +181,7 @@ const Header = (props) => {
     }
   };
 
+  // Force re-render when currentUser changes
   const navLinks = props.navLinks || getNavLinks();
 
   return (
