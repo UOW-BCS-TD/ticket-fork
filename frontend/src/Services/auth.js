@@ -61,6 +61,7 @@ const authFunctions = {
       }
 
       const { confirmPassword, ...dataToSend } = userData;
+      console.log('Sending registration data:', dataToSend); // Add logging
     
       const response = await authService.register(dataToSend);
       
