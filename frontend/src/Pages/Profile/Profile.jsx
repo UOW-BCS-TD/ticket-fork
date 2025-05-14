@@ -1,342 +1,163 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import auth from '../../Services/auth';
+import { useNavigate } from 'react-router-dom';
 import './Profile.css';
+import auth from '../../Services/auth';
+import api from '../../Services/api';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('account');
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
-  const [stats, setStats] = useState({
-    openTickets: 0,
-    totalTickets: 0,
-    resolvedTickets: 0,
-    pendingTickets: 0,
-    escalatedTickets: 0
-  });
   
-  // Add form state for edit profile
+  // Form state for edit profile (simplified to only name and phone)
   const [formData, setFormData] = useState({
     name: '',
-    preferredContact: 'Email',
-    expertise: '',
-    department: '',
-    managedCategories: ''
+    phoneNumber: ''
   });
-  
-  // Add state for operations
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  
-  useEffect(() => {
-    // Get user data
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Log authentication state
-        console.log("Auth state:", {
-          isAuthenticated: auth.isLoggedIn(),
-          token: localStorage.getItem('token') ? 'Token exists' : 'No token',
-          user: auth.getCurrentUser()
-        });
-        
-        // Get user data from local storage
-        const currentUser = auth.getCurrentUser();
-        console.log("Local user data:", currentUser);
-        
-        if (!currentUser) {
-          throw new Error("No user data available. Please log in again.");
-        }
-        
-        // Create a simulated user object based on local storage data
-        let userData = {
-          ...currentUser,
-          createdAt: currentUser.createdAt || new Date().toISOString(),
-          email: currentUser.email || 'user@example.com',
-          preferredContact: 'Email',
-          recentActivity: [
-            { id: 1, type: 'login', action: 'logged in', date: new Date().toISOString(), details: 'From browser' }
-          ]
-        };
-        
-        // Add role-specific data
-        if (currentUser.role === 'ENGINEER') {
-          userData = {
-            ...userData,
-            category: 'Hardware Support',
-            level: 'Senior',
-            maxTickets: 10,
-            currentTickets: 4,
-            expertise: ['Networking', 'Hardware', 'Windows OS']
-          };
-          
-          setStats({
-            openTickets: 4,
-            totalTickets: 156,
-            resolvedTickets: 152,
-            pendingTickets: 2,
-            escalatedTickets: 2
-          });
-        } 
-        else if (currentUser.role === 'MANAGER') {
-          userData = {
-            ...userData,
-            department: 'Technical Support',
-            teamSize: 12,
-            managedCategories: ['Hardware', 'Software', 'Network']
-          };
-          
-          setStats({
-            openTickets: 32,
-            totalTickets: 1250,
-            resolvedTickets: 1218,
-            pendingTickets: 18,
-            escalatedTickets: 14
-          });
-        }
-        else if (currentUser.role === 'CUSTOMER') {
-          userData = {
-            ...userData,
-            openTickets: Math.floor(Math.random() * 5),
-            totalTickets: Math.floor(Math.random() * 20) + 5,
-          };
-          
-          setStats({
-            openTickets: Math.floor(Math.random() * 5),
-            totalTickets: Math.floor(Math.random() * 20) + 5,
-            resolvedTickets: Math.floor(Math.random() * 15),
-            pendingTickets: Math.floor(Math.random() * 3),
-            escalatedTickets: Math.floor(Math.random() * 2)
-          });
-        }
-        
-        console.log("Final user data to be used:", userData);
-        setUser(userData);
-        
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        console.error('Error stack:', error.stack);
-        setError('Failed to load profile data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchUserData();
-    
-    // Listen for storage events to update the profile when localStorage changes
-    const handleStorageChange = (e) => {
-      if (e.key === 'name' || e.key === 'email' || e.key === 'role') {
-        console.log('Storage changed, refreshing user data');
-        fetchUserData();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Clean up event listener
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-  
-  // Initialize form data when user data is loaded or edit modal is opened
-  useEffect(() => {
-    if (user && showEditModal) {
-      console.log("Initializing form data with user:", user);
-      setFormData({
-        name: user.name || '',
-        preferredContact: user.preferredContact || 'Email',
-        expertise: user.expertise ? user.expertise.join(', ') : '',
-        department: user.department || '',
-        managedCategories: user.managedCategories ? user.managedCategories.join(', ') : ''
-      });
-    }
-  }, [user, showEditModal]);
-  
-  // Handle input changes
+
+  const navigate = useNavigate();
+
+  // Handle input changes in the edit form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Form field changed: ${name} = ${value}`);
     setFormData({
       ...formData,
       [name]: value
     });
   };
-  
-  // Handle form submission
+
+  // Function to get user data from API and fallback to localStorage if needed
+  const getUserDataFromLocalStorage = async () => {
+    try {
+      setLoading(true);
+      
+      // Get authentication token
+      const token = auth.getToken();
+      
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+      
+      try {
+        // Call the API to get the current user profile
+        const userData = await auth.getCurrentUserProfile();
+        console.log("User data from API:", userData);
+        
+        // Normalize the API response if needed
+        const normalizedUserData = {
+          ...userData,
+          // Ensure role is in the expected format
+          role: userData.role || (userData.roles && userData.roles.length > 0 
+            ? userData.roles[0].replace('ROLE_', '') 
+            : 'CUSTOMER'),
+        };
+        
+        setUser(normalizedUserData);
+        
+        // Initialize form data with user data
+        setFormData({
+          name: normalizedUserData.name || '',
+          phoneNumber: normalizedUserData.phoneNumber || ''
+        });
+      } catch (apiError) {
+        console.error('API error:', apiError);
+        
+        // Fallback to localStorage if API call fails
+        const currentAuthData = auth.getCurrentUser();
+        if (currentAuthData) {
+          setUser(currentAuthData);
+          
+          // Initialize form data with user data from localStorage
+          setFormData({
+            name: currentAuthData.name || '',
+            phoneNumber: currentAuthData.phoneNumber || ''
+          });
+        } else {
+          throw new Error('No user data available');
+        }
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      setLoading(false);
+      
+      // If not authenticated, redirect to login
+      if (error.message === 'Not authenticated' || error.message === 'No user data available') {
+        navigate('/login');
+      }
+    }
+  };
+
+  // Handle save changes button in edit modal
   const handleSaveChanges = async () => {
     try {
-      setSaving(true);
-      setError(null);
-      setSuccessMessage(null);
+      setError('');
       
-      console.log("Saving profile changes:", formData);
+      // Create update data object with only changed fields
+      const updateData = {};
       
-      // Prepare the update data based on user role
-      const updateData = { name: formData.name };
-      
-      // Add role-specific updates
-      if (user.role === 'CUSTOMER') {
-        updateData.preferredContact = formData.preferredContact;
-      } 
-      else if (user.role === 'ENGINEER') {
-        updateData.expertise = formData.expertise.split(',').map(item => item.trim());
+      // Only include fields that have changed
+      if (formData.name !== user.name) {
+        updateData.name = formData.name;
       }
-      else if (user.role === 'MANAGER') {
-        updateData.department = formData.department;
-        updateData.managedCategories = formData.managedCategories.split(',').map(item => item.trim());
+      if (formData.phoneNumber !== user.phoneNumber) {
+        updateData.phoneNumber = formData.phoneNumber;
       }
       
-      console.log("Prepared update data:", updateData);
+      // Only proceed if there are changes to save
+      if (Object.keys(updateData).length === 0) {
+        setShowEditModal(false);
+        return;
+      }
       
-      // Update local storage
-      localStorage.setItem('name', formData.name);
+      console.log('Sending update request with data:', updateData);
       
-      // Update the user state
-      const updatedUser = { 
-        ...user, 
-        ...updateData,
-        // Convert arrays back if needed
-        expertise: user.role === 'ENGINEER' ? updateData.expertise : user.expertise,
-        managedCategories: user.role === 'MANAGER' ? updateData.managedCategories : user.managedCategories
-      };
+      // Call the API to update the user profile
+      const updatedProfile = await auth.updateCurrentUserProfile(updateData);
       
-      // Add a new activity entry
-      const newActivity = {
-        id: Date.now(),
-        type: 'profile',
-        action: 'updated',
-        date: new Date().toISOString(),
-        details: 'profile information'
-      };
+      console.log('Received updated profile:', updatedProfile);
       
-      updatedUser.recentActivity = [newActivity, ...(updatedUser.recentActivity || [])];
-      
-      console.log("Updated user:", updatedUser);
-      setUser(updatedUser);
-      
-      // Trigger a storage event to notify other components
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'name',
-        newValue: formData.name
+      // Update the local state with the updated profile data
+      setUser(prevUser => ({
+        ...prevUser,
+        ...updatedProfile
       }));
       
-      // Set success message
-      setSuccessMessage('Profile updated successfully!');
+      // Close the modal
+      setShowEditModal(false);
       
-      // Close the modal after a short delay
+      // Show success message
+      setSuccessMessage('Profile updated successfully');
+      
+      // Clear success message after 3 seconds
       setTimeout(() => {
-        setShowEditModal(false);
-        setSuccessMessage(null);
-      }, 1500);
-      
+        setSuccessMessage('');
+      }, 3000);
     } catch (error) {
-      console.error('Error saving profile changes:', error);
-      console.error('Error stack:', error.stack);
-      setError('Failed to save profile changes. Please try again.');
-    } finally {
-      setSaving(false);
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile: ' + (error.message || 'Unknown error'));
     }
   };
-  
-  // Handle password change
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [passwordError, setPasswordError] = useState(null);
-  const [passwordSuccess, setPasswordSuccess] = useState(null);
-  const [changingPassword, setChangingPassword] = useState(false);
-  
-  const handlePasswordInputChange = (e) => {
-    const { name, value } = e.target;
-    console.log(`Password field changed: ${name}`);
-    setPasswordData({
-      ...passwordData,
-      [name]: value
-    });
+
+  // Load user data on component mount
+  useEffect(() => {
+    getUserDataFromLocalStorage();
+  }, []);
+
+  const handleLogout = () => {
+    auth.logout();
+    navigate('/login');
   };
-  
-  const handlePasswordChange = async () => {
-    // Validate passwords
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError('New passwords do not match');
-      return;
-    }
-    
-    if (passwordData.newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters long');
-      return;
-    }
-    
-    try {
-      setChangingPassword(true);
-      setPasswordError(null);
-      setPasswordSuccess(null);
-      
-      console.log("Simulating password change...");
-      
-      // Simulate password change success
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Reset form and show success
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-      setPasswordSuccess('Password changed successfully!');
-      
-      // Close modal after delay
-      setTimeout(() => {
-        setShowPasswordModal(false);
-        setPasswordSuccess(null);
-      }, 1500);
-      
-    } catch (error) {
-      console.error('Error changing password:', error);
-      console.error('Error stack:', error.stack);
-      setPasswordError('Failed to change password. Please check your current password and try again.');
-    } finally {
-      setChangingPassword(false);
-    }
-  };
-  
-  // Log render state
-  console.log("Profile component render state:", {
-    user,
-    loading,
-    error,
-    activeTab,
-    stats
-  });
   
   if (loading) {
     return (
       <div className="profile-loading-state">
         <div className="profile-loading-spinner"></div>
         <p>Loading your profile...</p>
-      </div>
-    );
-  }
-  
-  if (error && !user) {
-    return (
-      <div className="profile-error-state">
-        <div className="profile-error-icon">
-          <i className="fas fa-exclamation-circle"></i>
-        </div>
-        <h2>Error Loading Profile</h2>
-        <p>{error}</p>
-        <button className="profile-btn profile-btn-logout" onClick={() => auth.logout()}>Go to Login</button>
       </div>
     );
   }
@@ -349,17 +170,19 @@ const Profile = () => {
         </div>
         <h2>User not found</h2>
         <p>We couldn't find your profile information. Please log in again.</p>
-        <button className="profile-btn profile-btn-logout" onClick={() => auth.logout()}>Go to Login</button>
+        <button className="profile-btn profile-btn-logout" onClick={handleLogout}>Go to Login</button>
       </div>
     );
   }
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
   
   const formatActivityDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now - date);
@@ -376,41 +199,52 @@ const Profile = () => {
     }
   };
 
+  // Function to truncate token for display
+  const truncateToken = (token) => {
+    if (!token) return 'N/A';
+    if (token.length <= 20) return token;
+    return token.substring(0, 10) + '...' + token.substring(token.length - 10);
+  };
+
   return (
     <div className="profile-container">
+      {successMessage && (
+        <div className="profile-success-message">
+          <i className="fas fa-check-circle"></i> {successMessage}
+        </div>
+      )}
+      
       <div className="profile-header">
-        <div className="profile-header-content">
-          <div className="profile-user-avatar">
-            {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-          </div>
-          <div className="profile-user-info">
-            <h1>{user.name}</h1>
-            <span className="profile-user-role">{auth.getUserRoleDisplay()}</span>
-            <p className="profile-user-email">{user.email}</p>
+        <div className="profile-avatar">
+          <div className="profile-avatar-placeholder">
+            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
-        <div className="profile-actions-top">
-          <button className="profile-btn profile-btn-refresh" onClick={() => window.location.reload()}>
-            <i className="fas fa-sync"></i> Refresh
-          </button>
+        <div className="profile-header-info">
+          <h1>{user.name || 'User'}</h1>
+          <p className="profile-role">{user.role || 'User'}</p>
+          <p className="profile-email">{user.email}</p>
           <button className="profile-btn profile-btn-edit" onClick={() => setShowEditModal(true)}>
             <i className="fas fa-edit"></i> Edit Profile
-          </button>
-          <button className="profile-btn profile-btn-logout" onClick={() => auth.logout()}>
-            <i className="fas fa-sign-out-alt"></i> Logout
           </button>
         </div>
       </div>
       
       <div className="profile-tabs">
         <button 
-          className={`profile-tab-button ${activeTab === 'account' ? 'active' : ''}`}
+          className={`profile-tab ${activeTab === 'account' ? 'active' : ''}`}
           onClick={() => setActiveTab('account')}
         >
           <i className="fas fa-user"></i> Account
         </button>
         <button 
-          className={`profile-tab-button ${activeTab === 'activity' ? 'active' : ''}`}
+          className={`profile-tab ${activeTab === 'security' ? 'active' : ''}`}
+          onClick={() => setActiveTab('security')}
+        >
+          <i className="fas fa-shield-alt"></i> Security
+        </button>
+        <button 
+          className={`profile-tab ${activeTab === 'activity' ? 'active' : ''}`}
           onClick={() => setActiveTab('activity')}
         >
           <i className="fas fa-history"></i> Activity
@@ -419,160 +253,201 @@ const Profile = () => {
       
       <div className="profile-content">
         {activeTab === 'account' && (
-          <div className="profile-content-card">
-            <div className="profile-content-section">
-              <h2>Account Information</h2>
-              <div className="profile-info-grid">
-                <div className="profile-info-group">
-                  <label>Name</label>
-                  <p>{user.name}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Email</label>
-                  <p>{user.email}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Role</label>
-                  <p className="profile-role-badge">{user.role}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Account Created</label>
-                  <p>{formatDate(user.createdAt)}</p>
-                </div>
+          <div className="profile-account-info">
+            <div className="profile-info-card">
+              <h2>Personal Information</h2>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Name</span>
+                <span className="profile-info-value">{user.name || 'Not set'}</span>
               </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Email</span>
+                <span className="profile-info-value">{user.email}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Phone</span>
+                <span className="profile-info-value">{user.phoneNumber || 'Not set'}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Role</span>
+                <span className="profile-info-value">{user.role || 'User'}</span>
+              </div>
+              {user.createdAt && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Member Since</span>
+                  <span className="profile-info-value">{formatDate(user.createdAt)}</span>
+                </div>
+              )}
             </div>
             
             {user.role === 'CUSTOMER' && (
-              <div className="profile-content-section">
-                <h2>Customer Details</h2>
-                <div className="profile-info-grid">
-                  <div className="profile-info-group">
-                    <label>Customer Since</label>
-                    <p>{formatDate(user.createdAt)}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Open Tickets</label>
-                    <p className="profile-ticket-count">{stats.openTickets || 0}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Total Tickets</label>
-                    <p>{stats.totalTickets || 0}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Preferred Contact</label>
-                    <p>{user.preferredContact || 'Email'}</p>
-                  </div>
+              <div className="profile-info-card">
+                <h2>Customer Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Preferred Contact</span>
+                  <span className="profile-info-value">{user.preferredContact || 'Email'}</span>
                 </div>
-                <div className="profile-customer-actions">
-                  <Link to="/create-ticket" className="profile-customer-action">
-                    <i className="fas fa-plus-circle"></i> Create New Ticket
-                  </Link>
-                  <Link to="/view-tickets" className="profile-customer-action">
-                    <i className="fas fa-ticket-alt"></i> View My Tickets
-                  </Link>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Total Tickets</span>
+                  <span className="profile-info-value">{user.ticketCount || 0}</span>
                 </div>
               </div>
             )}
             
             {user.role === 'ENGINEER' && (
-              <div className="profile-content-section">
-                <h2>Engineer Details</h2>
-                <div className="profile-info-grid">
-                  <div className="profile-info-group">
-                    <label>Category</label>
-                    <p>{user.category || 'Not specified'}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Level</label>
-                    <p>{user.level || 'Not specified'}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Current Tickets</label>
-                    <p className="profile-ticket-count">{stats.openTickets || 0}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Max Tickets</label>
-                    <p>{user.maxTickets || 'Not specified'}</p>
-                  </div>
+              <div className="profile-info-card">
+                <h2>Engineer Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Expertise</span>
+                  <span className="profile-info-value">{user.expertise || 'Not specified'}</span>
                 </div>
-                <div className="profile-engineer-actions">
-                  <Link to="/tickets/assigned" className="profile-engineer-action">
-                    <i className="fas fa-tasks"></i> My Assigned Tickets
-                  </Link>
-                  <Link to="/knowledge-base" className="profile-engineer-action">
-                    <i className="fas fa-book"></i> Knowledge Base
-                  </Link>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Assigned Tickets</span>
+                  <span className="profile-info-value">{user.assignedTickets || 0}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Resolved Tickets</span>
+                  <span className="profile-info-value">{user.resolvedTickets || 0}</span>
                 </div>
               </div>
             )}
             
             {user.role === 'MANAGER' && (
-              <div className="profile-content-section">
-                <h2>Manager Details</h2>
-                <div className="profile-info-grid">
-                  <div className="profile-info-group">
-                    <label>Department</label>
-                    <p>{user.department || 'Not specified'}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Team Size</label>
-                    <p>{user.teamSize || 'Not specified'}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Managed Categories</label>
-                    <p>{user.managedCategories ? user.managedCategories.join(', ') : 'Not specified'}</p>
-                  </div>
+              <div className="profile-info-card">
+                <h2>Manager Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Department</span>
+                  <span className="profile-info-value">{user.department || 'Not specified'}</span>
                 </div>
-                <div className="profile-manager-actions">
-                  <Link to="/tickets" className="profile-manager-action">
-                    <i className="fas fa-ticket-alt"></i> All Tickets
-                  </Link>
-                  <Link to="/engineers" className="profile-manager-action">
-                  <i className="fas fa-users-cog"></i> Manage Engineers
-                  </Link>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Managed Categories</span>
+                  <span className="profile-info-value">{user.managedCategories || 'None'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Team Size</span>
+                  <span className="profile-info-value">{user.teamSize || 0}</span>
                 </div>
               </div>
             )}
             
-            <div className="profile-actions">
-              <button className="profile-btn profile-btn-password" onClick={() => setShowPasswordModal(true)}>
-                <i className="fas fa-key"></i> Change Password
-              </button>
+            {user.role === 'ADMIN' && (
+              <div className="profile-info-card">
+                <h2>Admin Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Admin Level</span>
+                  <span className="profile-info-value">{user.adminLevel || 'Standard'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last System Check</span>
+                  <span className="profile-info-value">{formatDate(user.lastSystemCheck) || 'Never'}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'security' && (
+          <div className="profile-security-info">
+            <div className="profile-info-card">
+              <h2>Security Information</h2>
+              {user.lastLogin && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last Login</span>
+                  <span className="profile-info-value">{formatActivityDate(user.lastLogin)}</span>
+                </div>
+              )}
+              {user.lastPasswordChange && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last Password Change</span>
+                  <span className="profile-info-value">{formatDate(user.lastPasswordChange)}</span>
+                </div>
+              )}
+              <div className="profile-info-item">
+                <span className="profile-info-label">Two-Factor Authentication</span>
+                <span className="profile-info-value">{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
+              </div>
+            </div>
+            
+            <div className="profile-info-card">
+              <h2>Current Session</h2>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Token</span>
+                <span className="profile-info-value token">{truncateToken(auth.getToken())}</span>
+              </div>
+              <div className="profile-actions">
+                <button className="profile-btn profile-btn-change-password">
+                  <i className="fas fa-key"></i> Change Password
+                </button>
+                <button className="profile-btn profile-btn-logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i> Logout
+                </button>
+              </div>
             </div>
           </div>
         )}
         
         {activeTab === 'activity' && (
-          <div className="profile-content-card">
-            <div className="profile-content-section">
+          <div className="profile-activity-info">
+            <div className="profile-info-card">
               <h2>Recent Activity</h2>
               {user.recentActivity && user.recentActivity.length > 0 ? (
                 <div className="profile-activity-list">
-                  {user.recentActivity.map(activity => (
-                    <div key={activity.id} className="profile-activity-item">
-                      <div className={`profile-activity-icon ${activity.type}`}>
-                        {activity.type === 'ticket' && <i className="fas fa-ticket-alt"></i>}
-                        {activity.type === 'login' && <i className="fas fa-sign-in-alt"></i>}
-                        {activity.type === 'profile' && <i className="fas fa-user-edit"></i>}
-                      </div>
+                  {user.recentActivity.map((activity, index) => (
+                    <div className="profile-activity-item" key={index}>
                       <div className="profile-activity-details">
-                        <p className="profile-activity-text">
-                          You <strong>{activity.action}</strong> {activity.details}
-                        </p>
-                        <span className="profile-activity-date">{formatActivityDate(activity.date)}</span>
+                                                <p className="profile-activity-description">{activity.description}</p>
+                        <p className="profile-activity-time">{formatActivityDate(activity.timestamp)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="profile-no-activity">No recent activity to display.</p>
+                <div className="profile-no-activity">
+                  <i className="fas fa-info-circle"></i>
+                  <p>No recent activity to display</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="profile-info-card">
+              <h2>Login History</h2>
+              {user.loginHistory && user.loginHistory.length > 0 ? (
+                <div className="profile-login-history">
+                  <table className="profile-login-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {user.loginHistory.map((login, index) => (
+                        <tr key={index}>
+                          <td>{formatDate(login.timestamp)}</td>
+                          <td>{login.ipAddress}</td>
+                          <td>
+                            <span className={`profile-login-status ${login.successful ? 'success' : 'failed'}`}>
+                              {login.successful ? 'Success' : 'Failed'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="profile-no-activity">
+                  <i className="fas fa-info-circle"></i>
+                  <p>No login history to display</p>
+                </div>
               )}
             </div>
           </div>
         )}
       </div>
       
-      {/* Edit Profile Modal */}
+      {/* Simplified Edit Modal - Only for Name and Phone Number */}
       {showEditModal && (
         <div className="profile-modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="profile-modal-content" onClick={e => e.stopPropagation()}>
@@ -583,18 +458,7 @@ const Profile = () => {
               </button>
             </div>
             <div className="profile-modal-body">
-              {error && (
-                <div className="profile-form-error">
-                  <i className="fas fa-exclamation-triangle"></i> {error}
-                </div>
-              )}
-              
-              {successMessage && (
-                <div className="profile-form-success">
-                  <i className="fas fa-check-circle"></i> {successMessage}
-                </div>
-              )}
-              
+              {error && <div className="profile-error-message">{error}</div>}
               <div className="profile-form-group">
                 <label>Name</label>
                 <input 
@@ -602,6 +466,7 @@ const Profile = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  placeholder="Enter your name"
                 />
               </div>
               <div className="profile-form-group">
@@ -609,156 +474,20 @@ const Profile = () => {
                 <input type="email" value={user.email} disabled />
                 <small>Email cannot be changed</small>
               </div>
-              
-              {user.role === 'CUSTOMER' && (
-                <div className="profile-form-group">
-                  <label>Preferred Contact Method</label>
-                  <select 
-                    name="preferredContact"
-                    value={formData.preferredContact}
-                    onChange={handleInputChange}
-                  >
-                    <option value="Email">Email</option>
-                    <option value="Phone">Phone</option>
-                    <option value="SMS">SMS</option>
-                  </select>
-                </div>
-              )}
-              
-              {user.role === 'ENGINEER' && (
-                <>
-                  <div className="profile-form-group">
-                    <label>Areas of Expertise</label>
-                    <input 
-                      type="text" 
-                      name="expertise"
-                      value={formData.expertise}
-                      onChange={handleInputChange}
-                    />
-                    <small>Separate multiple areas with commas</small>
-                  </div>
-                </>
-              )}
-              
-              {user.role === 'MANAGER' && (
-                <>
-                  <div className="profile-form-group">
-                    <label>Department</label>
-                    <input 
-                      type="text" 
-                      name="department"
-                      value={formData.department}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>Managed Categories</label>
-                    <input 
-                      type="text" 
-                      name="managedCategories"
-                      value={formData.managedCategories}
-                      onChange={handleInputChange}
-                    />
-                    <small>Separate multiple categories with commas</small>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="profile-modal-footer">
-              <button 
-                className="profile-btn profile-btn-cancel" 
-                onClick={() => setShowEditModal(false)}
-                disabled={saving}
-              >
-                Cancel
-              </button>
-              <button 
-                className="profile-btn profile-btn-save" 
-                onClick={handleSaveChanges}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Change Password Modal */}
-      {showPasswordModal && (
-        <div className="profile-modal-overlay" onClick={() => setShowPasswordModal(false)}>
-          <div className="profile-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="profile-modal-header">
-              <h2>Change Password</h2>
-              <button className="profile-modal-close" onClick={() => setShowPasswordModal(false)}>
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="profile-modal-body">
-              {passwordError && (
-                <div className="profile-form-error">
-                  <i className="fas fa-exclamation-triangle"></i> {passwordError}
-                </div>
-              )}
-              
-              {passwordSuccess && (
-                <div className="profile-form-success">
-                  <i className="fas fa-check-circle"></i> {passwordSuccess}
-                </div>
-              )}
-              
               <div className="profile-form-group">
-                <label>Current Password</label>
+                <label>Phone Number</label>
                 <input 
-                  type="password" 
-                  name="currentPassword"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordInputChange}
+                  type="text" 
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter phone number"
                 />
-              </div>
-              <div className="profile-form-group">
-                <label>New Password</label>
-                <input 
-                  type="password" 
-                  name="newPassword"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordInputChange}
-                />
-              </div>
-              <div className="profile-form-group">
-                <label>Confirm New Password</label>
-                <input 
-                  type="password" 
-                  name="confirmPassword"
-                  value={passwordData.confirmPassword}
-                  onChange={handlePasswordInputChange}
-                />
-              </div>
-              <div className="profile-password-requirements">
-                <p>Password requirements:</p>
-                <ul>
-                  <li>At least 8 characters long</li>
-                  <li>Include at least one uppercase letter</li>
-                  <li>Include at least one number</li>
-                  <li>Include at least one special character</li>
-                </ul>
               </div>
             </div>
             <div className="profile-modal-footer">
-              <button 
-                className="profile-btn profile-btn-cancel" 
-                onClick={() => setShowPasswordModal(false)}
-                disabled={changingPassword}
-              >
-                Cancel
-              </button>
-              <button 
-                className="profile-btn profile-btn-save" 
-                onClick={handlePasswordChange}
-                disabled={changingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-              >
-                {changingPassword ? 'Changing...' : 'Change Password'}
-              </button>
+              <button className="profile-btn profile-btn-cancel" onClick={() => setShowEditModal(false)}>Cancel</button>
+              <button className="profile-btn profile-btn-save" onClick={handleSaveChanges}>Save Changes</button>
             </div>
           </div>
         </div>
@@ -768,5 +497,4 @@ const Profile = () => {
 };
 
 export default Profile;
-
 

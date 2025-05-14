@@ -65,6 +65,22 @@ public class UserController {
         }
     }
 
+    @PutMapping("/profile/password")
+    public ResponseEntity<?> updateCurrentUserPassword(@RequestBody PasswordChangeRequest request) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            return userService.getUserByEmail(email)
+                    .map(user -> {
+                        User updatedUser = userService.updatePassword(user.getId(), request);
+                        return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.deleteUser(id)) {
@@ -77,12 +93,27 @@ public class UserController {
     public ResponseEntity<UserResponse> updateCurrentUserProfile(@RequestBody User userDetails) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        System.out.println("Received update request for user: " + email);
+        System.out.println("Request data - Name: " + userDetails.getName());
+        System.out.println("Request data - Phone: " + userDetails.getPhoneNumber());
+        System.out.println("Request data - Password: " + userDetails.getPassword());
+        
         return userService.getUserByEmail(email)
                 .map(user -> {
-                    user.setName(userDetails.getName());
-                    user.setPhoneNumber(userDetails.getPhoneNumber());
-                    userService.updateUser(user.getId(), user);
-                    return ResponseEntity.ok(UserResponse.fromUser(user));
+                    // Create a new User object with only the fields we want to update
+                    User updateData = new User();
+                    updateData.setId(user.getId());
+                    
+                    // Only set fields that are provided in the request
+                    if (userDetails.getName() != null) {
+                        updateData.setName(userDetails.getName());
+                    }
+                    if (userDetails.getPhoneNumber() != null) {
+                        updateData.setPhoneNumber(userDetails.getPhoneNumber());
+                    }
+                    
+                    // Don't set any other fields - they will be ignored by the service
+                    return ResponseEntity.ok(UserResponse.fromUser(userService.updateUser(user.getId(), updateData).orElse(user)));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

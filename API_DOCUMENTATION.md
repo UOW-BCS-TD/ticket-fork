@@ -98,7 +98,16 @@
 - **URL**: `/api/users/profile`
 - **Method**: `PUT`
 - **Description**: Update the profile of the currently authenticated user
-- **Request Body**: User details to update
+- **Request Headers**:
+  - `Authorization: Bearer {token}` (Required)
+  - `Content-Type: application/json`
+- **Request Body**:
+  ```json
+  {
+    "name": "string",        // Optional - New name
+    "phoneNumber": "string"  // Optional - New phone number
+  }
+  ```
 - **Response**: Updated user details
 - **Access**: Any authenticated user
 
@@ -125,9 +134,53 @@
 - **URL**: `/api/tickets`
 - **Method**: `POST`
 - **Description**: Create a new ticket
-- **Request Body**: Ticket details
+- **Request Headers**:
+  ```
+  Content-Type: application/json
+  Authorization: Bearer {token}
+  ```
+- **Request Body**:
+  ```json
+  {
+    "title": "string",
+    "description": "string",
+    "customer": {
+      "id": "number"
+    },
+    "product": {
+      "id": "number"
+    },
+    "type": {
+      "id": "number"
+    },
+    "session": {
+      "id": "number"
+    },
+    "urgency": "LOW | MEDIUM | HIGH | CRITICAL",
+    "status": "OPEN | ASSIGNED | IN_PROGRESS | PENDING | RESOLVED | CLOSED | ESCALATED",
+    "engineer": {
+      "id": "number"
+    }
+  }
+  ```
+- **Required Fields**:
+  - `title`: Ticket title
+  - `description`: Detailed description of the issue
+  - `customer`: Customer ID (must exist)
+  - `product`: Product ID (must exist)
+  - `type`: Ticket type ID (must exist)
+  - `session`: Session ID (must exist)
+  - `urgency`: Priority level of the ticket
+- **Optional Fields**:
+  - `status`: Defaults to "OPEN" if not provided
+  - `engineer`: Engineer ID to assign the ticket to
 - **Response**: Created ticket details
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Notes**:
+  - All referenced IDs (customer, product, type, session, engineer) must exist in the database
+  - The session must be active
+  - The engineer must be available (current tickets < max tickets)
+  - The customer must be authenticated and authorized to create tickets
 
 ### Update Ticket
 - **URL**: `/api/tickets/{id}`
@@ -224,7 +277,12 @@
 - **URL**: `/api/customers/{id}/role`
 - **Method**: `PUT`
 - **Description**: Update customer role
-- **Request Body**: New role
+- **Request Body**: 
+  ```json
+  {
+    "role": "STANDARD | PREMIUM | VIP"
+  }
+  ```
 - **Response**: Updated customer details
 - **Access**: ADMIN only
 
@@ -251,22 +309,36 @@
 - **Response**: Engineer details
 - **Access**: ADMIN, MANAGER
 
-### Get Engineers by Category
-- **URL**: `/api/engineers/category/{categoryId}`
+### Get Engineers by Level
+- **URL**: `/api/engineers/level/{level}`
 - **Method**: `GET`
-- **Description**: Get engineers by category
+- **Description**: Get engineers by level (1, 2, or 3)
+- **Response**: List of engineers
+- **Access**: ADMIN, MANAGER
+
+### Get Engineers by Category
+- **URL**: `/api/engineers/category/{category}`
+- **Method**: `GET`
+- **Description**: Get engineers by Tesla model category
 - **Response**: List of engineers
 - **Access**: ADMIN, MANAGER
 
 ### Get Available Engineers
 - **URL**: `/api/engineers/available`
 - **Method**: `GET`
-- **Description**: Get available engineers
+- **Description**: Get engineers with current tickets less than max tickets
+- **Response**: List of engineers
+- **Access**: ADMIN, MANAGER
+
+### Get Available Engineers by Category
+- **URL**: `/api/engineers/available/category/{category}`
+- **Method**: `GET`
+- **Description**: Get available engineers by Tesla model category
 - **Response**: List of engineers
 - **Access**: ADMIN, MANAGER
 
 ### Create Engineer
-- **URL**: `/api/engineers/create`
+- **URL**: `/api/engineers`
 - **Method**: `POST`
 - **Description**: Create a new engineer
 - **Request Body**:
@@ -275,13 +347,97 @@
     "name": "John Engineer",
     "email": "engineer@example.com",
     "password": "password123",
-    "category": "SOFTWARE",
-    "level": 2,
-    "maxTickets": 5
+    "category": "MODEL_S | MODEL_3 | MODEL_X | MODEL_Y | CYBERTRUCK",
+    "level": 1 | 2 | 3,
+    "maxTickets": "number"
   }
   ```
 - **Response**: Created engineer details
 - **Access**: ADMIN, MANAGER
+
+### Update Engineer
+- **URL**: `/api/engineers/{id}`
+- **Method**: `PUT`
+- **Description**: Update engineer details
+- **Request Body**: Engineer details to update
+- **Response**: Updated engineer details
+- **Access**: ADMIN, MANAGER
+
+### Increment Engineer's Current Tickets
+- **URL**: `/api/engineers/{id}/increment-tickets`
+- **Method**: `POST`
+- **Description**: Increment engineer's current tickets count
+- **Response**: Success status
+- **Access**: ADMIN, MANAGER
+
+### Decrement Engineer's Current Tickets
+- **URL**: `/api/engineers/{id}/decrement-tickets`
+- **Method**: `POST`
+- **Description**: Decrement engineer's current tickets count
+- **Response**: Success status
+- **Access**: ADMIN, MANAGER
+
+## Manager Management
+
+### Get All Managers
+- **URL**: `/api/managers`
+- **Method**: `GET`
+- **Description**: Get all managers
+- **Response**: List of managers
+- **Access**: ADMIN only
+
+### Get Manager by ID
+- **URL**: `/api/managers/{id}`
+- **Method**: `GET`
+- **Description**: Get manager by ID
+- **Response**: Manager details
+- **Access**: ADMIN only
+
+### Get Manager by Email
+- **URL**: `/api/managers/email/{email}`
+- **Method**: `GET`
+- **Description**: Get manager by email
+- **Response**: Manager details
+- **Access**: ADMIN only
+
+### Get Managers by Department
+- **URL**: `/api/managers/department/{department}`
+- **Method**: `GET`
+- **Description**: Get managers by department
+- **Response**: List of managers
+- **Access**: ADMIN only
+
+### Get Managers by Category
+- **URL**: `/api/managers/category/{category}`
+- **Method**: `GET`
+- **Description**: Get managers by Tesla model category
+- **Response**: List of managers
+- **Access**: ADMIN only
+
+### Create Manager
+- **URL**: `/api/managers`
+- **Method**: `POST`
+- **Description**: Create a new manager
+- **Request Body**:
+  ```json
+  {
+    "name": "John Manager",
+    "email": "manager@example.com",
+    "password": "password123",
+    "department": "string",
+    "category": "MODEL_S | MODEL_3 | MODEL_X | MODEL_Y | CYBERTRUCK"
+  }
+  ```
+- **Response**: Created manager details
+- **Access**: ADMIN only
+
+### Update Manager
+- **URL**: `/api/managers/{id}`
+- **Method**: `PUT`
+- **Description**: Update manager details
+- **Request Body**: Manager details to update
+- **Response**: Updated manager details
+- **Access**: ADMIN only
 
 ## Session Management
 
@@ -338,7 +494,7 @@
 ### End Session
 - **URL**: `/api/sessions/{id}/end`
 - **Method**: `PUT`
-- **Description**: End a session. Can be called by ADMIN, MANAGER, or the session owner (CUSTOMER).
+- **Description**: End a session
 - **Response**: Updated session details
 - **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
 
@@ -352,12 +508,12 @@
 ### Create Session
 - **URL**: `/api/sessions`
 - **Method**: `POST`
-- **Description**: Create a new session. The session title is set from the first user message.
+- **Description**: Create a new session
 - **Request Body**:
   ```json
   { "title": "First user message" }
   ```
-- **Response**: Created session details (includes `title` field)
+- **Response**: Created session details
 - **Access**: CUSTOMER only
 
 ### Update Session Title
@@ -370,6 +526,42 @@
   ```
 - **Response**: Updated session details (includes `title` field)
 - **Access**: ADMIN, MANAGER, or session owner (CUSTOMER)
+
+## Enums and Constants
+
+### TeslaModel
+```java
+MODEL_S
+MODEL_3
+MODEL_X
+MODEL_Y
+CYBERTRUCK
+```
+
+### CustomerRole
+```java
+STANDARD
+PREMIUM
+VIP
+```
+
+### TicketPriority
+```java
+LOW
+MEDIUM
+HIGH
+```
+
+### TicketStatus
+```java
+OPEN
+ASSIGNED
+IN_PROGRESS
+PENDING
+RESOLVED
+CLOSED
+ESCALATED
+```
 
 ## Error Responses
 

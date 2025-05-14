@@ -13,3 +13,6 @@ backend/log/
 
 # Ignore all PDF files globally
 *.pdf
+/backend/log/
+
+chat_backend/venv/

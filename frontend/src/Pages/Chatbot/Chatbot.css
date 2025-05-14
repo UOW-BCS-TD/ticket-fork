@@ -698,3 +698,51 @@
   margin-bottom: 15px;
   color: #ccc;
 }
+
+.feedback-container {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.feedback-container p {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.feedback-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.feedback-btn.success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.feedback-btn.error {
+  background-color: #f44336;
+  color: white;
+}
+
+.feedback-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.feedback-btn:active {
+  transform: scale(0.95);
+}

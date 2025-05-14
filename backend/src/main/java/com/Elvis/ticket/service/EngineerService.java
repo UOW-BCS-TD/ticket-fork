@@ -2,6 +2,7 @@ package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.Engineer;
 import com.Elvis.ticket.model.User;
+import com.Elvis.ticket.model.TeslaModel;
 import com.Elvis.ticket.repository.EngineerRepository;
 import com.Elvis.ticket.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -23,14 +24,10 @@ public class EngineerService {
 
     @Transactional
     public Engineer createEngineer(Engineer engineer) {
-        // Validate user exists
-        User user = userRepository.findById(engineer.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Validate engineer properties
-        validateEngineerProperties(engineer);
-
-        // Set the validated user
+        User user = userRepository.findByEmail(engineer.getEmail());
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + engineer.getEmail());
+        }
         engineer.setUser(user);
         return engineerRepository.save(engineer);
     }
@@ -51,45 +48,33 @@ public class EngineerService {
     }
 
     @Transactional(readOnly = true)
-    public List<Engineer> getEngineersByCategory(String category) {
+    public List<Engineer> getEngineersByLevel(int level) {
+        return engineerRepository.findByLevel(level);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Engineer> getEngineersByCategory(TeslaModel category) {
         return engineerRepository.findByCategory(category);
     }
 
     @Transactional(readOnly = true)
     public List<Engineer> getAvailableEngineers() {
-        return engineerRepository.findAvailableEngineers();
+        return engineerRepository.findByCurrentTicketsLessThanMaxTickets();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Engineer> getAvailableEngineersByCategory(TeslaModel category) {
+        return engineerRepository.findByCategoryAndCurrentTicketsLessThanMaxTickets(category);
     }
 
     @Transactional
     public Engineer updateEngineer(Long id, Engineer engineerDetails) {
         return engineerRepository.findById(id)
                 .map(existingEngineer -> {
-                    // Validate user if changed
-                    if (engineerDetails.getUser() != null && 
-                        !engineerDetails.getUser().getId().equals(existingEngineer.getUser().getId())) {
-                        User user = userRepository.findById(engineerDetails.getUser().getId())
-                                .orElseThrow(() -> new RuntimeException("User not found"));
-                        existingEngineer.setUser(user);
-                    }
-
-                    // Update other fields
-                    if (engineerDetails.getEmail() != null) {
-                        existingEngineer.setEmail(engineerDetails.getEmail());
-                    }
-                    if (engineerDetails.getCategory() != null) {
-                        existingEngineer.setCategory(engineerDetails.getCategory());
-                    }
-                    if (engineerDetails.getLevel() > 0) {
-                        existingEngineer.setLevel(engineerDetails.getLevel());
-                    }
-                    if (engineerDetails.getMaxTickets() > 0) {
-                        if (engineerDetails.getMaxTickets() < existingEngineer.getCurrentTickets()) {
-                            throw new RuntimeException("Cannot set max tickets below current ticket count");
-                        }
-                        existingEngineer.setMaxTickets(engineerDetails.getMaxTickets());
-                    }
-
-                    validateEngineerProperties(existingEngineer);
+                    existingEngineer.setCategory(engineerDetails.getCategory());
+                    existingEngineer.setLevel(engineerDetails.getLevel());
+                    existingEngineer.setMaxTickets(engineerDetails.getMaxTickets());
+                    existingEngineer.setCurrentTickets(engineerDetails.getCurrentTickets());
                     return engineerRepository.save(existingEngineer);
                 })
                 .orElseThrow(() -> new RuntimeException("Engineer not found"));
@@ -97,29 +82,28 @@ public class EngineerService {
 
     @Transactional
     public void deleteEngineer(Long id) {
-        if (!engineerRepository.existsById(id)) {
-            throw new RuntimeException("Engineer not found");
-        }
         engineerRepository.deleteById(id);
     }
 
-    private void validateEngineerProperties(Engineer engineer) {
-        if (engineer.getLevel() <= 0) {
-            throw new RuntimeException("Engineer level must be greater than 0");
-        }
-        if (engineer.getMaxTickets() <= 0) {
-            throw new RuntimeException("Max tickets must be greater than 0");
-        }
-        if (engineer.getCurrentTickets() < 0) {
-            throw new RuntimeException("Current tickets cannot be negative");
-        }
-        if (engineer.getCurrentTickets() > engineer.getMaxTickets()) {
-            throw new RuntimeException("Current tickets cannot exceed max tickets");
-        }
+    @Transactional
+    public void incrementCurrentTickets(Long id) {
+        engineerRepository.findById(id).ifPresent(engineer -> {
+            if (engineer.getCurrentTickets() < engineer.getMaxTickets()) {
+                engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
+                engineerRepository.save(engineer);
+            } else {
+                throw new RuntimeException("Engineer has reached maximum ticket limit");
+            }
+        });
     }
 
     @Transactional
-    public List<Engineer> findHigherLevelEngineers(String category, int currentLevel) {
-        return engineerRepository.findByCategoryAndLevelGreaterThan(category, currentLevel);
+    public void decrementCurrentTickets(Long id) {
+        engineerRepository.findById(id).ifPresent(engineer -> {
+            if (engineer.getCurrentTickets() > 0) {
+                engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
+                engineerRepository.save(engineer);
+            }
+        });
     }
 } 

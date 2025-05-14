@@ -32,6 +32,22 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
+            // Validate required fields
+            if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Email is required");
+            }
+            if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Password is required");
+            }
+            if (user.getName() == null || user.getName().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Name is required");
+            }
+            
+            // Validate password length
+            if (user.getPassword().length() < 8) {
+                return ResponseEntity.badRequest().body("Password must be at least 8 characters long");
+            }
+
             UserResponseDTO registeredUser = authService.register(user);
             return ResponseEntity.ok(registeredUser);
         } catch (Exception e) {

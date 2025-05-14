@@ -33,6 +33,7 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [botLoading, setBotLoading] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -81,7 +82,123 @@ const Chatbot = () => {
     scrollToBottom();
   }, [chatHistory]);
 
-  // Send message (and create session if needed)
+  // Add new function to handle feedback
+  const handleFeedback = async (isSolved) => {
+    if (isSolved) {
+      // If problem is solved, end the session
+      await handleEndSession();
+    } else {
+      // If problem is not solved, create a ticket
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to create a ticket.');
+          return;
+        }
+
+        // Get user profile to determine role
+        const userResponse = await axios.get(
+          `${API_BASE_URL}/api/users/profile`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        // Determine priority based on customer role
+        let priority = 'MEDIUM'; // default priority
+        if (userResponse.data.customerRole) {
+          switch (userResponse.data.customerRole) {
+            case 'VIP':
+              priority = 'HIGH';
+              break;
+            case 'PREMIUM':
+              priority = 'MEDIUM';
+              break;
+            case 'STANDARD':
+              priority = 'LOW';
+              break;
+            default:
+              priority = 'MEDIUM';
+          }
+        }
+
+        // Search for Tesla model keywords in chat history
+        const chatText = chatHistory.map(msg => msg.text).join(' ').toLowerCase();
+        let category = null;
+        
+        if (chatText.includes('model y')) {
+          category = 'MODEL_Y';
+        } else if (chatText.includes('model s')) {
+          category = 'MODEL_S';
+        } else if (chatText.includes('model x')) {
+          category = 'MODEL_X';
+        } else if (chatText.includes('cybertruck')) {
+          category = 'CYBERTRUCK';
+        } else if (chatText.includes('model 3')) {
+          category = 'MODEL_3';
+        }
+
+        // Get available engineers
+        const engineersResponse = await axios.get(
+          `${API_BASE_URL}/api/engineers/available`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        // Find engineer matching the category or default to any available engineer
+        let assignedEngineerId = null;
+        if (category) {
+          const matchingEngineer = engineersResponse.data.find(engineer => 
+            engineer.category === category
+          );
+          if (matchingEngineer) {
+            assignedEngineerId = matchingEngineer.id;
+          }
+        }
+
+        // If no matching engineer found, assign to any available engineer
+        if (!assignedEngineerId && engineersResponse.data.length > 0) {
+          assignedEngineerId = engineersResponse.data[0].id;
+        }
+
+        // Create ticket using the API
+        const ticketResponse = await axios.post(
+          `${API_BASE_URL}/api/tickets`,
+          {
+            title: activeChat || 'Support Request from Chat',
+            description: chatHistory.map(msg => `${msg.sender === 'user' ? 'User' : 'Support'}: ${msg.text}`).join('\n'),
+            category: category || 'GENERAL',
+            priority: priority,
+            status: 'OPEN',
+            assignedEngineerId: assignedEngineerId
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        // End the current session
+        await handleEndSession();
+
+        // Redirect to the ticket page
+        navigate(`/tickets/${ticketResponse.data.id}`);
+      } catch (error) {
+        console.error('Error creating ticket:', error);
+        alert('Failed to create ticket. Please try again later.');
+      }
+    }
+    setShowFeedback(false);
+  };
+
+  // Modify sendMessage function to show feedback after bot response
   const sendMessage = async () => {
     if (!message.trim()) return;
     const token = localStorage.getItem('token');
@@ -143,6 +260,7 @@ const Chatbot = () => {
           timestamp: msg.timestamp
         }));
         setChatHistory(formattedMessages);
+        setShowFeedback(true); // Show feedback after bot response
       } catch (chatbotError) {
         // Remove the loading message if error
         setChatHistory((prev) => prev.filter((msg, idx) => !(msg.loading && idx === prev.length - 1)));
@@ -403,6 +521,25 @@ const Chatbot = () => {
                       <span className="message-timestamp">
                         {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && (
+                        <div className="feedback-container">
+                          <p>Did I solve your problem?</p>
+                          <div className="feedback-buttons">
+                            <button 
+                              className="feedback-btn success" 
+                              onClick={() => handleFeedback(true)}
+                            >
+                              ✅ Yes
+                            </button>
+                            <button 
+                              className="feedback-btn error" 
+                              onClick={() => handleFeedback(false)}
+                            >
+                              ❌ No
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

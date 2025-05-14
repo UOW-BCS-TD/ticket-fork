@@ -8,6 +8,7 @@ import com.Elvis.ticket.model.Engineer;
 import com.Elvis.ticket.model.Customer;
 import com.Elvis.ticket.model.Product;
 import com.Elvis.ticket.model.TicketType;
+import com.Elvis.ticket.model.TeslaModel;
 import com.Elvis.ticket.repository.TicketRepository;
 import com.Elvis.ticket.repository.EngineerRepository;
 import com.Elvis.ticket.repository.CustomerRepository;
@@ -195,7 +196,7 @@ public class TicketService {
                         throw new RuntimeException("Ticket has no assigned engineer to escalate from");
                     }
 
-                    String category = currentEngineer.getCategory();
+                    TeslaModel category = currentEngineer.getCategory();
                     int currentLevel = currentEngineer.getLevel();
 
                     // Find available engineers in the same category with higher level
