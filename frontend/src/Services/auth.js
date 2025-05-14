@@ -127,38 +127,19 @@ const authFunctions = {
   },
 
   // Update current user profile from API
-  updateUserProfile: async (userData) => {
+  updateCurrentUserProfile: async (userData) => {
     try {
-      // Only send name and phoneNumber to match backend expectations
-      const profileUpdateData = {
-        name: userData.name,
-        phoneNumber: userData.phoneNumber
-      };
+      // Update the user profile using the API
+      const updatedProfile = await userService.updateCurrentUserProfile(userData);
       
-      const response = await userService.updateUserProfile(profileUpdateData);
-      
-      if (response) {
-        // Get current user from localStorage
+      // Update the user in localStorage with the latest data
+      if (updatedProfile) {
         const currentUser = authFunctions.getCurrentUser();
-        
-        if (currentUser) {
-          // Update only the name and phoneNumber fields
-          const updatedUser = { 
-            ...currentUser,
-            name: response.name || currentUser.name,
-            phoneNumber: response.phoneNumber || currentUser.phoneNumber
-          };
-          
-          // Save updated user to localStorage
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          
-          return updatedUser;
-        }
-        
-        return response;
+        const updatedUser = { ...currentUser, ...updatedProfile };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       
-      return null;
+      return updatedProfile;
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
