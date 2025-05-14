@@ -1,13 +1,14 @@
 package com.Elvis.ticket.dto;
 
 import com.Elvis.ticket.model.Engineer;
+import com.Elvis.ticket.model.TeslaModel;
 import lombok.Data;
 
 @Data
 public class EngineerResponseDTO {
     private Long id;
     private String email;
-    private String category;
+    private TeslaModel category;
     private Integer level;
     private Integer maxTickets;
     private Integer currentTickets;

@@ -2,6 +2,7 @@ package com.Elvis.ticket.service;
 
 import com.Elvis.ticket.model.Manager;
 import com.Elvis.ticket.model.User;
+import com.Elvis.ticket.model.TeslaModel;
 import com.Elvis.ticket.repository.ManagerRepository;
 import com.Elvis.ticket.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -51,11 +52,17 @@ public class ManagerService {
         return managerRepository.findByDepartment(department);
     }
 
+    @Transactional(readOnly = true)
+    public List<Manager> getManagersByCategory(TeslaModel category) {
+        return managerRepository.findByCategory(category);
+    }
+
     @Transactional
     public Manager updateManager(Long id, Manager managerDetails) {
         return managerRepository.findById(id)
                 .map(existingManager -> {
                     existingManager.setDepartment(managerDetails.getDepartment());
+                    existingManager.setCategory(managerDetails.getCategory());
                     return managerRepository.save(existingManager);
                 })
                 .orElseThrow(() -> new RuntimeException("Manager not found"));

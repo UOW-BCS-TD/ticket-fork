@@ -83,6 +83,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/sessions/{id}/history").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/sessions/list").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 
+                // Product endpoints
+                .requestMatchers("/api/products").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/products/{id}").hasAnyRole("ADMIN", "MANAGER")
+                // Ticket type endpoints
+                .requestMatchers("/api/ticket-types").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/ticket-types/{id}").hasAnyRole("ADMIN", "MANAGER")
+                
                 // Any other request needs to be authenticated
                 .anyRequest().authenticated()
             )
