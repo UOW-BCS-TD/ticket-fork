@@ -69,6 +69,10 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (request.getOldPassword() == null || request.getNewPassword() == null) {
+            throw new RuntimeException("Both old and new passwords are required");
+        }
+
         // Verify old password
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");

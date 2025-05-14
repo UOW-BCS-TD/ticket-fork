@@ -39,8 +39,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/").permitAll()
                 
-                // User profile endpoint
+                // User profile endpoints
                 .requestMatchers("/api/users/profile").authenticated()
+                .requestMatchers("/api/users/profile/password").authenticated()
                 
                 // User management endpoints (admin only)
                 .requestMatchers("/api/users/**").hasRole("ADMIN")

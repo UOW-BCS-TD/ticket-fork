@@ -11,3 +11,6 @@ PyPDF2==3.0.1
 requests==2.31.0
 mysql-connector-python==8.0.33
 PyJWT==2.8.0
+psutil==6.0.0
+pypdf==5.5.0
+cryptography==44.0.3

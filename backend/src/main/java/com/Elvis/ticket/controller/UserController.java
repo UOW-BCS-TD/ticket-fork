@@ -65,6 +65,22 @@ public class UserController {
         }
     }
 
+    @PutMapping("/profile/password")
+    public ResponseEntity<?> updateCurrentUserPassword(@RequestBody PasswordChangeRequest request) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            return userService.getUserByEmail(email)
+                    .map(user -> {
+                        User updatedUser = userService.updatePassword(user.getId(), request);
+                        return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.deleteUser(id)) {
