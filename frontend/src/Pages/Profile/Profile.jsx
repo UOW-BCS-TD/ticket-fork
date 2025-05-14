@@ -1,26 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 import auth from '../../Services/auth';
 import api from '../../Services/api';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
-  const [authData, setAuthData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('account');
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
-
-  const navigate = useNavigate();
   
-  // Add form state for edit profile
+  // Form state for edit profile (simplified to only name and phone)
   const [formData, setFormData] = useState({
     name: '',
-    preferredContact: 'Email',
-    expertise: '',
-    department: '',
-    managedCategories: ''
+    phoneNumber: ''
   });
+
+  const navigate = useNavigate();
+
+  // Handle input changes in the edit form
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  // Function to get user data from API and fallback to localStorage if needed
+  const getUserDataFromLocalStorage = async () => {
+    try {
+      setLoading(true);
+      
+      // Get authentication token
+      const token = auth.getToken();
+      
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+      
+      try {
+        // Call the API to get the current user profile
+        const userData = await auth.getCurrentUserProfile();
+        console.log("User data from API:", userData);
+        
+        // Normalize the API response if needed
+        const normalizedUserData = {
+          ...userData,
+          // Ensure role is in the expected format
+          role: userData.role || (userData.roles && userData.roles.length > 0 
+            ? userData.roles[0].replace('ROLE_', '') 
+            : 'CUSTOMER'),
+        };
+        
+        setUser(normalizedUserData);
+        
+        // Initialize form data with user data
+        setFormData({
+          name: normalizedUserData.name || '',
+          phoneNumber: normalizedUserData.phoneNumber || ''
+        });
+      } catch (apiError) {
+        console.error('API error:', apiError);
+        
+        // Fallback to localStorage if API call fails
+        const currentAuthData = auth.getCurrentUser();
+        if (currentAuthData) {
+          setUser(currentAuthData);
+          
+          // Initialize form data with user data from localStorage
+          setFormData({
+            name: currentAuthData.name || '',
+            phoneNumber: currentAuthData.phoneNumber || ''
+          });
+        } else {
+          throw new Error('No user data available');
+        }
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      setLoading(false);
+      
+      // If not authenticated, redirect to login
+      if (error.message === 'Not authenticated' || error.message === 'No user data available') {
+        navigate('/login');
+      }
+    }
+  };
+
+  // Handle save changes button in edit modal
+  const handleSaveChanges = async () => {
+    try {
+      setError('');
+      setSuccessMessage('');
+      
+      // Simple validation
+      if (!formData.name.trim()) {
+        setError('Name cannot be empty');
+        return;
+      }
+      
+      // Create update data object
+      const updateData = {
+        name: formData.name,
+        phoneNumber: formData.phoneNumber
+      };
+      
+      try {
+        // Call API to update user profile
+        const updatedUser = await auth.updateUserProfile(updateData);
+        
+        // Update the local state with the updated user data
+        setUser(prevUser => ({
+          ...prevUser,
+          name: updatedUser.name,
+          phoneNumber: updatedUser.phoneNumber
+        }));
+        
+        // Close the modal
+        setShowEditModal(false);
+        
+        // Show success message
+        setSuccessMessage('Profile updated successfully');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 3000);
+      } catch (apiError) {
+        console.error('API error during update:', apiError);
+        setError('Failed to update profile: ' + (apiError.message || 'Unknown error'));
+      }
+    } catch (error) {
+      setError('Failed to update profile: ' + error.message);
+      console.error('Error updating profile:', error);
+    }
+  };
+
+  // Load user data on component mount
+  useEffect(() => {
+    getUserDataFromLocalStorage();
+  }, []);
 
   const handleLogout = () => {
     auth.logout();
@@ -50,11 +174,13 @@ const Profile = () => {
   }
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
   
   const formatActivityDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now - date);
@@ -80,188 +206,246 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
+      {successMessage && (
+        <div className="profile-success-message">
+          <i className="fas fa-check-circle"></i> {successMessage}
+        </div>
+      )}
+      
       <div className="profile-header">
-        <div className="profile-header-content">
-          <div className="profile-user-avatar">
-            {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-          </div>
-          <div className="profile-user-info">
-            <h1>{user.name}</h1>
-            <span className="profile-user-role">{user.role}</span>
-            <p className="profile-user-email">{user.email}</p>
+        <div className="profile-avatar">
+          <div className="profile-avatar-placeholder">
+            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
-        <div className="profile-actions-top">
+        <div className="profile-header-info">
+          <h1>{user.name || 'User'}</h1>
+          <p className="profile-role">{user.role || 'User'}</p>
+          <p className="profile-email">{user.email}</p>
           <button className="profile-btn profile-btn-edit" onClick={() => setShowEditModal(true)}>
             <i className="fas fa-edit"></i> Edit Profile
-          </button>
-          <button className="profile-btn profile-btn-logout" onClick={handleLogout}>
-            <i className="fas fa-sign-out-alt"></i> Logout
           </button>
         </div>
       </div>
       
       <div className="profile-tabs">
         <button 
-          className={`profile-tab-button ${activeTab === 'account' ? 'active' : ''}`}
+          className={`profile-tab ${activeTab === 'account' ? 'active' : ''}`}
           onClick={() => setActiveTab('account')}
         >
           <i className="fas fa-user"></i> Account
         </button>
         <button 
-          className={`profile-tab-button ${activeTab === 'activity' ? 'active' : ''}`}
+          className={`profile-tab ${activeTab === 'security' ? 'active' : ''}`}
+          onClick={() => setActiveTab('security')}
+        >
+          <i className="fas fa-shield-alt"></i> Security
+        </button>
+        <button 
+          className={`profile-tab ${activeTab === 'activity' ? 'active' : ''}`}
           onClick={() => setActiveTab('activity')}
         >
           <i className="fas fa-history"></i> Activity
-        </button>
-        <button 
-          className={`profile-tab-button ${activeTab === 'auth' ? 'active' : ''}`}
-          onClick={() => setActiveTab('auth')}
-        >
-          <i className="fas fa-key"></i> Auth Data
         </button>
       </div>
       
       <div className="profile-content">
         {activeTab === 'account' && (
-          <div className="profile-content-card">
-            <div className="profile-content-section">
-              <h2>Account Information</h2>
-              <div className="profile-info-grid">
-                <div className="profile-info-group">
-                  <label>Name</label>
-                  <p>{user.name}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Email</label>
-                  <p>{user.email}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Role</label>
-                  <p className="profile-role-badge">{user.role}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Account Created</label>
-                  <p>{formatDate(user.createdAt)}</p>
-                </div>
+          <div className="profile-account-info">
+            <div className="profile-info-card">
+              <h2>Personal Information</h2>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Name</span>
+                <span className="profile-info-value">{user.name || 'Not set'}</span>
               </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Email</span>
+                <span className="profile-info-value">{user.email}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Phone</span>
+                <span className="profile-info-value">{user.phoneNumber || 'Not set'}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Role</span>
+                <span className="profile-info-value">{user.role || 'User'}</span>
+              </div>
+              {user.createdAt && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Member Since</span>
+                  <span className="profile-info-value">{formatDate(user.createdAt)}</span>
+                </div>
+              )}
             </div>
             
             {user.role === 'CUSTOMER' && (
-              <div className="profile-content-section">
-                <h2>Customer Details</h2>
-                <div className="profile-info-grid">
-                  <div className="profile-info-group">
-                    <label>Customer Since</label>
-                    <p>{formatDate(user.createdAt)}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Open Tickets</label>
-                    <p className="profile-ticket-count">{user.openTickets || 0}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Total Tickets</label>
-                    <p>{user.totalTickets || 0}</p>
-                  </div>
-                  <div className="profile-info-group">
-                    <label>Preferred Contact</label>
-                    <p>{user.preferredContact || 'Email'}</p>
-                  </div>
+              <div className="profile-info-card">
+                <h2>Customer Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Preferred Contact</span>
+                  <span className="profile-info-value">{user.preferredContact || 'Email'}</span>
                 </div>
-                <div className="profile-customer-actions">
-                  <Link to="/create-ticket" className="profile-customer-action">
-                    <i className="fas fa-plus-circle"></i> Create New Ticket
-                  </Link>
-                  <Link to="/view-tickets" className="profile-customer-action">
-                    <i className="fas fa-ticket-alt"></i> View My Tickets
-                  </Link>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Total Tickets</span>
+                  <span className="profile-info-value">{user.ticketCount || 0}</span>
                 </div>
               </div>
             )}
             
-            <div className="profile-actions">
-              <button className="profile-btn profile-btn-password">
-                <i className="fas fa-key"></i> Change Password
-              </button>
+            {user.role === 'ENGINEER' && (
+              <div className="profile-info-card">
+                <h2>Engineer Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Expertise</span>
+                  <span className="profile-info-value">{user.expertise || 'Not specified'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Assigned Tickets</span>
+                  <span className="profile-info-value">{user.assignedTickets || 0}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Resolved Tickets</span>
+                  <span className="profile-info-value">{user.resolvedTickets || 0}</span>
+                </div>
+              </div>
+            )}
+            
+            {user.role === 'MANAGER' && (
+              <div className="profile-info-card">
+                <h2>Manager Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Department</span>
+                  <span className="profile-info-value">{user.department || 'Not specified'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Managed Categories</span>
+                  <span className="profile-info-value">{user.managedCategories || 'None'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Team Size</span>
+                  <span className="profile-info-value">{user.teamSize || 0}</span>
+                </div>
+              </div>
+            )}
+            
+            {user.role === 'ADMIN' && (
+              <div className="profile-info-card">
+                <h2>Admin Information</h2>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Admin Level</span>
+                  <span className="profile-info-value">{user.adminLevel || 'Standard'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last System Check</span>
+                  <span className="profile-info-value">{formatDate(user.lastSystemCheck) || 'Never'}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {activeTab === 'security' && (
+          <div className="profile-security-info">
+            <div className="profile-info-card">
+              <h2>Security Information</h2>
+              {user.lastLogin && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last Login</span>
+                  <span className="profile-info-value">{formatActivityDate(user.lastLogin)}</span>
+                </div>
+              )}
+              {user.lastPasswordChange && (
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last Password Change</span>
+                  <span className="profile-info-value">{formatDate(user.lastPasswordChange)}</span>
+                </div>
+              )}
+              <div className="profile-info-item">
+                <span className="profile-info-label">Two-Factor Authentication</span>
+                <span className="profile-info-value">{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
+              </div>
+            </div>
+            
+            <div className="profile-info-card">
+              <h2>Current Session</h2>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Token</span>
+                <span className="profile-info-value token">{truncateToken(auth.getToken())}</span>
+              </div>
+              <div className="profile-actions">
+                <button className="profile-btn profile-btn-change-password">
+                  <i className="fas fa-key"></i> Change Password
+                </button>
+                <button className="profile-btn profile-btn-logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i> Logout
+                </button>
+              </div>
             </div>
           </div>
         )}
         
         {activeTab === 'activity' && (
-          <div className="profile-content-card">
-            <div className="profile-content-section">
+          <div className="profile-activity-info">
+            <div className="profile-info-card">
               <h2>Recent Activity</h2>
               {user.recentActivity && user.recentActivity.length > 0 ? (
                 <div className="profile-activity-list">
-                  {user.recentActivity.map(activity => (
-                    <div key={activity.id} className="profile-activity-item">
-                      <div className={`profile-activity-icon ${activity.type}`}>
-                        {activity.type === 'ticket' && <i className="fas fa-ticket-alt"></i>}
-                        {activity.type === 'login' && <i className="fas fa-sign-in-alt"></i>}
-                        {activity.type === 'profile' && <i className="fas fa-user-edit"></i>}
-                      </div>
+                  {user.recentActivity.map((activity, index) => (
+                    <div className="profile-activity-item" key={index}>
                       <div className="profile-activity-details">
-                        <p className="profile-activity-text">
-                          You <strong>{activity.action}</strong> {activity.details}
-                        </p>
-                        <span className="profile-activity-date">{formatActivityDate(activity.date)}</span>
+                                                <p className="profile-activity-description">{activity.description}</p>
+                        <p className="profile-activity-time">{formatActivityDate(activity.timestamp)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="profile-no-activity">No recent activity to display.</p>
+                <div className="profile-no-activity">
+                  <i className="fas fa-info-circle"></i>
+                  <p>No recent activity to display</p>
+                </div>
               )}
             </div>
-          </div>
-        )}
-        
-        {activeTab === 'auth' && authData && (
-          <div className="profile-content-card">
-            <div className="profile-content-section">
-              <h2>Authentication Data</h2>
-              <div className="profile-info-grid">
-                <div className="profile-info-group">
-                  <label>User ID</label>
-                  <p>{authData.id}</p>
+            
+            <div className="profile-info-card">
+              <h2>Login History</h2>
+              {user.loginHistory && user.loginHistory.length > 0 ? (
+                <div className="profile-login-history">
+                  <table className="profile-login-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {user.loginHistory.map((login, index) => (
+                        <tr key={index}>
+                          <td>{formatDate(login.timestamp)}</td>
+                          <td>{login.ipAddress}</td>
+                          <td>
+                            <span className={`profile-login-status ${login.successful ? 'success' : 'failed'}`}>
+                              {login.successful ? 'Success' : 'Failed'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="profile-info-group">
-                <label>Email</label>
-                  <p>{authData.email}</p>
+              ) : (
+                <div className="profile-no-activity">
+                  <i className="fas fa-info-circle"></i>
+                  <p>No login history to display</p>
                 </div>
-                <div className="profile-info-group">
-                  <label>Token Type</label>
-                  <p>{authData.type}</p>
-                </div>
-                <div className="profile-info-group">
-                  <label>Roles</label>
-                  <p>{Array.isArray(authData.roles) ? authData.roles.join(', ') : authData.roles}</p>
-                </div>
-              </div>
-              
-              <div className="profile-token-section">
-                <h3>Authentication Token</h3>
-                <div className="profile-token-display">
-                  <p className="profile-token-text">{truncateToken(authData.token)}</p>
-                  <button 
-                    className="profile-btn profile-btn-copy"
-                    onClick={() => {
-                      navigator.clipboard.writeText(authData.token);
-                      alert('Token copied to clipboard!');
-                    }}
-                  >
-                    <i className="fas fa-copy"></i> Copy
-                  </button>
-                </div>
-                <p className="profile-token-info">
-                  <i className="fas fa-info-circle"></i> This token is used for API authentication. Keep it secure and do not share it.
-                </p>
-              </div>
+              )}
             </div>
           </div>
         )}
       </div>
       
+      {/* Simplified Edit Modal - Only for Name and Phone Number */}
       {showEditModal && (
         <div className="profile-modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="profile-modal-content" onClick={e => e.stopPropagation()}>
@@ -272,6 +456,7 @@ const Profile = () => {
               </button>
             </div>
             <div className="profile-modal-body">
+              {error && <div className="profile-error-message">{error}</div>}
               <div className="profile-form-group">
                 <label>Name</label>
                 <input 
@@ -279,6 +464,7 @@ const Profile = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  placeholder="Enter your name"
                 />
               </div>
               <div className="profile-form-group">
@@ -286,60 +472,16 @@ const Profile = () => {
                 <input type="email" value={user.email} disabled />
                 <small>Email cannot be changed</small>
               </div>
-              
-              {user.role === 'CUSTOMER' && (
-                <div className="profile-form-group">
-                  <label>Preferred Contact Method</label>
-                  <select 
-                    name="preferredContact"
-                    value={formData.preferredContact}
-                    onChange={handleInputChange}
-                  >
-                    <option value="Email">Email</option>
-                    <option value="Phone">Phone</option>
-                    <option value="SMS">SMS</option>
-                  </select>
-                </div>
-              )}
-              
-              {user.role === 'ENGINEER' && (
-                <>
-                  <div className="profile-form-group">
-                    <label>Areas of Expertise</label>
-                    <input 
-                      type="text" 
-                      name="expertise"
-                      value={formData.expertise}
-                      onChange={handleInputChange}
-                    />
-                    <small>Separate multiple areas with commas</small>
-                  </div>
-                </>
-              )}
-              
-              {user.role === 'MANAGER' && (
-                <>
-                  <div className="profile-form-group">
-                    <label>Department</label>
-                    <input 
-                      type="text" 
-                      name="department"
-                      value={formData.department}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="profile-form-group">
-                    <label>Managed Categories</label>
-                    <input 
-                      type="text" 
-                      name="managedCategories"
-                      value={formData.managedCategories}
-                      onChange={handleInputChange}
-                    />
-                    <small>Separate multiple categories with commas</small>
-                  </div>
-                </>
-              )}
+              <div className="profile-form-group">
+                <label>Phone Number</label>
+                <input 
+                  type="text" 
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter phone number"
+                />
+              </div>
             </div>
             <div className="profile-modal-footer">
               <button className="profile-btn profile-btn-cancel" onClick={() => setShowEditModal(false)}>Cancel</button>

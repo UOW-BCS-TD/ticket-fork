@@ -26,9 +26,6 @@ import ActiveSessions from './Pages/Manager/ActiveSessions';
 import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute } from './Pages/Tickets/Auth';
 import './App.css';
 
-import api from './Services/api';
-api.logApiData();
-
 const App = () => {
   return (
     <Router>

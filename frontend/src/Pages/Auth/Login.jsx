@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import auth from '../../Services/auth';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Login.css';
+import auth from '../../Services/auth';
 
 const Login = () => {
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [regName, setRegName] = useState('');
@@ -11,12 +12,15 @@ const Login = () => {
   const [regPassword, setRegPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSignUpMode, setIsSignUpMode] = useState(
+    new URLSearchParams(location.search).get('signup') === 'true'
+  );
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   
   // Redirect if already logged in
-  // In the useEffect hook
   useEffect(() => {
     if (auth.isLoggedIn()) {
       navigate('/profile');
@@ -43,15 +47,29 @@ const Login = () => {
       console.log('Attempting to login with:', email);
       
       // Use the auth service's Login function
-      const userData = await auth.login(email, password);
+      const response = await auth.login(email, password);
       
-      console.log('Login successful:', userData);
-      
-      // Redirect to home page after successful login
-      navigate('/profile');
+      if (response.success) {
+        console.log('Login successful:', response);
+        
+        // If remember me is checked, store email in localStorage
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
+
+        window.dispatchEvent(new Event('authChange'));
+        
+        // Redirect to home page after successful login
+        navigate('/profile');
+      } else {
+        // Handle unsuccessful login
+        setError(response.message || 'Invalid email or password');
+      }
     } catch (err) {
       console.error('Login failed:', err);
-      setError(err.message || 'Invalid email or password');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +89,11 @@ const Login = () => {
       setError('Passwords do not match');
       return;
     }
+
+    if (regPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
     
     setIsLoading(true);
     setError('');
@@ -78,13 +101,31 @@ const Login = () => {
     try {
       console.log('Attempting to register:', regEmail);
       
-      // Use the auth service's register function (lowercase r)
-      const userData = await auth.register(regName, regEmail, regPassword);
+      // Create userData object as expected by the auth.register function
+      const userData = {
+        name: regName,
+        email: regEmail,
+        password: regPassword,
+        confirmPassword: confirmPassword
+      };
       
-      console.log('Registration successful:', userData);
+      // Pass the userData object to register
+      const response = await auth.register(userData);
       
-      // Redirect to home page after successful registration
-      navigate('/profile');
+      if (response.success) {
+        console.log('Registration successful:', response);
+        setSuccessMessage('Registration successful! Logging you in...');
+        
+        // The enhanced register function should handle auto-login
+        // Just need to dispatch auth change event and redirect
+        window.dispatchEvent(new Event('authChange'));
+        
+        // Redirect to home page after successful registration
+        setTimeout(() => navigate('/profile'), 1000);
+      } else {
+        // Handle unsuccessful registration
+        setError(response.message || 'Registration failed. Please try again.');
+      }
     } catch (err) {
       console.error('Registration failed:', err);
       setError(err.message || 'Registration failed. Please try again.');
@@ -103,6 +144,14 @@ const Login = () => {
     console.log(`Social login with ${provider} not implemented yet`);
   };
 
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   return (
     <div className="login-page">
       <div className={`login-container ${isSignUpMode ? 'sign-up-mode' : ''}`}>
@@ -111,6 +160,7 @@ const Login = () => {
             <form className="sign-in-form" onSubmit={handleLoginSubmit}>
               <h2 className="title">Sign in</h2>
               {error && <div className="error-message">{error}</div>}
+              {successMessage && <div className="success-message">{successMessage}</div>}
               <div className="input-field">
                 <i className="fas fa-user"></i>
                 <input 
@@ -133,7 +183,12 @@ const Login = () => {
               </div>
               <div className="form-options">
                 <div className="remember-me">
-                  <input type="checkbox" id="remember" />
+                  <input 
+                    type="checkbox" 
+                    id="remember" 
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
                   <label htmlFor="remember">Remember me</label>
                 </div>
                 <Link to="/forgot-password" className="forgot-password">Forgot password?</Link>
@@ -173,6 +228,7 @@ const Login = () => {
             <form className="sign-up-form" onSubmit={handleRegisterSubmit}>
               <h2 className="title">Sign up</h2>
               {error && <div className="error-message">{error}</div>}
+              {successMessage && <div className="success-message">{successMessage}</div>}
               <div className="input-field">
                 <i className="fas fa-user"></i>
                 <input 
@@ -212,6 +268,9 @@ const Login = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required 
                 />
+              </div>
+              <div className="password-requirements">
+                <small>Password must be at least 8 characters long</small>
               </div>
               <button type="submit" className="btn solid" disabled={isLoading}>
                 {isLoading ? 'Signing up...' : 'Sign up'}
