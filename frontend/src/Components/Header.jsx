@@ -10,11 +10,41 @@ const Header = (props) => {
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
-  // Function to update current user state from localStorage only
-  const updateCurrentUser = () => {
-    // Get user data from auth service
-    const user = auth.getCurrentUser();
-    setCurrentUser(user);
+  // Function to update current user state from localStorage and API if possible
+  const updateCurrentUser = async () => {
+    try {
+      // First try to get the current user profile from API
+      const token = auth.getToken();
+      
+      if (token) {
+        try {
+          // Try to get fresh user data from API
+          const userData = await auth.getCurrentUserProfile();
+          
+          // Normalize the API response if needed
+          const normalizedUserData = {
+            ...userData,
+            // Ensure role is in the expected format
+            role: userData.role || (userData.roles && userData.roles.length > 0 
+              ? userData.roles[0].replace('ROLE_', '') 
+              : 'CUSTOMER'),
+          };
+          
+          setCurrentUser(normalizedUserData);
+          return;
+        } catch (apiError) {
+          console.error('API error in Header:', apiError);
+          // Fall back to localStorage if API call fails
+        }
+      }
+      
+      // Fallback to localStorage
+      const user = auth.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error updating user in Header:', error);
+      setCurrentUser(null);
+    }
   };
 
   // Check if user is logged in when component mounts
@@ -181,7 +211,7 @@ const Header = (props) => {
     }
   };
 
-  // Force re-render when currentUser changes
+  // Force re-render when currentUser changes by directly calling getNavLinks()
   const navLinks = props.navLinks || getNavLinks();
 
   return (
