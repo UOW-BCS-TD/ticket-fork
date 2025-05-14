@@ -33,6 +33,7 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [botLoading, setBotLoading] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -81,7 +82,24 @@ const Chatbot = () => {
     scrollToBottom();
   }, [chatHistory]);
 
-  // Send message (and create session if needed)
+  // Add new function to handle feedback
+  const handleFeedback = async (isSolved) => {
+    if (isSolved) {
+      // If problem is solved, end the session
+      await handleEndSession();
+    } else {
+      // If problem is not solved, create a ticket
+      navigate('/tickets/new', { 
+        state: { 
+          chatHistory: chatHistory,
+          sessionTitle: activeChat
+        }
+      });
+    }
+    setShowFeedback(false);
+  };
+
+  // Modify sendMessage function to show feedback after bot response
   const sendMessage = async () => {
     if (!message.trim()) return;
     const token = localStorage.getItem('token');
@@ -143,6 +161,7 @@ const Chatbot = () => {
           timestamp: msg.timestamp
         }));
         setChatHistory(formattedMessages);
+        setShowFeedback(true); // Show feedback after bot response
       } catch (chatbotError) {
         // Remove the loading message if error
         setChatHistory((prev) => prev.filter((msg, idx) => !(msg.loading && idx === prev.length - 1)));
@@ -403,6 +422,25 @@ const Chatbot = () => {
                       <span className="message-timestamp">
                         {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && (
+                        <div className="feedback-container">
+                          <p>Did I solve your problem?</p>
+                          <div className="feedback-buttons">
+                            <button 
+                              className="feedback-btn success" 
+                              onClick={() => handleFeedback(true)}
+                            >
+                              ✅ Yes
+                            </button>
+                            <button 
+                              className="feedback-btn error" 
+                              onClick={() => handleFeedback(false)}
+                            >
+                              ❌ No
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

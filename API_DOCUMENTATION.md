@@ -97,10 +97,34 @@
 ### Update Current User Profile
 - **URL**: `/api/users/profile`
 - **Method**: `PUT`
-- **Description**: Update the profile of the currently authenticated user
-- **Request Body**: User details to update
+- **Description**: Update the profile of the currently authenticated user. Only the fields provided in the request will be updated. Other fields will remain unchanged.
+- **Request Headers**:
+  - `Authorization: Bearer {token}` (Required)
+  - `Content-Type: application/json`
+- **Request Body**:
+  ```json
+  {
+    "name": "string",        // Optional - New name
+    "phoneNumber": "string"  // Optional - New phone number
+  }
+  ```
 - **Response**: Updated user details
+  ```json
+  {
+    "id": "number",
+    "name": "string",
+    "email": "string",
+    "role": "string",
+    "phoneNumber": "string",
+    "createdAt": "string"
+  }
+  ```
 - **Access**: Any authenticated user
+- **Notes**:
+  - Only the fields provided in the request will be updated
+  - Email and role cannot be updated through this endpoint
+  - Password must be updated using the dedicated password change endpoint
+  - All other fields will remain unchanged
 
 ## Ticket Management
 
