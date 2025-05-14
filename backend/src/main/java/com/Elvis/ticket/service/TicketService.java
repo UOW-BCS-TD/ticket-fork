@@ -141,6 +141,17 @@ public class TicketService {
     }
 
     @Transactional
+    public Ticket updateTicketUrgency(Long ticketId, String urgency) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        
+        ticket.setUrgency(urgency);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        
+        return ticketRepository.save(ticket);
+    }
+
+    @Transactional
     public Ticket updateTicket(Long id, Ticket ticketDetails) {
         return ticketRepository.findById(id)
                 .map(existingTicket -> {

@@ -134,6 +134,26 @@ public class TicketController {
         }
     }
 
+    @PutMapping("/{id}/urgency")
+    public ResponseEntity<TicketResponse> updateTicketUrgency(@PathVariable Long id, @RequestBody String urgency) {
+        try {
+            Ticket updatedTicket = ticketService.updateTicketUrgency(id, urgency);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/assign")
+    public ResponseEntity<TicketResponse> assignEngineer(@PathVariable Long id, @RequestBody Long engineerId) {
+        try {
+            Ticket updatedTicket = ticketService.assignTicket(id, engineerId);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PutMapping("/{id}/escalate")
     public ResponseEntity<TicketResponse> escalateTicket(@PathVariable Long id) {
         try {
