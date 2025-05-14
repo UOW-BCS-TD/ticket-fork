@@ -48,21 +48,11 @@ export const userService = {
   },
   
   // Update current user profile
-  updateUserProfile: async (userData) => {
+  updateCurrentUserProfile: async (userData) => {
     try {
-      // Only include name and phoneNumber in the request
-      const updateData = {
-        name: userData.name || '',
-        phoneNumber: userData.phoneNumber || ''
-      };
-      
-      console.log('Sending profile update with data:', updateData);
-      
-      const response = await api.put('/api/users/profile', updateData);
-      console.log('Profile update response:', response.data);
+      const response = await api.put('/users/profile', userData);
       return response.data;
     } catch (error) {
-      console.error('Profile update error:', error);
       throw error.response ? error.response.data : error;
     }
   },
@@ -108,7 +98,7 @@ export const userService = {
   },
 
   // Update user password (admin only)
-  updateUserPassword: async (id, passwordData) => {
+  updatePassword: async (id, passwordData) => {
     try {
       const response = await api.put(`/users/${id}/password`, passwordData);
       return response.data;

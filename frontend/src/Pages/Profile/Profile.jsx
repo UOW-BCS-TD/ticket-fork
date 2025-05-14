@@ -96,47 +96,33 @@ const Profile = () => {
   const handleSaveChanges = async () => {
     try {
       setError('');
-      setSuccessMessage('');
       
-      // Simple validation
-      if (!formData.name.trim()) {
-        setError('Name cannot be empty');
-        return;
-      }
-      
-      // Create update data object
+      // Only send the name field to be updated
       const updateData = {
-        name: formData.name,
-        phoneNumber: formData.phoneNumber
+        name: formData.name
       };
       
-      try {
-        // Call API to update user profile
-        const updatedUser = await auth.updateUserProfile(updateData);
-        
-        // Update the local state with the updated user data
-        setUser(prevUser => ({
-          ...prevUser,
-          name: updatedUser.name,
-          phoneNumber: updatedUser.phoneNumber
-        }));
-        
-        // Close the modal
-        setShowEditModal(false);
-        
-        // Show success message
-        setSuccessMessage('Profile updated successfully');
-        
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccessMessage('');
-        }, 3000);
-      } catch (apiError) {
-        console.error('API error during update:', apiError);
-        setError('Failed to update profile: ' + (apiError.message || 'Unknown error'));
-      }
+      // Call the API to update the user profile
+      const updatedProfile = await auth.updateCurrentUserProfile(updateData);
+      
+      // Update the local state with the updated profile data
+      setUser(prevUser => ({
+        ...prevUser,
+        ...updatedProfile
+      }));
+      
+      // Close the modal
+      setShowEditModal(false);
+      
+      // Show success message
+      setSuccessMessage('Profile updated successfully');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
     } catch (error) {
-      setError('Failed to update profile: ' + error.message);
+      setError('Failed to update profile: ' + (error.message || 'Unknown error'));
       console.error('Error updating profile:', error);
     }
   };
