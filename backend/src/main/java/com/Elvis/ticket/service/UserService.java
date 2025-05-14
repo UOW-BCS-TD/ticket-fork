@@ -42,16 +42,52 @@ public class UserService {
 
     @Transactional
     public Optional<User> updateUser(Long id, User userDetails) {
+        System.out.println("Updating user with ID: " + id);
+        System.out.println("Update data - Name: " + userDetails.getName());
+        System.out.println("Update data - Phone: " + userDetails.getPhoneNumber());
+        System.out.println("Update data - Password: " + userDetails.getPassword());
+        
         return userRepository.findById(id)
                 .map(existingUser -> {
-                    if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-                        existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+                    System.out.println("Existing user - Name: " + existingUser.getName());
+                    System.out.println("Existing user - Password: " + existingUser.getPassword());
+                    
+                    // Only update name if provided
+                    if (userDetails.getName() != null) {
+                        existingUser.setName(userDetails.getName());
+                        System.out.println("Updating name to: " + userDetails.getName());
                     }
-                    existingUser.setName(userDetails.getName());
-                    existingUser.setEmail(userDetails.getEmail());
-                    existingUser.setPhoneNumber(userDetails.getPhoneNumber());
-                    existingUser.setRole(userDetails.getRole());
-                    return userRepository.save(existingUser);
+                    
+                    // Only update phone number if provided
+                    if (userDetails.getPhoneNumber() != null) {
+                        existingUser.setPhoneNumber(userDetails.getPhoneNumber());
+                        System.out.println("Updating phone to: " + userDetails.getPhoneNumber());
+                    }
+                    
+                    // Only update email if provided
+                    if (userDetails.getEmail() != null) {
+                        existingUser.setEmail(userDetails.getEmail());
+                        System.out.println("Updating email to: " + userDetails.getEmail());
+                    }
+                    
+                    // Only update role if provided
+                    if (userDetails.getRole() != null) {
+                        existingUser.setRole(userDetails.getRole());
+                        System.out.println("Updating role to: " + userDetails.getRole());
+                    }
+                    
+                    // Only update password if explicitly provided and not empty
+                    if (userDetails.getPassword() != null && !userDetails.getPassword().trim().isEmpty()) {
+                        existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+                        System.out.println("Updating password");
+                    } else {
+                        System.out.println("Not updating password - not provided or empty");
+                    }
+                    
+                    User savedUser = userRepository.save(existingUser);
+                    System.out.println("Saved user - Name: " + savedUser.getName());
+                    System.out.println("Saved user - Password: " + savedUser.getPassword());
+                    return savedUser;
                 });
     }
 

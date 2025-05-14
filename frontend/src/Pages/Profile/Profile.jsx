@@ -97,13 +97,29 @@ const Profile = () => {
     try {
       setError('');
       
-      // Only send the name field to be updated
-      const updateData = {
-        name: formData.name
-      };
+      // Create update data object with only changed fields
+      const updateData = {};
+      
+      // Only include fields that have changed
+      if (formData.name !== user.name) {
+        updateData.name = formData.name;
+      }
+      if (formData.phoneNumber !== user.phoneNumber) {
+        updateData.phoneNumber = formData.phoneNumber;
+      }
+      
+      // Only proceed if there are changes to save
+      if (Object.keys(updateData).length === 0) {
+        setShowEditModal(false);
+        return;
+      }
+      
+      console.log('Sending update request with data:', updateData);
       
       // Call the API to update the user profile
       const updatedProfile = await auth.updateCurrentUserProfile(updateData);
+      
+      console.log('Received updated profile:', updatedProfile);
       
       // Update the local state with the updated profile data
       setUser(prevUser => ({
@@ -122,8 +138,8 @@ const Profile = () => {
         setSuccessMessage('');
       }, 3000);
     } catch (error) {
-      setError('Failed to update profile: ' + (error.message || 'Unknown error'));
       console.error('Error updating profile:', error);
+      setError('Failed to update profile: ' + (error.message || 'Unknown error'));
     }
   };
 

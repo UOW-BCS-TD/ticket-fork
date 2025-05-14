@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -64,6 +65,7 @@ public class User implements UserDetails {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
