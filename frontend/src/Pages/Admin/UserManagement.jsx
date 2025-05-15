@@ -136,9 +136,7 @@ const UserManagement = () => {
     
     try {
       setLoading(true);
-      await userManagement.updateUserPassword(selectedUser.id, { 
-        password: newPassword 
-      });
+      await userManagement.updateUserPassword(selectedUser.id, { newPassword: newPassword });
       
       setShowResetPasswordModal(false);
       showSuccessMessage('Password reset successfully');

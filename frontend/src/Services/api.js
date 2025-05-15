@@ -110,6 +110,16 @@ export const userService = {
     }
   },
 
+  // Alias for compatibility with UserManagement.jsx
+  updateUserPassword: async (id, passwordData) => {
+    try {
+      const response = await api.put(`/users/${id}/password`, passwordData);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+
   // Delete user (admin only)
   deleteUser: async (id) => {
     try {
