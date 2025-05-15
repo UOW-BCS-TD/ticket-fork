@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 import auth from '../Services/auth';
 
@@ -9,6 +9,7 @@ const Header = (props) => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Function to update current user state from localStorage and API if possible
   const updateCurrentUser = async () => {
@@ -62,6 +63,41 @@ const Header = (props) => {
       window.removeEventListener('authChange', handleAuthChange);
     };
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      const header = document.querySelector('.header');
+      
+      if (header && !header.contains(event.target)) {
+        // Close mobile menu if open
+        if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
+        
+        // Close service dropdown if open
+        if (isServiceDropdownOpen) {
+          setIsServiceDropdownOpen(false);
+        }
+        
+        // Close user dropdown if open
+        if (isUserDropdownOpen) {
+          setIsUserDropdownOpen(false);
+        }
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobileMenuOpen, isServiceDropdownOpen, isUserDropdownOpen]);
 
   // Handle localStorage changes (for when user logs in/out in another tab)
   const handleStorageChange = (e) => {
@@ -128,7 +164,6 @@ const Header = (props) => {
             hasDropdown: true,
             dropdownItems: [
               { path: '/admin/users', label: 'User Management' },
-              { path: '/admin/settings', label: 'System Settings' },
               { path: '/admin/logs', label: 'View Logs' }
             ]
           });

@@ -146,6 +146,7 @@ form.sign-up-form {
 .remember-me {
   display: flex;
   align-items: center;
+  color: black;
 }
 
 .remember-me input {
