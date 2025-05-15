@@ -113,11 +113,26 @@
 
 ## Ticket Management
 
+### Ticket Object Fields (Updated)
+- `id`: Ticket ID
+- `title`: Ticket title
+- `description`: Detailed description of the issue
+- `status`: Ticket status
+- `urgency`: Priority level of the ticket
+- `product`: Product object
+- `type`: Ticket type object
+- `createdAt`: Ticket creation timestamp
+- `updatedAt`: Last update timestamp
+- `customer`: Customer info
+- `engineer`: Engineer info
+- `session_id`: Associated session ID
+- `history`: Ticket-specific history as a JSON array (e.g., status changes, system notes, or chat logs)
+
 ### Get All Tickets
 - **URL**: `/api/tickets`
 - **Method**: `GET`
 - **Description**: Get all tickets
-- **Response**: List of tickets
+- **Response**: List of tickets (each includes the new `history` field)
 - **Access**:
   - ADMIN and MANAGER can view all tickets
   - CUSTOMERS can view their own tickets
@@ -127,7 +142,7 @@
 - **URL**: `/api/tickets/{id}`
 - **Method**: `GET`
 - **Description**: Get ticket by ID
-- **Response**: Ticket details
+- **Response**: Ticket details (includes the new `history` field)
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
 
 ### Create Ticket
@@ -160,7 +175,8 @@
     "status": "OPEN | ASSIGNED | IN_PROGRESS | PENDING | RESOLVED | CLOSED | ESCALATED",
     "engineer": {
       "id": "number"
-    }
+    },
+    "history": []
   }
   ```
 - **Required Fields**:
@@ -174,7 +190,7 @@
 - **Optional Fields**:
   - `status`: Defaults to "OPEN" if not provided
   - `engineer`: Engineer ID to assign the ticket to
-- **Response**: Created ticket details
+- **Response**: Created ticket details (includes the new `history` field)
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
 - **Notes**:
   - All referenced IDs (customer, product, type, session, engineer) must exist in the database
@@ -186,8 +202,8 @@
 - **URL**: `/api/tickets/{id}`
 - **Method**: `PUT`
 - **Description**: Update ticket details
-- **Request Body**: Ticket details to update
-- **Response**: Updated ticket details
+- **Request Body**: Ticket details to update (optionally include `history` field)
+- **Response**: Updated ticket details (includes the new `history` field)
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
 
 ### Delete Ticket
@@ -259,6 +275,43 @@
 - **Description**: Escalate a ticket
 - **Response**: Updated ticket details
 - **Access**: ADMIN, MANAGER
+
+### Add Message to Ticket History
+- **URL**: `/api/tickets/{id}/message`
+- **Method**: `POST`
+- **Description**: Append a new message from the customer to the ticket's conversation history.
+- **Request Headers**:
+  - `Authorization: Bearer {token}` (Required)
+  - `Content-Type: application/json`
+- **Request Body**:
+  ```json
+  {
+    "content": "Your message text here"
+  }
+  ```
+- **Response**: Updated ticket details (including the new `history` field)
+- **Access**: Only the ticket's customer, ADMIN, or MANAGER
+- **Notes**:
+  - The message will be appended to the ticket's `history` as a new entry with role `customer`, the user's name, content, and timestamp.
+  - Returns 403 if not authorized, 404 if ticket not found, 400 if content is missing.
+  - Example response:
+  ```json
+  {
+    "id": 123,
+    "title": "Example Ticket",
+    "description": "...",
+    "status": "OPEN",
+    "urgency": "HIGH",
+    "product": { ... },
+    "type": { ... },
+    "createdAt": "2024-06-01T12:00:00Z",
+    "updatedAt": "2024-06-01T12:05:00Z",
+    "customer": { ... },
+    "engineer": { ... },
+    "session_id": 456,
+    "history": "[ { \"role\": \"customer\", \"content\": \"Your message text here\", ... } ]"
+  }
+  ```
 
 ## Customer Management
 
@@ -585,52 +638,3 @@ ESCALATED
     "path": "/api/tickets"
 }
 ```
-
-### 401 Unauthorized
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 401,
-    "error": "Unauthorized",
-    "message": "Full authentication is required to access this resource",
-    "path": "/api/tickets"
-}
-```
-
-### 403 Forbidden
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 403,
-    "error": "Forbidden",
-    "message": "Access denied",
-    "path": "/api/tickets"
-}
-```
-
-### 404 Not Found
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 404,
-    "error": "Not Found",
-    "message": "Resource not found",
-    "path": "/api/tickets/999"
-}
-```
-
-## Notes
-
-1. All endpoints require authentication except `/api/auth/login`
-2. Replace `<token>` with the JWT token received from login
-3. Timestamps are in ISO 8601 format
-4. IDs are numeric and auto-generated
-5. All endpoints return JSON responses
-6. Error responses include detailed messages and timestamps
-
-## Logging Behavior
-
-- On each application run, a new log file is created in the `log/` directory.
-- The log file is named `application.<PID>.log`, where `<PID>` is the process ID of the running Java application.
-- Only one log file is created per run; there is no daily or time-based rolling.
-- Example: `log/application.12345.log` 

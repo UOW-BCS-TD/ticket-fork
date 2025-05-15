@@ -190,4 +190,35 @@ public class TicketController {
         }
         throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
     }
+
+    @PostMapping("/{id}/message")
+    public ResponseEntity<TicketResponse> addMessageToTicketHistory(
+            @PathVariable Long id,
+            @RequestBody(required = true) java.util.Map<String, String> message,
+            Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User user = userService.getUserByEmail(email).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            Ticket ticket = ticketService.getTicketById(id).orElse(null);
+            if (ticket == null) {
+                return ResponseEntity.notFound().build();
+            }
+            boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
+            boolean isTicketOwner = ticket.getCustomer() != null && ticket.getCustomer().getUser().getId().equals(user.getId());
+            if (!isAdminOrManager && !isTicketOwner) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            String content = message.get("content");
+            if (content == null || content.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            Ticket updatedTicket = ticketService.appendCustomerMessageToHistory(id, user, content);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 } 

@@ -212,6 +212,16 @@ export const ticketAPI = {
       throw error.response ? error.response.data : error;
     }
   },
+
+  // Send a message to ticket history
+  sendMessageToTicket: async (id, body) => {
+    try {
+      const response = await api.post(`/tickets/${id}/message`, body);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
 };
 
 // Product management services
@@ -356,6 +366,16 @@ export const sessionAPI = {
   endSession: async (id) => {
     try {
       const response = await api.put(`/sessions/${id}/end`);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+
+  // Get session history (chatbot messages)
+  getSessionHistory: async (id) => {
+    try {
+      const response = await api.get(`/sessions/${id}/history`);
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error;

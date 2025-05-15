@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/").permitAll()
+                // Allow anyone to send a message to a ticket
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/message").permitAll()
                 
                 // User profile endpoints
                 .requestMatchers("/api/users/profile").authenticated()

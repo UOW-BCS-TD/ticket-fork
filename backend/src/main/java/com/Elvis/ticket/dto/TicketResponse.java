@@ -17,6 +17,8 @@ public class TicketResponse {
     private LocalDateTime updatedAt;
     private UserInfo customer;
     private UserInfo engineer;
+    private Long session_id;
+    private String history;
 
     @Data
     public static class UserInfo {
@@ -36,6 +38,9 @@ public class TicketResponse {
         }
     }
 
+    public String getHistory() { return history; }
+    public void setHistory(String history) { this.history = history; }
+
     public static TicketResponse fromTicket(Ticket ticket) {
         TicketResponse response = new TicketResponse();
         response.setId(ticket.getId());
@@ -49,6 +54,10 @@ public class TicketResponse {
         response.setUpdatedAt(ticket.getUpdatedAt());
         response.setCustomer(ticket.getCustomer() != null ? UserInfo.fromUser(ticket.getCustomer().getUser()) : null);
         response.setEngineer(ticket.getEngineer() != null ? UserInfo.fromUser(ticket.getEngineer().getUser()) : null);
+        if (ticket.getSession() != null) {
+            response.setSession_id(ticket.getSession().getId());
+        }
+        response.setHistory(ticket.getHistory());
         return response;
     }
 } 

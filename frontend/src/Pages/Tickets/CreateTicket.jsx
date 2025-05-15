@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CreateTicket.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { ticketAPI, productAPI, ticketTypeAPI, sessionAPI, userService, engineerAPI } from '../../services/api';
+import { ticketAPI, productAPI, ticketTypeAPI, sessionAPI, userService, engineerAPI } from '../../Services/api';
 
 const CreateTicket = () => {
   const navigate = useNavigate();
@@ -32,7 +32,6 @@ const CreateTicket = () => {
         const userResponse = await userService.getCurrentUserProfile();
         const user = userResponse.data || userResponse;
         setCurrentUser(user);
-        console.log('Current user:', user);
 
         // Set default urgency based on customer role
         let defaultUrgency = 'LOW';
@@ -46,13 +45,11 @@ const CreateTicket = () => {
         const productsResponse = await productAPI.getProducts();
         const productsData = productsResponse?.data ?? productsResponse;
         setProducts(productsData);
-        console.log('Products:', productsData);
 
         // Get ticket types
         const ticketTypesResponse = await ticketTypeAPI.getTicketTypes();
         const ticketTypesData = ticketTypesResponse?.data ?? ticketTypesResponse;
         setTicketTypes(ticketTypesData);
-        console.log('TicketTypes:', ticketTypesData);
       } catch (err) {
         setError('Failed to load initial data. Please try again.');
         setCurrentUser(null);
@@ -115,8 +112,6 @@ const CreateTicket = () => {
           "Cybertruck": "CYBERTRUCK"
         };
         productCategory = productNameToCategory[selectedProduct?.name];
-        console.log('Selected product:', selectedProduct);
-        console.log('Product category:', productCategory);
       } else {
         console.log('No product selected');
       }
@@ -124,9 +119,7 @@ const CreateTicket = () => {
       // Find available level 1 engineer for the product's category
       let assignedEngineer = null;
       if (productCategory) {
-        console.log('Calling engineerAPI.getAvailableLevel1Engineer with category:', productCategory);
         assignedEngineer = await engineerAPI.getAvailableLevel1Engineer(productCategory);
-        console.log('Assigned engineer:', assignedEngineer);
       } else {
         console.log('No product category, skipping engineer API call');
       }
@@ -163,7 +156,7 @@ const CreateTicket = () => {
         return;
       }
       alert('Ticket created successfully!');
-      navigate(`/tickets/${ticketId}`);
+      navigate('/view-tickets');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create ticket. Please try again.');
       console.error('Error creating ticket:', err);
