@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
-import auth, { userManagement } from '../../Services/auth';
+import { userService } from '../../Services/api';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -36,7 +36,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await userManagement.getAllUsers();
+      const data = await userService.getAllUsers();
       setUsers(data);
       setFilteredUsers(data);
       setError(null);
@@ -96,7 +96,7 @@ const UserManagement = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const updatedUser = await userManagement.updateUser(selectedUser.id, editFormData);
+      const updatedUser = await userService.updateUser(selectedUser.id, editFormData);
       
       // Update the user in the local state
       setUsers(users.map(user => 
@@ -136,7 +136,7 @@ const UserManagement = () => {
     
     try {
       setLoading(true);
-      await userManagement.updateUserPassword(selectedUser.id, { newPassword: newPassword });
+      await userService.updateUserPassword(selectedUser.id, { newPassword: newPassword });
       
       setShowResetPasswordModal(false);
       showSuccessMessage('Password reset successfully');
@@ -151,7 +151,7 @@ const UserManagement = () => {
   const handleToggleUserStatus = async (userId, currentStatus) => {
     try {
       setLoading(true);
-      const updatedUser = await userManagement.updateUser(userId, { 
+      const updatedUser = await userService.updateUser(userId, { 
         active: !currentStatus 
       });
       
@@ -180,7 +180,7 @@ const UserManagement = () => {
   const confirmDeleteUser = async () => {
     try {
       setLoading(true);
-      await userManagement.deleteUser(selectedUser.id);
+      await userService.deleteUser(selectedUser.id);
       
       // Remove the user from the local state
       setUsers(users.filter(user => user.id !== selectedUser.id));
