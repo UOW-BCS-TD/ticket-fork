@@ -9,6 +9,7 @@ import com.Elvis.ticket.model.Customer;
 import com.Elvis.ticket.model.Product;
 import com.Elvis.ticket.model.TicketType;
 import com.Elvis.ticket.model.TeslaModel;
+import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.repository.TicketRepository;
 import com.Elvis.ticket.repository.EngineerRepository;
 import com.Elvis.ticket.repository.CustomerRepository;
@@ -17,6 +18,12 @@ import com.Elvis.ticket.repository.TicketTypeRepository;
 import com.Elvis.ticket.repository.SessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.Elvis.ticket.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,23 +37,36 @@ public class TicketService {
     private final ProductRepository productRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final SessionRepository sessionRepository;
+    private final UserService userService;
 
     public TicketService(TicketRepository ticketRepository, 
                         EngineerRepository engineerRepository,
                         CustomerRepository customerRepository,
                         ProductRepository productRepository,
                         TicketTypeRepository ticketTypeRepository,
-                        SessionRepository sessionRepository) {
+                        SessionRepository sessionRepository,
+                        UserService userService) {
         this.ticketRepository = ticketRepository;
         this.engineerRepository = engineerRepository;
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
         this.ticketTypeRepository = ticketTypeRepository;
         this.sessionRepository = sessionRepository;
+        this.userService = userService;
     }
 
     @Transactional
     public Ticket createTicket(Ticket ticket) {
+        // If customer is not set, use the authenticated user
+        if (ticket.getCustomer() == null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Customer customer = customerRepository.findByEmail(email);
+            if (customer == null) {
+                throw new RuntimeException("Authenticated customer not found");
+            }
+            ticket.setCustomer(customer);
+        }
         // Validate all foreign key references exist
         Customer customer = customerRepository.findById(ticket.getCustomer().getId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -66,12 +86,53 @@ public class TicketService {
         ticket.setType(type);
         ticket.setSession(session);
 
+        // Ensure engineer is a managed entity
+        if (ticket.getEngineer() != null && ticket.getEngineer().getId() != null) {
+            Engineer engineer = engineerRepository.findById(ticket.getEngineer().getId())
+                .orElseThrow(() -> new RuntimeException("Engineer not found"));
+            ticket.setEngineer(engineer);
+        }
+
         // Set timestamps and status
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
         ticket.setStatus(TicketStatus.OPEN);
 
-        return ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        // Add engineer welcome message to ticket history
+        if (ticket.getEngineer() != null && ticket.getCustomer() != null) {
+            Engineer engineer = ticket.getEngineer();
+            String engineerName = engineer.getUser().getName();
+            String customerName = customer.getUser().getName();
+            String text = String.format("Hi %s, I am %s. I will be helping you to solve your problem, please let me have a look at the problem first.", customerName, engineerName);
+
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> ticketHistory = new ArrayList<>();
+            try {
+                if (savedTicket.getHistory() != null && !savedTicket.getHistory().isEmpty()) {
+                    ticketHistory = mapper.readValue(savedTicket.getHistory(), new TypeReference<List<Map<String, Object>>>() {});
+                }
+            } catch (Exception e) {
+                ticketHistory = new ArrayList<>();
+            }
+
+            Map<String, Object> engineerMsg = new HashMap<>();
+            engineerMsg.put("role", "engineer");
+            engineerMsg.put("content", text);
+            engineerMsg.put("timestamp", java.time.LocalDateTime.now().toString());
+
+            ticketHistory.add(engineerMsg);
+
+            try {
+                savedTicket.setHistory(mapper.writeValueAsString(ticketHistory));
+                ticketRepository.save(savedTicket);
+            } catch (Exception e) {
+                // handle error
+            }
+        }
+
+        return savedTicket;
     }
 
     @Transactional(readOnly = true)
@@ -136,6 +197,17 @@ public class TicketService {
                 engineerRepository.save(engineer);
             }
         }
+        
+        return ticketRepository.save(ticket);
+    }
+
+    @Transactional
+    public Ticket updateTicketUrgency(Long ticketId, String urgency) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        
+        ticket.setUrgency(urgency);
+        ticket.setUpdatedAt(LocalDateTime.now());
         
         return ticketRepository.save(ticket);
     }
@@ -238,5 +310,34 @@ public class TicketService {
     @Transactional(readOnly = true)
     public List<Ticket> getTicketsByEngineer(Long engineerId) {
         return ticketRepository.findByEngineerId(engineerId);
+    }
+
+    @Transactional
+    public Ticket appendCustomerMessageToHistory(Long ticketId, User user, String content) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        java.util.List<java.util.Map<String, Object>> history;
+        try {
+            if (ticket.getHistory() != null && !ticket.getHistory().isEmpty()) {
+                history = mapper.readValue(ticket.getHistory(), new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, Object>>>() {});
+            } else {
+                history = new java.util.ArrayList<>();
+            }
+        } catch (Exception e) {
+            history = new java.util.ArrayList<>();
+        }
+        java.util.Map<String, Object> msg = new java.util.HashMap<>();
+        msg.put("role", "customer");
+        msg.put("content", content);
+        msg.put("timestamp", java.time.LocalDateTime.now().toString());
+        history.add(msg);
+        try {
+            ticket.setHistory(mapper.writeValueAsString(history));
+        } catch (Exception e) {
+            // ignore
+        }
+        ticket.setUpdatedAt(java.time.LocalDateTime.now());
+        return ticketRepository.save(ticket);
     }
 } 

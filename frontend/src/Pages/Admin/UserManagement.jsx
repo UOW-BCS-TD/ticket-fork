@@ -172,10 +172,9 @@ const UserManagement = () => {
     
     try {
       setLoading(true);
-      // Call the API with just the new password
-      const result = await userManagement.updatePassword(selectedUser.id, { 
-        newPassword: passwordData.newPassword 
-      });
+
+      await userManagement.updateUserPassword(selectedUser.id, { newPassword: newPassword });
+
       
       if (result.success) {
         setShowResetPasswordModal(false);

@@ -9,6 +9,7 @@ public class SessionListResponse {
     private String title;
     private LocalDateTime lastActivity;
     private String status;
+    private boolean ticketSession;
 
     public static SessionListResponse fromSession(com.Elvis.ticket.model.Session session) {
         SessionListResponse response = new SessionListResponse();
@@ -16,6 +17,7 @@ public class SessionListResponse {
         response.setTitle(session.getTitle());
         response.setLastActivity(session.getLastActivity());
         response.setStatus(session.getStatus().name());
+        response.setTicketSession(session.isTicketSession());
         return response;
     }
 } 

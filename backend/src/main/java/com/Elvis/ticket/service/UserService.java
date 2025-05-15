@@ -105,18 +105,33 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.getOldPassword() == null || request.getNewPassword() == null) {
-            throw new RuntimeException("Both old and new passwords are required");
+        // Get current authenticated user's role
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String currentRole = null;
+        if (authentication != null && authentication.getAuthorities() != null && !authentication.getAuthorities().isEmpty()) {
+            currentRole = authentication.getAuthorities().iterator().next().getAuthority();
         }
+        boolean isAdminOrManager = "ROLE_ADMIN".equals(currentRole) || "ROLE_MANAGER".equals(currentRole);
 
-        // Verify old password
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+        if (isAdminOrManager) {
+            // Admin/Manager can reset password with only newPassword
+            if (request.getNewPassword() == null || request.getNewPassword().trim().isEmpty()) {
+                throw new RuntimeException("New password is required");
+            }
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            return userRepository.save(user);
+        } else {
+            // Normal user must provide old and new password
+            if (request.getOldPassword() == null || request.getNewPassword() == null) {
+                throw new RuntimeException("Both old and new passwords are required");
+            }
+            // Verify old password
+            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            return userRepository.save(user);
         }
-
-        // Update to new password
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)

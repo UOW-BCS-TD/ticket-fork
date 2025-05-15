@@ -55,6 +55,9 @@ public class Ticket {
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
 
+    @Column(name = "history", columnDefinition = "LONGTEXT")
+    private String history;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -166,5 +169,13 @@ public class Ticket {
 
     public void setSession(Session session) {
         this.session = session;
+    }
+
+    public String getHistory() {
+        return history;
+    }
+
+    public void setHistory(String history) {
+        this.history = history;
     }
 } 

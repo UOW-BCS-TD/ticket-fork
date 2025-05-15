@@ -1,72 +1,81 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './TicketInformation.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { ticketAPI } from '../../Services/api';
+import { sessionAPI } from '../../Services/api';
+// import { format } from 'date-fns'; // Uncomment if date-fns is available
 
 const TicketInformation = () => {
+  const [ticketList, setTicketList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('conversation');
-  const [activeTicket, setActiveTicket] = useState('TK-2023-001');
+  const [activeTicket, setActiveTicket] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [session, setSession] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(false);
+  const [sessionError, setSessionError] = useState(null);
+  const [reply, setReply] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
+  const [chatbotHistory, setChatbotHistory] = useState([]);
   
-  // Sample ticket data
-  const ticketList = [
-    { 
-      id: 'TK-2023-001', 
-      title: 'Payment Gateway Integration Issue', 
-      date: '2023/10/15', 
-      status: 'progress',
-      priority: 'high',
-      category: 'Technical Support',
-      description: "We're experiencing transaction failures during the checkout process. Approximately 30% of our customer payments are affected."
-    },
-    { 
-      id: 'TK-2023-002', 
-      title: 'Account Access Problem', 
-      date: '2023/10/14', 
-      status: 'open',
-      priority: 'medium',
-      category: 'Account Management',
-      description: "Unable to reset password. The reset email is not arriving in my inbox."
-    },
-    { 
-      id: 'TK-2023-003', 
-      title: 'Mobile App Crash on Startup', 
-      date: '2023/10/12', 
-      status: 'open',
-      priority: 'high',
-      category: 'Mobile App',
-      description: "Our mobile app crashes immediately after the splash screen on iOS devices."
-    },
-    { 
-      id: 'TK-2023-004', 
-      title: 'Billing Discrepancy', 
-      date: '2023/10/10', 
-      status: 'resolved',
-      priority: 'low',
-      category: 'Billing',
-      description: "Last month's invoice shows charges for services we didn't use."
-    },
-    { 
-      id: 'TK-2023-005', 
-      title: 'API Documentation Request', 
-      date: '2023/10/08', 
-      status: 'progress',
-      priority: 'medium',
-      category: 'API Integration',
-      description: "Need updated documentation for the new API endpoints released last week."
+  useEffect(() => {
+    const fetchTickets = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await ticketAPI.getTickets();
+        setTicketList(data);
+        if (data && data.length > 0) {
+          setActiveTicket(data[0].id);
+        }
+      } catch (err) {
+        setError('Failed to fetch tickets.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTickets();
+  }, []);
+
+  const filteredTickets = ticketList.filter(ticket => 
+    (typeof ticket.title === 'string' && ticket.title.toLowerCase().includes(searchQuery.toLowerCase())) || 
+    (typeof ticket.id === 'string' && ticket.id.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Get the active ticket data
+  const currentTicket = ticketList.find(ticket => ticket.id === activeTicket) || ticketList[0] || {};
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      setSession(null);
+      setSessionLoading(false);
+      setSessionError(null);
+      setChatbotHistory([]);
+      if (!currentTicket || !currentTicket.session_id) return;
+      setSessionLoading(true);
+      try {
+        // Fetch session info (for ticketSession flag)
+        const sessionData = await sessionAPI.getSessionById(currentTicket.session_id);
+        setSession(sessionData);
+        // Fetch chatbot history from /history endpoint
+        const historyResp = await sessionAPI.getSessionHistory(currentTicket.session_id);
+        setChatbotHistory(Array.isArray(historyResp.history) ? historyResp.history : []);
+      } catch (err) {
+        setSessionError('Failed to fetch chatbot history.');
+      } finally {
+        setSessionLoading(false);
+      }
+    };
+    if (currentTicket && currentTicket.session_id) {
+      fetchSession();
     }
-  ];
+  }, [currentTicket]);
 
   const handleTicketClick = (ticketId) => {
     setActiveTicket(ticketId);
   };
-
-  const filteredTickets = ticketList.filter(ticket => 
-    ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    ticket.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Get the active ticket data
-  const currentTicket = ticketList.find(ticket => ticket.id === activeTicket) || ticketList[0];
 
   const toggleSidebar = () => {
     const sidebar = document.querySelector('.ticket-left-panel');
@@ -75,6 +84,53 @@ const TicketInformation = () => {
     sidebar.classList.toggle('active');
     toggle.classList.toggle('active');
   }
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '-';
+    return d.toLocaleString();
+  };
+
+  // Helper to parse ticket history JSON
+  const parseHistory = (history) => {
+    if (!history) return [];
+    try {
+      return JSON.parse(history);
+    } catch {
+      return [];
+    }
+  };
+
+  // Helper to format timestamps nicely
+  const formatMessageTime = (timestamp) => {
+    if (!timestamp) return '-';
+    const d = new Date(timestamp);
+    if (isNaN(d)) return '-';
+    // If you have date-fns, you can use:
+    // return format(d, 'MMM dd, yyyy, HH:mm');
+    // Otherwise, use toLocaleString with options:
+    return d.toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
+  };
+
+  const handleSendReply = async () => {
+    if (!reply.trim() || !currentTicket?.id) return;
+    setSending(true);
+    setSendError(null);
+    try {
+      const updated = await ticketAPI.sendMessageToTicket(currentTicket.id, { content: reply });
+      // Update ticketList with new history for the active ticket
+      setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, history: updated.history, updatedAt: updated.updatedAt } : t));
+      setReply("");
+    } catch (err) {
+      setSendError("Failed to send reply. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="ticket-view-container">
@@ -104,44 +160,50 @@ const TicketInformation = () => {
                 />
               </div>
               
-              <div className="ticket-list-section">
-                <div className="ticket-items-container">
-                  {filteredTickets.map((ticket) => (
-                    <div 
-                      key={ticket.id} 
-                      className={`ticket-item ${activeTicket === ticket.id ? 'active' : ''}`}
-                      onClick={() => handleTicketClick(ticket.id)}
-                    >
-                      <div className="ticket-item-header">
-                        <h4>{ticket.title}</h4>
-                        <span className={`ticket-item-status ${ticket.status}`}>{ticket.status}</span>
+              {loading ? (
+                <div className="empty-state">Loading tickets...</div>
+              ) : error ? (
+                <div className="empty-state">{error}</div>
+              ) : (
+                <div className="ticket-list-section">
+                  <div className="ticket-items-container">
+                    {filteredTickets.map((ticket) => (
+                      <div 
+                        key={ticket.id} 
+                        className={`ticket-item ${activeTicket === ticket.id ? 'active' : ''}`}
+                        onClick={() => handleTicketClick(ticket.id)}
+                      >
+                        <div className="ticket-item-header">
+                          <h4>{ticket.title}</h4>
+                          <span className={`ticket-item-status ${ticket.status}`}>{ticket.status}</span>
+                        </div>
+                        <div className="ticket-item-meta">
+                          <span className="ticket-item-id">{ticket.id}</span>
+                          <span className="ticket-item-date">{formatDate(ticket.createdAt)}</span>
+                        </div>
+                        <p className="ticket-preview">{ticket.description}</p>
                       </div>
-                      <div className="ticket-item-meta">
-                        <span className="ticket-item-id">{ticket.id}</span>
-                        <span className="ticket-item-date">{ticket.date}</span>
-                      </div>
-                      <p className="ticket-preview">{ticket.description}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               
               <div className="ticket-meta-info">
                 <div className="meta-item">
                   <i className="fas fa-calendar-alt"></i>
-                  <span>Created: {currentTicket.date.replace('/', '-')}</span>
+                  <span>Created: {formatDate(currentTicket.createdAt)}</span>
                 </div>
                 <div className="meta-item">
                   <i className="fas fa-clock"></i>
-                  <span>Last Updated: 1 hour ago</span>
+                  <span>Last Updated: {formatDate(currentTicket.updatedAt)}</span>
                 </div>
                 <div className="meta-item">
                   <i className="fas fa-tag"></i>
-                  <span>Priority: {currentTicket.priority}</span>
+                  <span>Priority: {currentTicket.urgency}</span>
                 </div>
                 <div className="meta-item">
                   <i className="fas fa-folder"></i>
-                  <span>Category: {currentTicket.category}</span>
+                  <span>Category: {currentTicket.type && currentTicket.type.name ? currentTicket.type.name : '-'}</span>
                 </div>
               </div>
               
@@ -157,188 +219,225 @@ const TicketInformation = () => {
           </div>
 
           <div className="ticket-right-panel">
-            <div className="ticket-content-wrapper">
-              <div className="ticket-header">
-                <div className="ticket-title-section">
-                  <span className="ticket-id">#{currentTicket.id}</span>
-                  <span className={`ticket-status ${currentTicket.status}`}>{currentTicket.status}</span>
-                  <h2>{currentTicket.title}</h2>
+            {!loading && ticketList.length === 0 ? (
+              <div className="ticket-content-wrapper">
+                <div className="empty-state" style={{marginTop: '40px', fontSize: '1.1em', textAlign: 'center'}}>
+                  <span className="empty-icon"><i className="fas fa-comments"></i></span>
+                  You don't have any support tickets yet. If you have a question or need assistance, please visit our chatbot—it's ready to help you anytime!
+                  <a href="http://localhost:5173/chatbot" className="btn btn-primary">
+                  <i className="fas fa-robot"></i> Chat with Bot</a>
                 </div>
                 
-                <div className="ticket-tabs">
-                  <div 
-                    className={`ticket-tab ${activeTab === 'conversation' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('conversation')}
-                  >
-                    <i className="fas fa-comments"></i> Conversation
-                  </div>
-                  <div 
-                    className={`ticket-tab ${activeTab === 'attachments' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('attachments')}
-                  >
-                    <i className="fas fa-paperclip"></i> Attachments
-                  </div>
-                  <div 
-                    className={`ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('related')}
-                  >
-                    <i className="fas fa-link"></i> Related Information
-                  </div>
-                </div>
               </div>
-              
-              <div className="estimated-time">
-                <i className="fas fa-hourglass-half"></i>
-                <div>
-                  <strong>Estimated Resolution Time:</strong>
-                  <p>Our team is working on your issue. Estimated time to resolution: 24-48 hours</p>
-                </div>
-              </div>
-              
-              <div className="ticket-details">
-                <p>{currentTicket.description}</p>
-                {currentTicket.id === 'TK-2023-001' && (
-                  <p>Error message displayed to customers: "Payment processing error. Please try again later."</p>
-                )}
-              </div>
-              
-              {activeTab === 'conversation' && (
-                <div className="interaction-history">
-                  <h4>Conversation History</h4>
-                  <div className="interaction customer-message">
-                    <span className="time">Oct 15, 9:30 AM</span>
-                    <span className="sender">You:</span>
-                    <p>{currentTicket.description}</p>
-                  </div>
-                  <div className="interaction agent-message">
-                    <span className="time">Oct 15, 10:15 AM</span>
-                    <span className="sender">Support Agent (Sarah):</span>
-                    <p>Thank you for reporting this issue. I understand how critical this is for your business. I'll need some additional information to help diagnose the problem. Could you please provide more details?</p>
-                  </div>
-                  {currentTicket.id === 'TK-2023-001' && (
-                    <>
-                      <div className="interaction customer-message">
-                        <span className="time">Oct 15, 11:05 AM</span>
-                        <span className="sender">You:</span>
-                        <p>Hi Sarah, thanks for the quick response. Here's the information:</p>
-                        <ol>
-                          <li>All credit card payments are affected, but PayPal seems to work fine.</li>
-                          <li>I've attached the error logs from our server.</li>
-                          <li>The issue started yesterday after we deployed a new update to our checkout system.</li>
-                        </ol>
-                      </div>
-                      <div className="interaction agent-message">
-                        <span className="time">Oct 15, 1:30 PM</span>
-                        <span className="sender">Support Agent (Sarah):</span>
-                        <p>Thank you for providing that information. After reviewing the logs, I can see that there's an API authentication issue with our payment gateway. Our technical team is working on this now. I'll keep you updated on our progress.</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-              
-              {activeTab === 'attachments' && (
-                <div className="attachments-section">
-                  <h4>Attached Files</h4>
-                  {currentTicket.id === 'TK-2023-001' ? (
-                    <div className="attachment-list">
-                      <div className="attachment-item">
-                        <i className="fas fa-file-code"></i>
-                        <span className="attachment-name">error_logs.txt</span>
-                        <span className="attachment-size">24KB</span>
-                        <button className="attachment-action-btn">
-                          <i className="fas fa-download"></i>
-                        </button>
-                      </div>
-                      <div className="attachment-item">
-                        <i className="fas fa-file-image"></i>
-                        <span className="attachment-name">error_screenshot.png</span>
-                        <span className="attachment-size">156KB</span>
-                        <button className="attachment-action-btn">
-                          <i className="fas fa-download"></i>
-                        </button>
-                      </div>
+            ) : (
+              <div className="ticket-content-wrapper">
+                <div className="ticket-header">
+                  <div className="ticket-title-section" aria-label="Ticket Title Section">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span className="ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
+                      <span className={`ticket-status ${currentTicket.status}`} aria-label="Ticket Status">{currentTicket.status}</span>
                     </div>
-                  ) : (
-                    <p className="no-attachments">No files have been attached to this ticket.</p>
-                  )}
-                </div>
-              )}
-              
-              {activeTab === 'related' && (
-                <div className="related-info-section">
-                  <h4>Related Information</h4>
-                  <div className="related-tickets">
-                    <h5>Related Tickets</h5>
-                    {currentTicket.id === 'TK-2023-001' ? (
-                      <div className="related-ticket-item">
-                        <span className="related-ticket-id">#TK-2023-042</span>
-                        <span className="related-ticket-title">API Authentication Issues</span>
-                        <span className="related-ticket-status resolved">Resolved</span>
-                      </div>
-                    ) : (
-                      <p className="no-related">No related tickets found.</p>
-                    )}
+                    <h2 className="ticket-title" aria-label="Ticket Title">{currentTicket.title}</h2>
                   </div>
                   
-                  <div className="suggested-articles">
-                    <h5>Suggested Knowledge Base Articles</h5>
-                    <a href="#" className="article-link">
-                      <i className="fas fa-file-alt"></i>
-                      {currentTicket.id === 'TK-2023-001' ? 'Troubleshooting Payment Gateway Integration Issues' : 'Common Support Issues and Solutions'}
-                    </a>
-                    <a href="#" className="article-link">
-                      <i className="fas fa-file-alt"></i>
-                      {currentTicket.id === 'TK-2023-001' ? 'Common API Authentication Errors and Solutions' : 'How to Provide Effective Information for Support'}
-                    </a>
-                    <a href="#" className="article-link">
-                      <i className="fas fa-file-alt"></i>
-                      {currentTicket.id === 'TK-2023-001' ? 
-                        'Payment Processing Best Practices' : 
-                        'Troubleshooting Guide for ' + currentTicket.category}
-                    </a>
+                  <div className="ticket-tabs">
+                    <div 
+                      className={`ticket-tab ${activeTab === 'conversation' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('conversation')}
+                    >
+                      <i className="fas fa-comments"></i> Conversation
+                    </div>
+                    <div 
+                      className={`ticket-tab ${activeTab === 'attachments' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('attachments')}
+                    >
+                      <i className="fas fa-paperclip"></i> Attachments
+                    </div>
+                    <div 
+                      className={`ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('related')}
+                    >
+                      <i className="fas fa-link"></i> Related Information
+                    </div>
+                    {session && session.ticketSession !== true && (
+                      <div 
+                        className={`ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('chatbot')}
+                      >
+                        <i className="fas fa-robot"></i> Chatbot History
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-              
-              <div className="reply-box">
-                <textarea placeholder="Type your reply here..."></textarea>
-                <div className="reply-actions">
-                  <div className="attach-file">
-                    <i className="fas fa-paperclip"></i>
-                    <span>Attach File</span>
+                
+                <div className="estimated-time">
+                  <i className="fas fa-hourglass-half"></i>
+                  <div>
+                    <strong>Estimated Resolution Time:</strong>
+                    <p>Our team is working on your issue. Estimated time to resolution: 24-48 hours</p>
                   </div>
-                  <button className="send-btn">
-                    <i className="fas fa-paper-plane"></i> Send Reply
-                  </button>
                 </div>
+                
+                <div className="ticket-details">
+                  <p>{currentTicket.description}</p>
+                  {currentTicket.id === 'TK-2023-001' && (
+                    <p>Error message displayed to customers: "Payment processing error. Please try again later."</p>
+                  )}
+                </div>
+                
+                {activeTab === 'conversation' && (
+                  <div className="interaction-history">
+                    <h4>Conversation History</h4>
+                    {parseHistory(currentTicket.history).length === 0 ? (
+                      <div className="empty-state">No conversation yet. Start the conversation below.</div>
+                    ) : (
+                      parseHistory(currentTicket.history).map((msg, idx) => (
+                        <div key={idx} className={`interaction ${msg.role === 'engineer' ? 'agent-message' : 'customer-message'}`}>
+                          <span className="time">{formatMessageTime(msg.timestamp)}</span>
+                          <span className="sender">{msg.role === 'engineer' ? 'Engineer' : 'User'}:</span>
+                          <p>{msg.content}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'attachments' && (
+                  <div className="attachments-section">
+                    <h4>Attached Files</h4>
+                    {currentTicket.id === 'TK-2023-001' ? (
+                      <div className="attachment-list">
+                        <div className="attachment-item">
+                          <i className="fas fa-file-code"></i>
+                          <span className="attachment-name">error_logs.txt</span>
+                          <span className="attachment-size">24KB</span>
+                          <button className="attachment-action-btn">
+                            <i className="fas fa-download"></i>
+                          </button>
+                        </div>
+                        <div className="attachment-item">
+                          <i className="fas fa-file-image"></i>
+                          <span className="attachment-name">error_screenshot.png</span>
+                          <span className="attachment-size">156KB</span>
+                          <button className="attachment-action-btn">
+                            <i className="fas fa-download"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="no-attachments">No files have been attached to this ticket.</p>
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'related' && (
+                  <div className="related-info-section">
+                    <h4>Related Information</h4>
+                    <div className="related-tickets">
+                      <h5>Related Tickets</h5>
+                      {currentTicket.id === 'TK-2023-001' ? (
+                        <div className="related-ticket-item">
+                          <span className="related-ticket-id">#TK-2023-042</span>
+                          <span className="related-ticket-title">API Authentication Issues</span>
+                          <span className="related-ticket-status resolved">Resolved</span>
+                        </div>
+                      ) : (
+                        <p className="no-related">No related tickets found.</p>
+                      )}
+                    </div>
+                    
+                    <div className="suggested-articles">
+                      <h5>Suggested Knowledge Base Articles</h5>
+                      <a href="#" className="article-link">
+                        <i className="fas fa-file-alt"></i>
+                        {currentTicket.id === 'TK-2023-001' ? 'Troubleshooting Payment Gateway Integration Issues' : 'Common Support Issues and Solutions'}
+                      </a>
+                      <a href="#" className="article-link">
+                        <i className="fas fa-file-alt"></i>
+                        {currentTicket.id === 'TK-2023-001' ? 'Common API Authentication Errors and Solutions' : 'How to Provide Effective Information for Support'}
+                      </a>
+                      <a href="#" className="article-link">
+                        <i className="fas fa-file-alt"></i>
+                        {currentTicket.id === 'TK-2023-001' ? 
+                          'Payment Processing Best Practices' : 
+                          'Troubleshooting Guide for ' + currentTicket.type.name}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'chatbot' && session && session.ticketSession !== true && (
+                  <div className="chatbot-history-section">
+                    <h4>Chatbot Conversation History</h4>
+                    {sessionLoading ? (
+                      <div className="empty-state">Loading chatbot history...</div>
+                    ) : sessionError ? (
+                      <div className="empty-state">{sessionError}</div>
+                    ) : chatbotHistory.length > 0 ? (
+                      <div className="interaction-history">
+                        {chatbotHistory.map((msg, idx) => (
+                          <div key={idx} className={`interaction ${msg.role === 'user' ? 'customer-message' : 'agent-message'}`}>
+                            <span className="time">{formatMessageTime(msg.timestamp)}</span>
+                            <span className="sender">{msg.role === 'user' ? 'You' : 'Bot'}:</span>
+                            <p>{msg.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="empty-state">No chatbot conversation found for this session.</div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Only show reply box for the Conversation tab */}
+                {activeTab === 'conversation' && (
+                  <div className="reply-box">
+                    <textarea 
+                      placeholder="Type your reply here..."
+                      value={reply}
+                      onChange={e => setReply(e.target.value)}
+                      disabled={sending}
+                    ></textarea>
+                    <div className="reply-actions">
+                      <div className="attach-file">
+                        <i className="fas fa-paperclip"></i>
+                        <span>Attach File</span>
+                      </div>
+                      <button className="send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
+                        <i className="fas fa-paper-plane"></i> {sending ? "Sending..." : "Send Reply"}
+                      </button>
+                    </div>
+                    {sendError && <div className="error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
+                  </div>
+                )}
+                
+                {/* <div className="satisfaction-survey">
+                  <h4>How would you rate our support so far?</h4>
+                  <div className="rating-options">
+                    <div className="rating-option">
+                      <i className="far fa-frown"></i>
+                      <p>Poor</p>
+                    </div>
+                    <div className="rating-option">
+                      <i className="far fa-meh"></i>
+                      <p>Average</p>
+                    </div>
+                    <div className="rating-option">
+                      <i className="far fa-smile"></i>
+                      <p>Good</p>
+                    </div>
+                    <div className="rating-option">
+                      <i className="far fa-grin-stars"></i>
+                      <p>Excellent</p>
+                    </div>
+                  </div>
+                </div> */}
               </div>
-              
-              {/* <div className="satisfaction-survey">
-                <h4>How would you rate our support so far?</h4>
-                <div className="rating-options">
-                  <div className="rating-option">
-                    <i className="far fa-frown"></i>
-                    <p>Poor</p>
-                  </div>
-                  <div className="rating-option">
-                    <i className="far fa-meh"></i>
-                    <p>Average</p>
-                  </div>
-                  <div className="rating-option">
-                    <i className="far fa-smile"></i>
-                    <p>Good</p>
-                  </div>
-                  <div className="rating-option">
-                    <i className="far fa-grin-stars"></i>
-                    <p>Excellent</p>
-                  </div>
-                </div>
-              </div> */}
-            </div>
+            )}
           </div>
         </div>
       </div>
+      
     </div>
   );
 };

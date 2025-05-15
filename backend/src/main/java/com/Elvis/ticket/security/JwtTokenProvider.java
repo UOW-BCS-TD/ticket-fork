@@ -38,6 +38,9 @@ public class JwtTokenProvider {
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Map<String, Object> claims = new HashMap<>();
+        claims.put("authorities", userDetails.getAuthorities().stream()
+            .map(auth -> auth.getAuthority())
+            .toArray(String[]::new));
         String token = createToken(claims, userDetails.getUsername());
         logger.info("Generated token for user: {}", userDetails.getUsername());
         return token;
@@ -100,5 +103,9 @@ public class JwtTokenProvider {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public Key getKey() {
+        return this.key;
     }
 } 

@@ -116,19 +116,13 @@ const Header = (props) => {
   };
 
   const toggleServiceDropdown = () => {
-    setIsServiceDropdownOpen(!isServiceDropdownOpen);
-    // Close user dropdown if open
-    if (isUserDropdownOpen) {
-      setIsUserDropdownOpen(false);
-    }
+    setIsServiceDropdownOpen((prev) => !prev);
+    setIsUserDropdownOpen(false);
   };
 
   const toggleUserDropdown = () => {
-    setIsUserDropdownOpen(!isUserDropdownOpen);
-    // Close service dropdown if open
-    if (isServiceDropdownOpen) {
-      setIsServiceDropdownOpen(false);
-    }
+    setIsUserDropdownOpen((prev) => !prev);
+    setIsServiceDropdownOpen(false);
   };
 
   const handleLogout = () => {
@@ -249,6 +243,20 @@ const Header = (props) => {
   // Force re-render when currentUser changes by directly calling getNavLinks()
   const navLinks = props.navLinks || getNavLinks();
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const nav = document.querySelector('.header-nav');
+      if (nav && !nav.contains(event.target)) {
+        setIsServiceDropdownOpen(false);
+        setIsUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <header className="header">
       <div className="header-logo">
@@ -304,11 +312,13 @@ const Header = (props) => {
                           <a href="#" onClick={(e) => {
                             e.preventDefault();
                             item.onClick();
+                            setIsServiceDropdownOpen(false);
+                            setIsUserDropdownOpen(false);
                           }}>
                             {item.label}
                           </a>
                         ) : (
-                          <Link to={item.path}>{item.label}</Link>
+                          <Link to={item.path} onClick={() => { setIsServiceDropdownOpen(false); setIsUserDropdownOpen(false); }}>{item.label}</Link>
                         )}
                       </li>
                     ))}

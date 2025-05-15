@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/").permitAll()
+                // Allow anyone to send a message to a ticket
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/message").permitAll()
                 
                 // User profile endpoints
                 .requestMatchers("/api/users/profile").authenticated()
@@ -47,7 +49,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
                 
                 // Ticket endpoints
-                .requestMatchers("/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.POST, "/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.POST, "/api/tickets/").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/tickets/{id}").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/tickets/customer/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/tickets/engineer/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
@@ -56,6 +59,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/tickets/product/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
                 .requestMatchers("/api/tickets/type/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
                 .requestMatchers("/api/tickets/{id}/escalate").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/tickets/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
                 
                 // Customer management endpoints
                 .requestMatchers("/api/customers").hasAnyRole("ADMIN", "MANAGER")
@@ -64,11 +69,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/customers/{id}/role").hasRole("ADMIN")
                 
                 // Engineer management endpoints
-                .requestMatchers("/api/engineers").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(HttpMethod.GET, "/api/engineers/available/category/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/engineers/available").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/engineers/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/{id}").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/email/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/category/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/engineers/available").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/create").hasAnyRole("ADMIN", "MANAGER")
                 
                 // Session management endpoints
@@ -84,9 +90,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/sessions/list").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 
                 // Product endpoints
+                .requestMatchers(HttpMethod.GET, "/api/products").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/products/{id}").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/products").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/products/{id}").hasAnyRole("ADMIN", "MANAGER")
                 // Ticket type endpoints
+                .requestMatchers(HttpMethod.GET, "/api/ticket-types").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/ticket-types/{id}").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/ticket-types").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/ticket-types/{id}").hasAnyRole("ADMIN", "MANAGER")
                 
@@ -114,7 +124,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Your frontend URL
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "http://10.14.0.2:5173",
+            "http://192.168.56.1:5173",
+            "http://10.2.67.76:5173",
+            "http://172.24.80.1:5173"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
