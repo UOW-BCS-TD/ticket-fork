@@ -10,13 +10,22 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('account');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+
   const [showEditModal, setShowEditModal] = useState(false);
-  
-  // Form state for edit profile (simplified to only name and phone)
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: ''
   });
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const navigate = useNavigate();
 
@@ -25,6 +34,15 @@ const Profile = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
+      [name]: value
+    });
+  };
+
+  //Handle password input changes
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData({
+      ...passwordData,
       [name]: value
     });
   };
@@ -143,10 +161,64 @@ const Profile = () => {
     }
   };
 
+  //Handle password change submission
+  const handleChangePassword = async () => {
+    try {
+      setPasswordError('');
+      
+      // Validate passwords
+      if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+        setPasswordError('All password fields are required');
+        return;
+      }
+      
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        setPasswordError('New passwords do not match');
+        return;
+      }
+      
+      if (passwordData.newPassword.length < 8) {
+        setPasswordError('Password must be at least 8 characters long');
+        return;
+      }
+      
+      // Call the auth service to change password
+      const result = await auth.updateCurrentUserPassword(
+        passwordData.oldPassword,
+        passwordData.newPassword,
+      );
+      
+      if (result.success) {
+        // Clear form and show success message
+        setPasswordData({
+          oldPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setPasswordSuccess('Password changed successfully');
+        
+        // Close modal after a delay
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setPasswordSuccess('');
+        }, 2000);
+      } else {
+        setPasswordError(result.message || 'Failed to change password');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setPasswordError('An unexpected error occurred. Please try again.');
+    }
+  };
+
   // Load user data on component mount
   useEffect(() => {
     getUserDataFromLocalStorage();
   }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', darkMode);
+  }, [darkMode]);
 
   const handleLogout = () => {
     auth.logout();
@@ -176,9 +248,8 @@ const Profile = () => {
   }
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleString();
   };
   
   const formatActivityDate = (dateString) => {
@@ -196,6 +267,48 @@ const Profile = () => {
       return `${diffDays} days ago`;
     } else {
       return formatDate(dateString);
+    }
+  };
+
+  // Replace the existing toggleDarkMode function with this enhanced version
+  const toggleDarkMode = () => {
+    // Add transition class to body
+    document.body.classList.add('theme-transition');
+    
+    // Toggle dark mode after a small delay to allow animation to start
+    setTimeout(() => {
+      const newMode = !darkMode;
+      setDarkMode(newMode);
+      localStorage.setItem('darkMode', newMode);
+      document.body.classList.toggle('dark-mode', newMode);
+      
+      // Remove transition class after animation completes
+      setTimeout(() => {
+        document.body.classList.remove('theme-transition');
+      }, 500);
+    }, 50);
+    
+    // Create ripple effect on the button
+    const button = document.querySelector('.profile-btn-theme');
+    if (button) {
+      const circle = document.createElement('span');
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.position = 'absolute';
+      circle.style.borderRadius = '50%';
+      circle.style.left = `${-diameter/4}px`;
+      circle.style.top = `${-diameter/4}px`;
+      circle.style.backgroundColor = darkMode ? '#f1f1f1' : '#2c3e50';
+      circle.style.transform = 'scale(0)';
+      circle.style.animation = 'ripple 0.6s linear';
+      circle.style.opacity = '0.4';
+      
+      button.appendChild(circle);
+      
+      setTimeout(() => {
+        button.removeChild(circle);
+      }, 600);
     }
   };
 
@@ -223,10 +336,21 @@ const Profile = () => {
         <div className="profile-header-info">
           <h1>{user.name || 'User'}</h1>
           <p className="profile-role">{user.role || 'User'}</p>
-          <p className="profile-email">{user.email}</p>
-          <button className="profile-btn profile-btn-edit" onClick={() => setShowEditModal(true)}>
-            <i className="fas fa-edit"></i> Edit Profile
-          </button>
+          <div className="profile-actions">
+            <button className="profile-btn profile-btn-edit" onClick={() => setShowEditModal(true)}>
+              <i className="fas fa-edit"></i> Edit Profile
+            </button>
+            <button className="profile-btn profile-btn-change-password" onClick={() => setShowPasswordModal(true)}>
+              <i className="fas fa-key"></i> Change Password
+            </button>
+            <button className="profile-btn profile-btn-logout" onClick={handleLogout}>
+              <i className="fas fa-sign-out-alt"></i> Logout
+            </button>
+            <button className="profile-btn profile-btn-theme" onClick={toggleDarkMode}>
+              <i className={`fas fa-${darkMode ? 'sun' : 'moon'}`}></i> 
+              <span className="theme-text">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+          </div>
         </div>
       </div>
       
@@ -350,18 +474,14 @@ const Profile = () => {
           <div className="profile-security-info">
             <div className="profile-info-card">
               <h2>Security Information</h2>
-              {user.lastLogin && (
-                <div className="profile-info-item">
-                  <span className="profile-info-label">Last Login</span>
-                  <span className="profile-info-value">{formatActivityDate(user.lastLogin)}</span>
-                </div>
-              )}
-              {user.lastPasswordChange && (
-                <div className="profile-info-item">
-                  <span className="profile-info-label">Last Password Change</span>
-                  <span className="profile-info-value">{formatDate(user.lastPasswordChange)}</span>
-                </div>
-              )}
+              <div className="profile-info-item">
+                <span className="profile-info-label">Last Login</span>
+                <span className="profile-info-value">{formatActivityDate(user.lastLogin)}</span>
+              </div>
+              <div className="profile-info-item">
+                <span className="profile-info-label">Last Password Change</span>
+                <span className="profile-info-value">{formatDate(user.lastPasswordChange)}</span>
+              </div>
               <div className="profile-info-item">
                 <span className="profile-info-label">Two-Factor Authentication</span>
                 <span className="profile-info-value">{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
@@ -373,14 +493,6 @@ const Profile = () => {
               <div className="profile-info-item">
                 <span className="profile-info-label">Token</span>
                 <span className="profile-info-value token">{truncateToken(auth.getToken())}</span>
-              </div>
-              <div className="profile-actions">
-                <button className="profile-btn profile-btn-change-password">
-                  <i className="fas fa-key"></i> Change Password
-                </button>
-                <button className="profile-btn profile-btn-logout" onClick={handleLogout}>
-                  <i className="fas fa-sign-out-alt"></i> Logout
-                </button>
               </div>
             </div>
           </div>
@@ -395,7 +507,7 @@ const Profile = () => {
                   {user.recentActivity.map((activity, index) => (
                     <div className="profile-activity-item" key={index}>
                       <div className="profile-activity-details">
-                                                <p className="profile-activity-description">{activity.description}</p>
+                        <p className="profile-activity-description">{activity.description}</p>
                         <p className="profile-activity-time">{formatActivityDate(activity.timestamp)}</p>
                       </div>
                     </div>
@@ -492,6 +604,60 @@ const Profile = () => {
           </div>
         </div>
       )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="profile-modal-overlay" onClick={() => setShowPasswordModal(false)}>
+          <div className="profile-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="profile-modal-header">
+              <h2>Change Password</h2>
+              <button className="profile-modal-close" onClick={() => setShowPasswordModal(false)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="profile-modal-body">
+              {passwordError && <div className="profile-error-message">{passwordError}</div>}
+              {passwordSuccess && <div className="profile-success-message">{passwordSuccess}</div>}
+              <div className="profile-form-group">
+                <label>Current Password</label>
+                <input 
+                  type="password" 
+                  name="oldPassword"
+                  value={passwordData.oldPassword}
+                  onChange={handlePasswordInputChange}
+                  placeholder="Enter your current password"
+                />
+              </div>
+              <div className="profile-form-group">
+                <label>New Password</label>
+                <input 
+                  type="password" 
+                  name="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordInputChange}
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div className="profile-form-group">
+                <label>Confirm New Password</label>
+                <input 
+                  type="password" 
+                  name="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={handlePasswordInputChange}
+                  placeholder="Confirm new password"
+                />
+                <small>Password must be at least 8 characters long</small>
+              </div>
+            </div>
+            <div className="profile-modal-footer">
+              <button className="profile-btn profile-btn-cancel" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+              <button className="profile-btn profile-btn-save" onClick={handleChangePassword}>Change Password</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

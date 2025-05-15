@@ -1,8 +1,6 @@
 /* Profile specific styles with more specific class names */
 .profile-container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
+  padding: 2rem 100px;
 }
 
 /* Success message styling */
@@ -88,12 +86,6 @@
   max-width: fit-content;
 }
 
-.profile-email {
-  color: #7f8c8d;
-  margin: 0.2rem 0 1rem 0;
-  font-size: 0.95rem;
-}
-
 /* Tabs styling */
 .profile-tabs {
   display: flex;
@@ -139,6 +131,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 2rem;
   margin-bottom: 2rem;
+  min-height: 330px;
 }
 
 .profile-account-info,
@@ -147,14 +140,6 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .profile-account-info,
-  .profile-security-info,
-  .profile-activity-info {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 .profile-info-card {
@@ -521,6 +506,152 @@
   margin-bottom: 1.5rem;
 }
 
+
+/* Dark Mode Styles */
+body.dark-mode {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+}
+
+body.dark-mode .profile-container {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+}
+
+body.dark-mode .profile-header,
+body.dark-mode .profile-tabs,
+body.dark-mode .profile-content,
+body.dark-mode .profile-info-card,
+body.dark-mode .profile-stat-card {
+  background-color: #2c2c2c;
+  color: #f1f1f1;
+}
+
+body.dark-mode .profile-header-info h1,
+body.dark-mode .profile-info-card h2,
+body.dark-mode .profile-stat-content h3 {
+  color: #f1f1f1;
+}
+
+body.dark-mode .profile-info-value {
+  color: #e1e1e1;
+}
+
+body.dark-mode .profile-info-label,
+body.dark-mode .profile-stat-content p {
+  color: #a1a1a1;
+}
+
+body.dark-mode .profile-tab {
+  color: #a1a1a1;
+}
+
+body.dark-mode .profile-tab:hover {
+  background-color: #3a3a3a;
+}
+
+body.dark-mode .profile-info-item {
+  border-bottom-color: #3a3a3a;
+}
+
+body.dark-mode .profile-modal-content {
+  background-color: #2c2c2c;
+}
+
+body.dark-mode .profile-modal-header,
+body.dark-mode .profile-modal-footer {
+  border-color: #3a3a3a;
+}
+
+body.dark-mode .profile-form-group label {
+  color: #e1e1e1;
+}
+
+body.dark-mode .profile-form-group input,
+body.dark-mode .profile-form-group select {
+  background-color: #3a3a3a;
+  border-color: #4a4a4a;
+  color: #e1e1e1;
+}
+
+body.dark-mode .profile-form-group input:disabled {
+  background-color: #252525;
+}
+
+body.dark-mode .profile-form-group small {
+  color: #a1a1a1;
+}
+
+body.dark-mode .profile-btn-cancel {
+  background-color: #4a4a4a;
+  color: #e1e1e1;
+}
+
+/* Add these transition properties to enable smooth animations */
+
+/* Base transition for all elements */
+body, 
+body *,
+.profile-container,
+.profile-header,
+.profile-tabs,
+.profile-content,
+.profile-info-card,
+.profile-stat-card,
+.profile-header-info h1,
+.profile-info-card h2,
+.profile-stat-content h3,
+.profile-info-value,
+.profile-info-label,
+.profile-stat-content p,
+.profile-tab,
+.profile-info-item,
+.profile-modal-content,
+.profile-modal-header,
+.profile-modal-footer,
+.profile-form-group label,
+.profile-form-group input,
+.profile-form-group select,
+.profile-btn-cancel {
+  transition: background-color 0.5s ease, 
+              color 0.5s ease, 
+              border-color 0.5s ease, 
+              box-shadow 0.5s ease;
+}
+
+/* Dark Mode Button Animation */
+.profile-btn-theme {
+  background-color: #34495e;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-btn-theme:hover {
+  background-color: #2c3e50;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-text {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dark mode toggle animation */
+.theme-transition::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  pointer-events: none;
+  animation: theme-fade 0.5s ease forwards;
+}
+
 /* Animations */
 @keyframes profile-spin {
   0% { transform: rotate(0deg); }
@@ -543,16 +674,90 @@
   }
 }
 
-/* Responsive design */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes theme-fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Add these responsive styles to your Profile.css file */
+
+/* Responsive styles */
+@media (max-width: 1300px) {
+  .profile-container {
+    padding: 2rem 50px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-container {
+    padding: 2rem 20px;
+  }
+  
+  .profile-header-info h1 {
+    font-size: 1.6rem;
+  }
+  
+  .profile-avatar-placeholder {
+    width: 70px;
+    height: 70px;
+    font-size: 2.2rem;
+  }
+  
+  .profile-stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  
+  .profile-stat-content h3 {
+    font-size: 1.6rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem 10px;
+  }
+  
+  /* Mobile sidebar toggle for future implementation */
+  .profile-sidebar-toggle {
+    display: flex;
+  }
+  
   .profile-header {
     flex-direction: column;
-    align-items: flex-start;
+    padding: 1.2rem 1.5rem;
   }
   
   .profile-avatar {
     margin-right: 0;
     margin-bottom: 1.5rem;
+  }
+
+  .profile-header-info h1 {
+    text-align: center;
+  }
+
+  .profile-role {
+    display: block;
+    margin: 0.5rem auto;
+    text-align: center;
   }
   
   .profile-tabs {
@@ -564,44 +769,95 @@
     padding: 0.8rem;
   }
   
+  .profile-content {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
   .profile-actions {
-    flex-direction: column;
+    gap: 0.8rem;
   }
   
   .profile-btn {
     width: 100%;
+    justify-content: center;
   }
   
   .profile-modal-footer {
     flex-direction: column;
+    gap: 0.8rem;
   }
   
   .profile-modal-footer button {
     width: 100%;
   }
+  
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  
+  .profile-stat-card {
+    padding: 1.2rem;
+  }
+  
+  .profile-account-info,
+  .profile-security-info,
+  .profile-activity-info {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
+  .profile-container {
+    padding: 0.5rem 5px;
+  }
+  
   .profile-header {
-    padding: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px 8px 0 0;
   }
   
   .profile-avatar-placeholder {
     width: 60px;
     height: 60px;
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+  
+  .profile-header-info h1 {
+    font-size: 1.4rem;
+  }
+  
+  .profile-role {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
   }
   
   .profile-content {
-    padding: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .profile-info-card {
+    padding: 1rem;
+  }
+  
+  .profile-info-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
   }
   
   .profile-info-item {
     flex-direction: column;
+    align-items: flex-start;
   }
   
   .profile-info-label {
     margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+  }
+  
+  .profile-info-value {
+    font-size: 0.95rem;
   }
   
   .profile-modal-content {
@@ -614,13 +870,93 @@
     padding: 1rem;
   }
   
+  .profile-modal-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .profile-form-group label {
+    font-size: 0.9rem;
+  }
+  
+  .profile-form-group input,
+  .profile-form-group select {
+    padding: 0.7rem;
+    font-size: 0.95rem;
+  }
+  
   .profile-login-table {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
   
   .profile-login-table th,
   .profile-login-table td {
-    padding: 0.5rem;
+    padding: 0.4rem;
+  }
+  
+  .profile-login-status {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+  }
+  
+  .profile-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .profile-stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .profile-stat-content h3 {
+    font-size: 1.5rem;
+  }
+  
+  .profile-stat-content p {
+    font-size: 0.8rem;
   }
 }
 
+/* Scrollbar styling similar to Chatbot.css */
+.profile-content::-webkit-scrollbar,
+.profile-activity-list::-webkit-scrollbar,
+.profile-login-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-content::-webkit-scrollbar-track,
+.profile-activity-list::-webkit-scrollbar-track,
+.profile-login-history::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.profile-content::-webkit-scrollbar-thumb,
+.profile-activity-list::-webkit-scrollbar-thumb,
+.profile-login-history::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.profile-content::-webkit-scrollbar-thumb:hover,
+.profile-activity-list::-webkit-scrollbar-thumb:hover,
+.profile-login-history::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Add overflow properties to scrollable containers */
+.profile-content {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.profile-activity-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.profile-login-history {
+  max-height: 300px;
+  overflow-y: auto;
+}

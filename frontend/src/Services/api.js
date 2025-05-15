@@ -59,6 +59,16 @@ export const userService = {
       throw error.response ? error.response.data : error;
     }
   },
+
+  // Update current user's password
+  updateCurrentUserPassword: async (passwordData) => {
+    try {
+      const response = await api.put('/users/profile/password', passwordData);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
   
   // Get all users (admin only)
   getAllUsers: async () => {

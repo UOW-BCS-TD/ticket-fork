@@ -147,6 +147,32 @@ const authFunctions = {
     }
   },
 
+  // Change current user's password
+  updateCurrentUserPassword: async (oldPassword, newPassword) => {
+    try {
+      // Create password change request object as expected by the backend
+      const passwordChangeRequest = {
+        oldPassword: oldPassword,
+        newPassword: newPassword
+      };
+
+      // Call the API to update password
+      const response = await userService.updateCurrentUserPassword(passwordChangeRequest);
+      
+      return {
+        success: true,
+        message: 'Password changed successfully',
+        user: response
+      };
+    } catch (error) {
+      console.error('Password change error:', error);
+      return {
+        success: false,
+        message: error.message || 'Current password is incorrect.'
+      };
+    }
+  },
+
   // Check if user is logged in
   isLoggedIn: () => {
     return !!localStorage.getItem('token');
@@ -230,12 +256,26 @@ export const userManagement = {
   },
 
   // Update user password (admin only)
-  updateUserPassword: async (id, passwordData) => {
+  updatePassword: async (id, passwordData) => {
     try {
-      return await userService.updateUserPassword(id, passwordData);
+      const adminResetData = {
+        oldPassword: "",
+        newPassword: passwordData.password || passwordData.newPassword
+      };
+
+      const response = await userService.updatePassword(id, adminResetData);
+      
+      return {
+        success: true,
+        message: 'Password changed successfully',
+        user: response
+      };
     } catch (error) {
       console.error(`Error updating password for user with ID ${id}:`, error);
-      throw error;
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update password.'
+      };
     }
   },
 

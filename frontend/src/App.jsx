@@ -13,7 +13,6 @@ import ResourcesAndGuides from './Pages/Resources/ResourcesAndGuides';
 import Login from './Pages/Auth/Login';
 import Profile from './Pages/Profile/Profile';
 import UserManagement from './Pages/Admin/UserManagement';
-import SystemSettings from './Pages/Admin/SystemSettings';
 import ViewLogs from './Pages/Admin/ViewLogs';
 import AssignedTickets from './Pages/Engineer/AssignedTickets';
 import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
@@ -46,9 +45,14 @@ const App = () => {
                 <Footer />
               </>
             } />
-            <Route path="/chatbot" element={<Chatbot />} />
             
             {/* Protected routes that require authentication */}
+            <Route path="/chatbot" element={
+              <ProtectedRoute>
+                <Chatbot />
+              </ProtectedRoute>
+            } />
+
             <Route path="/view-tickets" element={
               <ProtectedRoute>
                 <TicketInformation />
@@ -71,12 +75,6 @@ const App = () => {
             <Route path="/admin/users" element={
               <AdminRoute>
                 <UserManagement />
-              </AdminRoute>
-            } />
-            
-            <Route path="/admin/settings" element={
-              <AdminRoute>
-                <SystemSettings />
               </AdminRoute>
             } />
             
