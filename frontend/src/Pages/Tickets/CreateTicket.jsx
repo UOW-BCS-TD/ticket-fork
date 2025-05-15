@@ -2,25 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CreateTicket.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { ticketAPI, productAPI, ticketTypeAPI, sessionAPI, userService } from '../../services/api';
+import { ticketAPI, productAPI, ticketTypeAPI, sessionAPI, userService, engineerAPI } from '../../services/api';
 
 const CreateTicket = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    customer: { id: null },
-    product: { id: null },
-    type: { id: null },
-    session: { id: null },
+    product: { id: '' },
+    type: { id: '' },
+    session: { id: '' },
     urgency: 'MEDIUM',
     status: 'OPEN',
-    engineer: { id: null }
+    engineer: { id: '' }
   });
 
   const [products, setProducts] = useState([]);
   const [ticketTypes, setTicketTypes] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState('contact');
@@ -30,29 +30,33 @@ const CreateTicket = () => {
       try {
         // Get current user
         const userResponse = await userService.getCurrentUserProfile();
-        setCurrentUser(userResponse.data);
-        setFormData(prev => ({
-          ...prev,
-          customer: { id: userResponse.data.id }
-        }));
+        const user = userResponse.data || userResponse;
+        setCurrentUser(user);
+        console.log('Current user:', user);
+
+        // Set default urgency based on customer role
+        let defaultUrgency = 'LOW';
+        if (user.role === 'VIP') defaultUrgency = 'HIGH';
+        else if (user.role === 'PREMIUM') defaultUrgency = 'MEDIUM';
+        else if (user.role === 'STANDARD') defaultUrgency = 'LOW';
+        setFormData(prev => ({ ...prev, urgency: defaultUrgency }));
+        setUserLoading(false);
 
         // Get products
         const productsResponse = await productAPI.getProducts();
-        setProducts(productsResponse.data);
+        const productsData = productsResponse?.data ?? productsResponse;
+        setProducts(productsData);
+        console.log('Products:', productsData);
 
         // Get ticket types
         const ticketTypesResponse = await ticketTypeAPI.getTicketTypes();
-        setTicketTypes(ticketTypesResponse.data);
-
-        // Create a new session
-        const sessionResponse = await sessionAPI.createSession({ title: 'New Support Ticket' });
-        setFormData(prev => ({
-          ...prev,
-          session: { id: sessionResponse.data.id }
-        }));
+        const ticketTypesData = ticketTypesResponse?.data ?? ticketTypesResponse;
+        setTicketTypes(ticketTypesData);
+        console.log('TicketTypes:', ticketTypesData);
       } catch (err) {
         setError('Failed to load initial data. Please try again.');
-        console.error('Error loading data:', err);
+        setCurrentUser(null);
+        setUserLoading(false);
       }
     };
 
@@ -71,7 +75,7 @@ const CreateTicket = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: { id: parseInt(value) }
+      [name]: { id: value || '' }
     }));
   };
 
@@ -81,9 +85,85 @@ const CreateTicket = () => {
     setError('');
 
     try {
-      const response = await ticketAPI.createTicket(formData);
+      // Create a new session first
+      const sessionResponse = await sessionAPI.createSession({ title: 'New Support Ticket', ticketSession: true });
+      // Support both possible response formats
+      const sessionId = sessionResponse?.data?.id || sessionResponse?.data?.data?.id;
+      if (!sessionId) {
+        setError('Failed to create session. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // End the session right away
+      await sessionAPI.endSession(sessionId);
+
+      // Defensive fallback for possibly undefined objects
+      const product = formData.product ?? { id: '' };
+      const type = formData.type ?? { id: '' };
+
+      // Fetch the product details to get the category
+      let productCategory = null;
+      if (product.id) {
+        const selectedProduct = products.find(p => p.id == product.id);
+        // Map product name to backend category enum
+        const productNameToCategory = {
+          "Model S": "MODEL_S",
+          "Model 3": "MODEL_3",
+          "Model X": "MODEL_X",
+          "Model Y": "MODEL_Y",
+          "Cybertruck": "CYBERTRUCK"
+        };
+        productCategory = productNameToCategory[selectedProduct?.name];
+        console.log('Selected product:', selectedProduct);
+        console.log('Product category:', productCategory);
+      } else {
+        console.log('No product selected');
+      }
+
+      // Find available level 1 engineer for the product's category
+      let assignedEngineer = null;
+      if (productCategory) {
+        console.log('Calling engineerAPI.getAvailableLevel1Engineer with category:', productCategory);
+        assignedEngineer = await engineerAPI.getAvailableLevel1Engineer(productCategory);
+        console.log('Assigned engineer:', assignedEngineer);
+      } else {
+        console.log('No product category, skipping engineer API call');
+      }
+      // If no engineer is found, show error and stop
+      if (!assignedEngineer) {
+        setError('No available engineer found for this product category. Please try again later.');
+        setLoading(false);
+        return;
+      }
+
+      // Build the request body, assign engineer if found
+      if (!currentUser?.customerId) {
+        setError('Customer profile not found. Cannot create ticket.');
+        setLoading(false);
+        return;
+      }
+      const ticketBody = {
+        title: formData.title,
+        description: formData.description,
+        product: { id: product.id || '' },
+        type: { id: type.id || '' },
+        session: { id: sessionId },
+        urgency: formData.urgency,
+        status: formData.status,
+        engineer: { id: assignedEngineer.id },
+        customer: { id: currentUser.customerId }
+      };
+      const response = await ticketAPI.createTicket(ticketBody);
+      const ticketId = response?.id || response?.data?.id;
+      if (!ticketId) {
+        setError('Failed to create ticket. Please try again.');
+        console.error('Ticket creation response:', response);
+        setLoading(false);
+        return;
+      }
       alert('Ticket created successfully!');
-      navigate(`/tickets/${response.data.id}`);
+      navigate(`/tickets/${ticketId}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create ticket. Please try again.');
       console.error('Error creating ticket:', err);
@@ -103,6 +183,10 @@ const CreateTicket = () => {
     else if (activeSection === 'details') setActiveSection('ticket');
     else if (activeSection === 'ticket') setActiveSection('contact');
   };
+
+  if (userLoading) {
+    return <div>Loading user info...</div>;
+  }
 
   return (
     <div className="support-ticket-page">
@@ -187,7 +271,7 @@ const CreateTicket = () => {
                       <input 
                         type="text" 
                         name="title"
-                        value={formData.title}
+                        value={formData.title || ''}
                         onChange={handleInputChange}
                         placeholder="Subject" 
                         required 
@@ -200,12 +284,12 @@ const CreateTicket = () => {
                       <i className="fas fa-folder"></i>
                       <select 
                         name="type"
-                        value={formData.type.id || ''}
+                        value={formData.type?.id || ''}
                         onChange={handleSelectChange}
                         required
                       >
                         <option value="">Select a ticket type</option>
-                        {ticketTypes.map(type => (
+                        {Array.isArray(ticketTypes) && ticketTypes.map(type => (
                           <option key={type.id} value={type.id}>{type.name}</option>
                         ))}
                       </select>
@@ -217,67 +301,70 @@ const CreateTicket = () => {
                       <i className="fas fa-cube"></i>
                       <select
                         name="product"
-                        value={formData.product.id || ''}
+                        value={formData.product?.id || ''}
                         onChange={handleSelectChange}
                         required
                       >
                         <option value="">Select a product</option>
-                        {products.map(product => (
+                        {Array.isArray(products) && products.map(product => (
                           <option key={product.id} value={product.id}>{product.name}</option>
                         ))}
                       </select>
                     </div>
                   </div>
                   
-                  <div className="support-form-group">
-                    <label>Priority Level</label>
-                    <div className="support-priority-options">
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="low" 
-                          name="urgency" 
-                          value="LOW"
-                          checked={formData.urgency === 'LOW'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="low">Low</label>
-                      </div>
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="medium" 
-                          name="urgency" 
-                          value="MEDIUM"
-                          checked={formData.urgency === 'MEDIUM'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="medium">Medium</label>
-                      </div>
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="high" 
-                          name="urgency" 
-                          value="HIGH"
-                          checked={formData.urgency === 'HIGH'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="high">High</label>
-                      </div>
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="critical" 
-                          name="urgency" 
-                          value="CRITICAL"
-                          checked={formData.urgency === 'CRITICAL'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="critical">Critical</label>
+                  {/* Priority Level Section */}
+                  {currentUser?.role !== 'CUSTOMER' && (
+                    <div className="support-form-group">
+                      <label>Priority Level</label>
+                      <div className="support-priority-options">
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="low" 
+                            name="urgency" 
+                            value="LOW"
+                            checked={formData.urgency === 'LOW'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="low">Low</label>
+                        </div>
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="medium" 
+                            name="urgency" 
+                            value="MEDIUM"
+                            checked={formData.urgency === 'MEDIUM'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="medium">Medium</label>
+                        </div>
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="high" 
+                            name="urgency" 
+                            value="HIGH"
+                            checked={formData.urgency === 'HIGH'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="high">High</label>
+                        </div>
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="critical" 
+                            name="urgency" 
+                            value="CRITICAL"
+                            checked={formData.urgency === 'CRITICAL'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="critical">Critical</label>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="support-form-actions">
                     <button type="button" className="support-btn support-back-btn" onClick={prevSection}><i className="fas fa-arrow-left"></i> Back</button>
@@ -294,7 +381,7 @@ const CreateTicket = () => {
                     <div className="support-rich-text-editor">
                       <textarea 
                         name="description"
-                        value={formData.description}
+                        value={formData.description || ''}
                         onChange={handleInputChange}
                         placeholder="Please provide as much detail as possible about your issue..." 
                         required
@@ -316,9 +403,8 @@ const CreateTicket = () => {
                     <div className="ticket-summary">
                       <h4>Ticket Summary</h4>
                       <p><strong>Title:</strong> {formData.title}</p>
-                      <p><strong>Type:</strong> {ticketTypes.find(t => t.id === formData.type.id)?.name || 'Not selected'}</p>
-                      <p><strong>Product:</strong> {products.find(p => p.id === formData.product.id)?.name || 'Not selected'}</p>
-                      <p><strong>Priority:</strong> {formData.urgency}</p>
+                      <p><strong>Type:</strong> {Array.isArray(ticketTypes) && ticketTypes.find(t => t.id == formData.type?.id)?.name || 'Not selected'}</p>
+                      <p><strong>Product:</strong> {Array.isArray(products) && products.find(p => p.id == formData.product?.id)?.name || 'Not selected'}</p>
                       <p><strong>Description:</strong> {formData.description}</p>
                     </div>
                   </div>

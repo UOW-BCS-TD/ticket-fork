@@ -17,6 +17,9 @@ import com.Elvis.ticket.repository.TicketTypeRepository;
 import com.Elvis.ticket.repository.SessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.Elvis.ticket.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,23 +33,36 @@ public class TicketService {
     private final ProductRepository productRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final SessionRepository sessionRepository;
+    private final UserService userService;
 
     public TicketService(TicketRepository ticketRepository, 
                         EngineerRepository engineerRepository,
                         CustomerRepository customerRepository,
                         ProductRepository productRepository,
                         TicketTypeRepository ticketTypeRepository,
-                        SessionRepository sessionRepository) {
+                        SessionRepository sessionRepository,
+                        UserService userService) {
         this.ticketRepository = ticketRepository;
         this.engineerRepository = engineerRepository;
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
         this.ticketTypeRepository = ticketTypeRepository;
         this.sessionRepository = sessionRepository;
+        this.userService = userService;
     }
 
     @Transactional
     public Ticket createTicket(Ticket ticket) {
+        // If customer is not set, use the authenticated user
+        if (ticket.getCustomer() == null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            Customer customer = customerRepository.findByEmail(email);
+            if (customer == null) {
+                throw new RuntimeException("Authenticated customer not found");
+            }
+            ticket.setCustomer(customer);
+        }
         // Validate all foreign key references exist
         Customer customer = customerRepository.findById(ticket.getCustomer().getId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -65,6 +81,13 @@ public class TicketService {
         ticket.setProduct(product);
         ticket.setType(type);
         ticket.setSession(session);
+
+        // Ensure engineer is a managed entity
+        if (ticket.getEngineer() != null && ticket.getEngineer().getId() != null) {
+            Engineer engineer = engineerRepository.findById(ticket.getEngineer().getId())
+                .orElseThrow(() -> new RuntimeException("Engineer not found"));
+            ticket.setEngineer(engineer);
+        }
 
         // Set timestamps and status
         ticket.setCreatedAt(LocalDateTime.now());

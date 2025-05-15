@@ -390,15 +390,17 @@ const Chatbot = () => {
   }, []);
 
   // Filter chats based on search query and status
-  let filteredChats = chatList.filter((chat) => {
-    const searchLower = searchQuery.toLowerCase().trim();
-    const titleLower = (chat.title || 'Untitled Chat').toLowerCase();
-    const matchesSearch = searchLower === '' || titleLower.includes(searchLower);
-    const matchesStatus = statusFilter === 'ALL' || 
-                         (statusFilter === 'ACTIVE' && chat.status === 'ACTIVE') ||
-                         (statusFilter === 'CLOSED' && chat.status === 'CLOSED');
-    return matchesSearch && matchesStatus;
-  });
+  let filteredChats = chatList
+    .filter(chat => chat.ticketSession !== true && chat.ticketSession !== 1) // Exclude ticket sessions (true or 1)
+    .filter((chat) => {
+      const searchLower = searchQuery.toLowerCase().trim();
+      const titleLower = (chat.title || 'Untitled Chat').toLowerCase();
+      const matchesSearch = searchLower === '' || titleLower.includes(searchLower);
+      const matchesStatus = statusFilter === 'ALL' || 
+                           (statusFilter === 'ACTIVE' && chat.status === 'ACTIVE') ||
+                           (statusFilter === 'CLOSED' && chat.status === 'CLOSED');
+      return matchesSearch && matchesStatus;
+    });
 
   // Sort by lastActivity descending (latest first)
   filteredChats = filteredChats.sort((a, b) => {

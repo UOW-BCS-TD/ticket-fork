@@ -126,7 +126,7 @@ export const ticketAPI = {
   // Get all tickets
   getTickets: async () => {
     try {
-      const response = await api.get('/tickets');
+      const response = await api.get('/tickets/own');
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error;
@@ -346,7 +346,7 @@ export const sessionAPI = {
   createSession: async (sessionData) => {
     try {
       const response = await api.post('/sessions', sessionData);
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response ? error.response.data : error;
     }
@@ -357,6 +357,33 @@ export const sessionAPI = {
     try {
       const response = await api.put(`/sessions/${id}/end`);
       return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+};
+
+// Engineer management services
+export const engineerAPI = {
+  // Get available level 1 engineer for a category
+  getAvailableLevel1Engineer: async (category) => {
+    try {
+      // Get all available engineers for the category
+      const response = await api.get(`/engineers/available/category/${category}`);
+      // Filter for level 1
+      const level1 = response.data.filter(e => e.level === 1);
+      if (level1.length > 0) return level1[0];
+      // Fallback: get all level 1 engineers and pick the one with the least tickets
+      const allLevel1Response = await api.get('/engineers/level/1');
+      if (Array.isArray(allLevel1Response.data) && allLevel1Response.data.length > 0) {
+        // Find the engineer with the least currentTickets
+        let minEngineer = allLevel1Response.data[0];
+        for (const eng of allLevel1Response.data) {
+          if (eng.currentTickets < minEngineer.currentTickets) minEngineer = eng;
+        }
+        return minEngineer;
+      }
+      return null;
     } catch (error) {
       throw error.response ? error.response.data : error;
     }

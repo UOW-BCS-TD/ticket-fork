@@ -6,8 +6,13 @@ import com.Elvis.ticket.service.EngineerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/engineers")
@@ -48,13 +53,23 @@ public class EngineerController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<Engineer>> getAvailableEngineers() {
-        return ResponseEntity.ok(engineerService.getAvailableEngineers());
+    public ResponseEntity<List<Map<String, Object>>> getAvailableEngineers() {
+        List<Engineer> engineers = engineerService.getAvailableEngineers();
+        List<Map<String, Object>> result = engineers.stream().map(e -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", e.getId());
+            map.put("category", e.getCategory());
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/available/category/{category}")
     public ResponseEntity<List<Engineer>> getAvailableEngineersByCategory(@PathVariable TeslaModel category) {
-        return ResponseEntity.ok(engineerService.getAvailableEngineersByCategory(category));
+        // Only return available engineers with level 1
+        List<Engineer> all = engineerService.getAvailableEngineersByCategory(category);
+        List<Engineer> level1 = all.stream().filter(e -> e.getLevel() == 1).toList();
+        return ResponseEntity.ok(level1);
     }
 
     @PostMapping

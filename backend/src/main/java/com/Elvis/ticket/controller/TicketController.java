@@ -4,6 +4,7 @@ import com.Elvis.ticket.dto.TicketResponse;
 import com.Elvis.ticket.model.*;
 import com.Elvis.ticket.service.TicketService;
 import com.Elvis.ticket.service.UserService;
+import com.Elvis.ticket.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +21,13 @@ public class TicketController {
 
     private final TicketService ticketService;
     private final UserService userService;
+    private final CustomerRepository customerRepository;
 
     @Autowired
-    public TicketController(TicketService ticketService, UserService userService) {
+    public TicketController(TicketService ticketService, UserService userService, CustomerRepository customerRepository) {
         this.ticketService = ticketService;
         this.userService = userService;
+        this.customerRepository = customerRepository;
     }
 
     @GetMapping
@@ -162,5 +165,29 @@ public class TicketController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/own")
+    public List<TicketResponse> getOwnTickets(Authentication authentication) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        String username;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        if (role.equals("ROLE_CUSTOMER")) {
+            Long customerId = customerRepository.findByEmail(username).getId();
+            return ticketService.getTicketsByCustomerId(customerId).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        } else if (role.equals("ROLE_ENGINEER")) {
+            Long engineerId = userService.getUserByEmail(username).get().getId();
+            return ticketService.getTicketsByEngineerId(engineerId).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        }
+        throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
     }
 } 

@@ -82,6 +82,7 @@ CREATE TABLE sessions (
     conversation_file_path VARCHAR(255),
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     user_id BIGINT NOT NULL,
+    ticket_session BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_session_times CHECK (end_time IS NULL OR end_time > start_time),
     CONSTRAINT chk_session_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'CLOSED'))
@@ -207,4 +208,4 @@ INSERT INTO sessions (title, status, user_id, last_activity) VALUES
 INSERT INTO tickets (title, description, status, urgency, customer_id, engineer_id, product_id, type_id, session_id) VALUES
 ('Model S Battery Drain Issue', 'Customer reports unusual battery drain in Model S. Battery drains 20% faster than normal.', 'OPEN', 'HIGH', 1, 1, 1, 1, 1),
 ('Model 3 Software Update Request', 'Customer requesting information about upcoming software update for Model 3.', 'IN_PROGRESS', 'MEDIUM', 2, 2, 2, 2, 2),
-('Cybertruck Delivery Timeline', 'Customer inquiry about Cybertruck delivery timeline and process.', 'RESOLVED', 'LOW', 3, 5, 5, 4, 3); 
+('Cybertruck Delivery Timeline', 'Customer inquiry about Cybertruck delivery timeline and process.', 'RESOLVED', 'LOW', 3, 5, 5, 1, 3); 

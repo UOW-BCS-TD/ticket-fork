@@ -43,6 +43,9 @@ public class Session {
     @Column(name = "title")
     private String title;
 
+    @Column(name = "ticket_session", nullable = false)
+    private boolean ticketSession = false;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -114,5 +117,13 @@ public class Session {
 
     public void setConversationFilePath(String conversationFilePath) {
         this.conversationFilePath = conversationFilePath;
+    }
+
+    public boolean isTicketSession() {
+        return ticketSession;
+    }
+
+    public void setTicketSession(boolean ticketSession) {
+        this.ticketSession = ticketSession;
     }
 } 

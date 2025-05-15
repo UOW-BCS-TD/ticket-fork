@@ -211,6 +211,16 @@
 - **Response**: List of tickets
 - **Access**: ADMIN, ENGINEER, MANAGER
 
+### Get Own Tickets
+- **URL**: `/api/tickets/own`
+- **Method**: `GET`
+- **Description**: Get tickets for the currently authenticated user. Only available to:
+  - CUSTOMERS: Returns tickets where the user is the customer (uses `customer_id`)
+  - ENGINEERS: Returns tickets assigned to the engineer (uses `engineer_id`)
+  - All other roles will receive a 403 Forbidden error
+- **Response**: List of tickets
+- **Access**: Only CUSTOMER and ENGINEER roles
+
 ### Update Ticket Status
 - **URL**: `/api/tickets/status/{id}`
 - **Method**: `PUT`
