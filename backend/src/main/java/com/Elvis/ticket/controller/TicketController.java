@@ -4,6 +4,7 @@ import com.Elvis.ticket.dto.TicketResponse;
 import com.Elvis.ticket.model.*;
 import com.Elvis.ticket.service.TicketService;
 import com.Elvis.ticket.service.UserService;
+import com.Elvis.ticket.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +21,13 @@ public class TicketController {
 
     private final TicketService ticketService;
     private final UserService userService;
+    private final CustomerRepository customerRepository;
 
     @Autowired
-    public TicketController(TicketService ticketService, UserService userService) {
+    public TicketController(TicketService ticketService, UserService userService, CustomerRepository customerRepository) {
         this.ticketService = ticketService;
         this.userService = userService;
+        this.customerRepository = customerRepository;
     }
 
     @GetMapping
@@ -134,6 +137,26 @@ public class TicketController {
         }
     }
 
+    @PutMapping("/{id}/urgency")
+    public ResponseEntity<TicketResponse> updateTicketUrgency(@PathVariable Long id, @RequestBody String urgency) {
+        try {
+            Ticket updatedTicket = ticketService.updateTicketUrgency(id, urgency);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/assign")
+    public ResponseEntity<TicketResponse> assignEngineer(@PathVariable Long id, @RequestBody Long engineerId) {
+        try {
+            Ticket updatedTicket = ticketService.assignTicket(id, engineerId);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PutMapping("/{id}/escalate")
     public ResponseEntity<TicketResponse> escalateTicket(@PathVariable Long id) {
         try {
@@ -141,6 +164,61 @@ public class TicketController {
             return ResponseEntity.ok(TicketResponse.fromTicket(escalatedTicket));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/own")
+    public List<TicketResponse> getOwnTickets(Authentication authentication) {
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        String username;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        if (role.equals("ROLE_CUSTOMER")) {
+            Long customerId = customerRepository.findByEmail(username).getId();
+            return ticketService.getTicketsByCustomerId(customerId).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        } else if (role.equals("ROLE_ENGINEER")) {
+            Long engineerId = userService.getUserByEmail(username).get().getId();
+            return ticketService.getTicketsByEngineerId(engineerId).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(Collectors.toList());
+        }
+        throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+    }
+
+    @PostMapping("/{id}/message")
+    public ResponseEntity<TicketResponse> addMessageToTicketHistory(
+            @PathVariable Long id,
+            @RequestBody(required = true) java.util.Map<String, String> message,
+            Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User user = userService.getUserByEmail(email).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            Ticket ticket = ticketService.getTicketById(id).orElse(null);
+            if (ticket == null) {
+                return ResponseEntity.notFound().build();
+            }
+            boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
+            boolean isTicketOwner = ticket.getCustomer() != null && ticket.getCustomer().getUser().getId().equals(user.getId());
+            if (!isAdminOrManager && !isTicketOwner) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            String content = message.get("content");
+            if (content == null || content.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            Ticket updatedTicket = ticketService.appendCustomerMessageToHistory(id, user, content);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 } 

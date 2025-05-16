@@ -1,3 +1,5 @@
+body{overflow-y: scroll;}
+
 .ticket-view-container {
   display: flex;
   position: relative;
@@ -225,67 +227,86 @@
 }
 
 .ticket-header {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 20px;
+  padding: 24px 24px 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 110px;
+  box-sizing: border-box;
 }
 
 .ticket-title-section {
-  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  background: #f5f6fa;
+  border-radius: 10px;
+  padding: 18px 20px 12px 20px;
+  box-shadow: 0 2px 8px rgba(44, 123, 255, 0.04);
+  margin-bottom: 8px;
+  min-height: 56px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ticket-id {
-  font-size: 14px;
-  color: #666;
-  margin-right: 10px;
+  font-size: 15px;
+  color: #2d7ff9;
+  font-weight: 600;
+  background: #e3f2fd;
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-right: 8px;
 }
 
 .ticket-status {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   display: inline-block;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   text-transform: capitalize;
-}
-
-.open {
   background: #e3f2fd;
   color: #1976d2;
+  box-shadow: 0 1px 4px rgba(44, 123, 255, 0.06);
 }
 
-.progress {
-  background: #fff3e0;
-  color: #f57c00;
-}
-
-.resolved {
-  background: #e8f5e9;
-  color: #388e3c;
-}
-
-.ticket-title-section h2 {
-  margin: 10px 0 0;
-  font-size: 22px;
-  color: #333;
+.ticket-title-section h2,
+.ticket-title-section .ticket-title {
+  margin: 0;
+  font-size: 1.45em;
+  color: #222;
+  font-weight: 700;
+  flex: 1 1 200px;
+  word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
 }
 
 .ticket-tabs {
   display: flex;
-  gap: 5px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 .ticket-tab {
-  padding: 10px 15px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: #f5f6fa;
+  color: #333;
+  font-weight: 500;
   cursor: pointer;
-  border-radius: 6px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  color: #666;
-  transition: all 0.3s;
+  margin-bottom: 4px;
+  transition: background 0.2s, color 0.2s;
 }
 
 .ticket-tab i {
@@ -297,8 +318,8 @@
 }
 
 .ticket-tab.active {
-  background: #3090FF;
-  color: white;
+  background: #2d7ff9;
+  color: #fff;
 }
 
 .estimated-time {
@@ -746,24 +767,39 @@
   }
   
   .ticket-header {
-    padding-bottom: 15px;
-    margin-bottom: 15px;
+    padding: 16px 8px 8px 8px;
+    gap: 8px;
+  }
+  
+  .ticket-title-section {
+    padding: 10px 8px 8px 8px;
+    gap: 10px;
+    min-height: 40px;
   }
   
   .ticket-title-section h2 {
-    font-size: 20px;
+    font-size: 1.08em;
+  }
+  
+  .ticket-id {
+    font-size: 13px;
+    padding: 3px 7px;
+  }
+  
+  .ticket-status {
+    font-size: 11px;
+    padding: 4px 10px;
   }
   
   .ticket-tabs {
-    overflow-x: auto;
-    white-space: nowrap;
-    padding-bottom: 5px;
-    margin-top: 15px;
+    gap: 6px;
+    margin-top: 4px;
+    padding-bottom: 2px;
   }
   
   .ticket-tab {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 7px 10px;
+    font-size: 0.98em;
   }
   
   .estimated-time {
@@ -890,4 +926,58 @@
   .rating-option p {
     font-size: 11px;
   }
+}
+
+.empty-state {
+  background: linear-gradient(135deg, #f8fafc 80%, #e3eafe 100%);
+  color: #444;
+  padding: 40px 28px 32px 28px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(108,99,255,0.08);
+  margin: 48px auto 32px auto;
+  max-width: 440px;
+  text-align: center;
+  font-size: 1.18em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+
+.empty-state .empty-icon {
+  font-size: 3em;
+  color: #6c63ff;
+  margin-bottom: 18px;
+  filter: drop-shadow(0 2px 8px #e3eafe);
+}
+
+.empty-state .btn {
+  margin-top: 22px;
+  padding: 12px 28px;
+  background: linear-gradient(90deg, #6c63ff 60%, #3090FF 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.10);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.empty-state .btn:hover, .empty-state .btn:focus {
+  background: linear-gradient(90deg, #3090FF 60%, #6c63ff 100%);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.16);
+  transform: translateY(-2px) scale(1.03);
+  color: #fff;
+}
+
+.empty-state .btn:active {
+  background: #5436DA;
+  color: #fff;
+  transform: scale(0.98);
 }

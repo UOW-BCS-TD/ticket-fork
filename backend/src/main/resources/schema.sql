@@ -82,6 +82,7 @@ CREATE TABLE sessions (
     conversation_file_path VARCHAR(255),
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     user_id BIGINT NOT NULL,
+    ticket_session BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT chk_session_times CHECK (end_time IS NULL OR end_time > start_time),
     CONSTRAINT chk_session_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'CLOSED'))
@@ -102,6 +103,7 @@ CREATE TABLE tickets (
     engineer_id BIGINT,
     product_id BIGINT NOT NULL,
     type_id BIGINT NOT NULL,
+    history LONGTEXT,
     session_id BIGINT NOT NULL,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
     FOREIGN KEY (engineer_id) REFERENCES engineers(engineer_id) ON DELETE SET NULL,
@@ -204,7 +206,7 @@ INSERT INTO sessions (title, status, user_id, last_activity) VALUES
 ('Cybertruck Delivery Question', 'CLOSED', 10, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- Insert sample tickets
-INSERT INTO tickets (title, description, status, urgency, customer_id, engineer_id, product_id, type_id, session_id) VALUES
-('Model S Battery Drain Issue', 'Customer reports unusual battery drain in Model S. Battery drains 20% faster than normal.', 'OPEN', 'HIGH', 1, 1, 1, 1, 1),
-('Model 3 Software Update Request', 'Customer requesting information about upcoming software update for Model 3.', 'IN_PROGRESS', 'MEDIUM', 2, 2, 2, 2, 2),
-('Cybertruck Delivery Timeline', 'Customer inquiry about Cybertruck delivery timeline and process.', 'RESOLVED', 'LOW', 3, 5, 5, 4, 3); 
+INSERT INTO tickets (title, description, status, urgency, customer_id, engineer_id, product_id, type_id, history, session_id) VALUES
+('Model S Battery Drain Issue', 'Customer reports unusual battery drain in Model S. Battery drains 20% faster than normal.', 'OPEN', 'HIGH', 1, 1, 1, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
+('Model 3 Software Update Request', 'Customer requesting information about upcoming software update for Model 3.', 'IN_PROGRESS', 'MEDIUM', 2, 2, 2, 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
+('Cybertruck Delivery Timeline', 'Customer inquiry about Cybertruck delivery timeline and process.', 'RESOLVED', 'LOW', 3, 5, 5, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 

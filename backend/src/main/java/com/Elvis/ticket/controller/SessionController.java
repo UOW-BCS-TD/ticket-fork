@@ -51,6 +51,7 @@ public class SessionController {
                 sessions = sessionService.getSessionsByUserId(user.getId());
             }
 
+            // SessionListResponse now includes ticketSession
             List<SessionListResponse> sessionList = sessions.stream()
                 .map(SessionListResponse::fromSession)
                 .collect(Collectors.toList());
@@ -103,6 +104,10 @@ public class SessionController {
         session.setUser(user);
         if (sessionRequest != null && sessionRequest.getTitle() != null) {
             session.setTitle(sessionRequest.getTitle());
+        }
+        // Set ticketSession if provided
+        if (sessionRequest != null) {
+            session.setTicketSession(sessionRequest.isTicketSession());
         }
         // Timestamps are set in the service
         Session created = sessionService.createSession(session);

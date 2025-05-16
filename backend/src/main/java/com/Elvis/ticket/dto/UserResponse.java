@@ -12,6 +12,7 @@ public class UserResponse {
     private String role;
     private String phoneNumber;
     private LocalDateTime createdAt;
+    private Long customerId;
 
     public static UserResponse fromUser(User user) {
         UserResponse response = new UserResponse();
@@ -23,5 +24,8 @@ public class UserResponse {
         response.setCreatedAt(user.getCreatedAt());
         return response;
     }
+
+    public Long getCustomerId() { return customerId; }
+    public void setCustomerId(Long customerId) { this.customerId = customerId; }
 } 
  
