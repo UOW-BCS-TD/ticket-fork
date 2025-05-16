@@ -362,7 +362,6 @@ const UserManagement = () => {
                 </div>
                 <div className="user-detail-title">
                   <h2>{selectedUser.name}</h2>
-                  <p>{selectedUser.email}</p>
                   <div className="user-badges">
                     <span className={`role-badge ${selectedUser.role?.toLowerCase()}`}>
                       {selectedUser.role}
