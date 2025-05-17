@@ -138,33 +138,29 @@ def initialize_chroma():
         # Debug directory contents
         if os.path.exists(CHROMA_DIR):
             print(f"📁 Chroma directory contents: {os.listdir(CHROMA_DIR)}")
-        
-        # Try to load existing DB
-        if os.path.exists(CHROMA_DIR) and any(f.endswith('.parquet') for f in os.listdir(CHROMA_DIR)):
+        # Try to load existing DB (check for chroma.sqlite3 or any subdirectory)
+        has_sqlite = os.path.exists(os.path.join(CHROMA_DIR, "chroma.sqlite3"))
+        has_collection_dir = any(os.path.isdir(os.path.join(CHROMA_DIR, f)) for f in os.listdir(CHROMA_DIR)) if os.path.exists(CHROMA_DIR) else False
+        if os.path.exists(CHROMA_DIR) and (has_sqlite or has_collection_dir):
             print("🔄 Attempting to load existing Chroma DB...")
             vectorstore = Chroma(
                 persist_directory=CHROMA_DIR,
                 embedding_function=embedding,
                 collection_name=COLLECTION_NAME
             )
-            
             # Verify the collection exists
             if hasattr(vectorstore, '_client'):
                 collections = vectorstore._client.list_collections()
                 print(f"📚 Available collections: {[c.name for c in collections]}")
-                
                 if COLLECTION_NAME not in [c.name for c in collections]:
                     print(f"⚠️ Collection '{COLLECTION_NAME}' not found")
                     return build_chroma_db()
-                    
             doc_count = vectorstore._collection.count()
             print(f"✅ Loaded existing Chroma DB (Documents: {doc_count})")
             return True
-            
         # If no DB exists, create a new one
         print("🆕 No existing Chroma DB found - creating new one...")
         return build_chroma_db()
-        
     except Exception as e:
         print(f"❌ Chroma initialization failed: {e}")
         traceback.print_exc()
