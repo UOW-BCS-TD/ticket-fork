@@ -11,7 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.HttpStatus;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -220,6 +225,40 @@ public class TicketController {
             String msgRole = isAdminOrManager ? user.getRole().toLowerCase() : (isAssignedEngineer ? "engineer" : "customer");
             Ticket updatedTicket = ticketService.appendMessageToHistory(id, user, content, msgRole);
             return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // --- Attachment endpoints ---
+    @PostMapping("/{ticketId}/attachments")
+    public ResponseEntity<TicketAttachment> uploadAttachment(@PathVariable Long ticketId, @RequestParam("file") MultipartFile file) {
+        try {
+            TicketAttachment attachment = ticketService.saveAttachment(ticketId, file);
+            return ResponseEntity.ok(attachment);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/{ticketId}/attachments")
+    public ResponseEntity<List<TicketAttachment>> listAttachments(@PathVariable Long ticketId) {
+        return ResponseEntity.ok(ticketService.getAttachments(ticketId));
+    }
+
+    @GetMapping("/{ticketId}/attachments/{attachmentId}")
+    public ResponseEntity<Resource> downloadAttachment(@PathVariable Long ticketId, @PathVariable Long attachmentId) {
+        try {
+            TicketAttachment attachment = ticketService.getAttachment(attachmentId);
+            Path filePath = Paths.get(attachment.getFilePath());
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, attachment.getContentType() != null ? attachment.getContentType() : "application/octet-stream")
+                .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

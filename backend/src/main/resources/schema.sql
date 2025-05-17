@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS managers;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS ticket_types;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS ticket_attachments;
 
 -- Create users table
 CREATE TABLE users (
@@ -109,12 +110,23 @@ CREATE TABLE tickets (
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT,
     FOREIGN KEY (type_id) REFERENCES ticket_types(ticket_type_id) ON DELETE RESTRICT,
     FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
-    CONSTRAINT chk_ticket_status CHECK (status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED', 'ESCALATED')),
+    CONSTRAINT chk_ticket_status CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'ESCALATED')),
     CONSTRAINT chk_ticket_urgency CHECK (urgency IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
     CONSTRAINT chk_ticket_times CHECK (
         (resolved_at IS NULL) OR 
         (resolved_at >= created_at AND resolved_at >= updated_at)
     )
+);
+
+-- Create ticket_attachments table
+CREATE TABLE ticket_attachments (
+    attachment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id BIGINT NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    content_type VARCHAR(100),
+    file_path VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE
 );
 
 -- Insert sample users

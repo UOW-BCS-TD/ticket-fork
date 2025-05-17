@@ -58,9 +58,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/tickets/urgency/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
                 .requestMatchers("/api/tickets/product/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
                 .requestMatchers("/api/tickets/type/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
-                .requestMatchers("/api/tickets/{id}/escalate").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/api/tickets/{id}/escalate").hasAnyRole("ADMIN", "MANAGER", "ENGINEER")
                 .requestMatchers("/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/tickets/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/attachments").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets/*/attachments").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets/*/attachments/*").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 
                 // Customer management endpoints
                 .requestMatchers("/api/customers").hasAnyRole("ADMIN", "MANAGER")

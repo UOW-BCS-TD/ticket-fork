@@ -19,6 +19,10 @@ const TicketInformation = () => {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(null);
   const [chatbotHistory, setChatbotHistory] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(null);
   
   useEffect(() => {
     const fetchTickets = async () => {
@@ -72,6 +76,23 @@ const TicketInformation = () => {
       fetchSession();
     }
   }, [currentTicket]);
+
+  // Fetch attachments when ticket changes or tab is attachments
+  useEffect(() => {
+    if (!currentTicket?.id || activeTab !== 'attachments') return;
+    const fetchAttachments = async () => {
+      try {
+        const res = await fetch(`/api/tickets/${currentTicket.id}/attachments`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch attachments');
+        setAttachments(await res.json());
+      } catch {
+        setAttachments([]);
+      }
+    };
+    fetchAttachments();
+  }, [currentTicket.id, activeTab]);
 
   const handleTicketClick = (ticketId) => {
     setActiveTicket(ticketId);
@@ -129,6 +150,34 @@ const TicketInformation = () => {
       setSendError("Failed to send reply. Please try again.");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentTicket?.id) return;
+    setUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`/api/tickets/${currentTicket.id}/attachments`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      setUploadSuccess('File uploaded!');
+      // Refresh list
+      const listRes = await fetch(`/api/tickets/${currentTicket.id}/attachments`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      setAttachments(await listRes.json());
+    } catch (err) {
+      setUploadError('Failed to upload file.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -299,27 +348,24 @@ const TicketInformation = () => {
                 {activeTab === 'attachments' && (
                   <div className="attachments-section">
                     <h4>Attached Files</h4>
-                    {currentTicket.id === 'TK-2023-001' ? (
-                      <div className="attachment-list">
-                        <div className="attachment-item">
-                          <i className="fas fa-file-code"></i>
-                          <span className="attachment-name">error_logs.txt</span>
-                          <span className="attachment-size">24KB</span>
-                          <button className="attachment-action-btn">
-                            <i className="fas fa-download"></i>
-                          </button>
-                        </div>
-                        <div className="attachment-item">
-                          <i className="fas fa-file-image"></i>
-                          <span className="attachment-name">error_screenshot.png</span>
-                          <span className="attachment-size">156KB</span>
-                          <button className="attachment-action-btn">
-                            <i className="fas fa-download"></i>
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
+                    <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                    {uploadError && <div className="error-message" style={{ color: 'red' }}>{uploadError}</div>}
+                    {uploadSuccess && <div className="success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
+                    {attachments.length === 0 ? (
                       <p className="no-attachments">No files have been attached to this ticket.</p>
+                    ) : (
+                      <div className="attachment-list">
+                        {attachments.map(att => (
+                          <div className="attachment-item" key={att.id}>
+                            <i className="fas fa-paperclip"></i>
+                            <span className="attachment-name">{att.filename}</span>
+                            <span className="attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
+                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="attachment-action-btn">
+                              <i className="fas fa-download"></i> Download
+                            </a>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}
