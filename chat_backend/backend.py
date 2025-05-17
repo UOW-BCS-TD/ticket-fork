@@ -1,4 +1,4 @@
-# backend.py - Simplified Version
+# backend.py - Complete Fixed Version with All Original Code
 import os
 import time
 import requests
@@ -23,6 +23,7 @@ from contextlib import contextmanager
 import warnings
 import traceback
 import sys
+from pathlib import Path
 
 # Configuration
 warnings.filterwarnings('ignore')
@@ -43,10 +44,11 @@ CORS(app, resources={
 # Constants
 JWT_SECRET_KEY = "your-secret-key-here-must-be-at-least-64-bytes-long-12345678901234567890"
 JWT_EXPIRATION_MS = 604800000  # 7 days
-PDF_DIR = "./pdf_files"
-CHROMA_DIR = "./chroma_db"
+PDF_DIR = os.path.abspath("./pdf_files")
+CHROMA_DIR = os.path.abspath("./chroma_db")
 LOCK_FILE = os.path.join(CHROMA_DIR, ".lock")
-COLLECTION_NAME = "tesla_manual_v3"  # Updated collection name
+COLLECTION_NAME = "techcare_docs"
+MAX_BATCH_SIZE = 5000  # Safe value below Chroma's limit of 5461
 
 # Global State
 vectorstore = None
@@ -61,6 +63,8 @@ def setup_directories():
     """Ensure required directories exist"""
     os.makedirs(PDF_DIR, exist_ok=True)
     os.makedirs(CHROMA_DIR, exist_ok=True)
+    if sys.platform != 'win32':
+        os.chmod(CHROMA_DIR, 0o777)
 
 @contextmanager
 def chroma_lock():
@@ -113,43 +117,57 @@ def cleanup_resources():
     global vectorstore
     if vectorstore is not None:
         try:
-            if hasattr(vectorstore, 'delete_collection'):
-                vectorstore.delete_collection()
+            print("🧹 Cleaning up Chroma resources...")
+            vectorstore.persist()
+            if hasattr(vectorstore, '_client'):
+                vectorstore._client.persist()
+                vectorstore._client.close()
         except Exception as e:
             print(f"⚠️ Cleanup error: {e}")
         vectorstore = None
     gc.collect()
 
 # --------------------------
-# Chroma DB Functions
+# Chroma DB Functions (Updated with Batch Processing)
 # --------------------------
 
 def initialize_chroma():
     """Initialize or load Chroma DB with proper persistence"""
     global vectorstore
-    
     try:
-        # Try to load existing DB
-        if os.path.exists(CHROMA_DIR) and os.listdir(CHROMA_DIR):
+        # Debug directory contents
+        if os.path.exists(CHROMA_DIR):
+            print(f"📁 Chroma directory contents: {os.listdir(CHROMA_DIR)}")
+        # Try to load existing DB (check for chroma.sqlite3 or any subdirectory)
+        has_sqlite = os.path.exists(os.path.join(CHROMA_DIR, "chroma.sqlite3"))
+        has_collection_dir = any(os.path.isdir(os.path.join(CHROMA_DIR, f)) for f in os.listdir(CHROMA_DIR)) if os.path.exists(CHROMA_DIR) else False
+        if os.path.exists(CHROMA_DIR) and (has_sqlite or has_collection_dir):
+            print("🔄 Attempting to load existing Chroma DB...")
             vectorstore = Chroma(
                 persist_directory=CHROMA_DIR,
                 embedding_function=embedding,
                 collection_name=COLLECTION_NAME
             )
-            print(f"✅ Loaded existing Chroma DB (Documents: {vectorstore._collection.count()})")
+            # Verify the collection exists
+            if hasattr(vectorstore, '_client'):
+                collections = vectorstore._client.list_collections()
+                print(f"📚 Available collections: {[c.name for c in collections]}")
+                if COLLECTION_NAME not in [c.name for c in collections]:
+                    print(f"⚠️ Collection '{COLLECTION_NAME}' not found")
+                    return build_chroma_db()
+            doc_count = vectorstore._collection.count()
+            print(f"✅ Loaded existing Chroma DB (Documents: {doc_count})")
             return True
-        
         # If no DB exists, create a new one
-        print("🔄 No existing Chroma DB found - creating new one...")
+        print("🆕 No existing Chroma DB found - creating new one...")
         return build_chroma_db()
-        
     except Exception as e:
         print(f"❌ Chroma initialization failed: {e}")
         traceback.print_exc()
         return False
 
 def build_chroma_db():
-    """Build a fresh Chroma DB with proper persistence"""
+    """Build a fresh Chroma DB with proper batch processing"""
     try:
         with chroma_lock():
             # Clear existing DB if it exists
@@ -158,60 +176,72 @@ def build_chroma_db():
                 if not force_delete_directory(CHROMA_DIR):
                     print("❌ Failed to clean existing DB")
                     return False
-            
-            # Get all PDF files in the directory
-            pdf_files = [os.path.join(PDF_DIR, f) for f in os.listdir(PDF_DIR) if f.endswith('.pdf')]
-            
+                os.makedirs(CHROMA_DIR, exist_ok=True)
+
+            # Get all PDF files
+            pdf_files = [os.path.join(PDF_DIR, f) for f in os.listdir(PDF_DIR) 
+                        if f.endswith('.pdf')]
             if not pdf_files:
                 print("❌ No PDF files found in directory")
                 return False
-            
-            # Process PDFs
+
+            # Process PDFs with progress reporting
             all_docs = []
             for file in pdf_files:
                 try:
                     print(f"📄 Processing {os.path.basename(file)}...")
                     loader = PyPDFLoader(file)
                     pages = loader.load()
-                    
                     splitter = RecursiveCharacterTextSplitter(
                         chunk_size=1000,
                         chunk_overlap=200,
                         separators=["\n\n", "\n", " ", ""]
                     )
                     chunks = splitter.split_documents(pages)
-                    
-                    if not chunks:
-                        print(f"⚠️ No chunks from {os.path.basename(file)}")
-                        continue
-                        
                     all_docs.extend(chunks)
-                    print(f"   Added {len(chunks)} chunks")
-                    
+                    print(f"   Added {len(chunks)} chunks (Total: {len(all_docs)})")
                 except Exception as e:
                     print(f"❌ Failed to process {file}: {e}")
                     continue
-            
+
             if not all_docs:
                 print("❌ No documents processed")
                 return False
-            
-            # Create new persistent DB
+
+            # Create new persistent DB with batch processing
+            print("🏗️ Building Chroma DB in batches...")
             global vectorstore
-            vectorstore = Chroma.from_documents(
-                documents=all_docs,
-                embedding=embedding,
+            
+            # Create initial empty collection
+            vectorstore = Chroma(
                 persist_directory=CHROMA_DIR,
-                collection_name=COLLECTION_NAME,
-                collection_metadata={"hnsw:space": "cosine"}
+                embedding_function=embedding,
+                collection_name=COLLECTION_NAME
             )
             
-            # Verify persistence
-            if vectorstore._collection.count() == 0:
-                print("❌ Failed to persist documents")
-                return False
+            # Add documents in batches
+            for i in range(0, len(all_docs), MAX_BATCH_SIZE):
+                batch = all_docs[i:i + MAX_BATCH_SIZE]
+                print(f"   Adding batch {i//MAX_BATCH_SIZE + 1} ({len(batch)} documents)")
+                texts = [doc.page_content for doc in batch]
+                metadatas = [doc.metadata for doc in batch]
+                vectorstore.add_texts(texts=texts, metadatas=metadatas)
+                time.sleep(1)  # Brief pause between batches
             
-            print(f"✅ Saved {vectorstore._collection.count()} documents")
+            # Explicit persist and verify
+            print("💾 Persisting Chroma DB...")
+            vectorstore.persist()
+            time.sleep(2)  # Allow time for persistence to complete
+            
+            # Verify
+            doc_count = vectorstore._collection.count()
+            print(f"🔍 Verification: {doc_count} documents in DB")
+            
+            if doc_count != len(all_docs):
+                print(f"❌ Document count mismatch: expected {len(all_docs)}, got {doc_count}")
+                return False
+                
+            print(f"✅ Successfully built Chroma DB with {doc_count} documents")
             return True
             
     except Exception as e:
@@ -220,7 +250,7 @@ def build_chroma_db():
         return False
 
 # --------------------------
-# Authentication
+# Authentication (Original)
 # --------------------------
 
 def token_required(f):
@@ -251,9 +281,8 @@ def token_required(f):
     return decorated
 
 # --------------------------
-# QA Chain Initialization
+# QA Chain Initialization (Original)
 # --------------------------
-# Custom prompt template
 
 techcare_prompt_template = """You are a friendly and helpful customer support bot for Techcare, 
 a technology products and services company. Your role is to assist customers with their inquiries 
@@ -271,6 +300,7 @@ Context: {context}
 Question: {question}
 
 Helpful Answer:"""
+
 def initialize_qa_chain():
     """Initialize QA chain with persistent retriever"""
     llm = ChatGoogleGenerativeAI(
@@ -296,7 +326,7 @@ def initialize_qa_chain():
     )
 
 # --------------------------
-# API Endpoints
+# API Endpoints (All Original Endpoints)
 # --------------------------
 
 @app.route('/query', methods=['POST'])
@@ -435,8 +465,44 @@ def debug_query():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/verify_persistence', methods=['GET'])
+def verify_persistence():
+    """Verify that Chroma DB is properly persisted"""
+    if not vectorstore:
+        return jsonify({"error": "Vectorstore not initialized"}), 400
+    
+    try:
+        # Count documents in memory
+        mem_count = vectorstore._collection.count()
+        
+        # Create a new instance to verify disk persistence
+        temp_store = Chroma(
+            persist_directory=CHROMA_DIR,
+            embedding_function=embedding,
+            collection_name=COLLECTION_NAME
+        )
+        disk_count = temp_store._collection.count()
+        
+        return jsonify({
+            "memory_count": mem_count,
+            "disk_count": disk_count,
+            "consistent": mem_count == disk_count
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """System health check"""
+    return jsonify({
+        "chroma_initialized": vectorstore is not None,
+        "documents_loaded": vectorstore._collection.count() if vectorstore else 0,
+        "disk_usage": f"{sum(f.stat().st_size for f in Path(CHROMA_DIR).glob('**/*') if f.is_file()) / (1024*1024):.2f} MB",
+        "system_status": "healthy"
+    })
+
 # --------------------------
-# Database Connection
+# Database Connection (Original)
 # --------------------------
 
 def get_db_connection():

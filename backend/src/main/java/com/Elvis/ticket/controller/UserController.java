@@ -5,6 +5,7 @@ import com.Elvis.ticket.dto.PasswordChangeRequest;
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.service.UserService;
 import com.Elvis.ticket.repository.CustomerRepository;
+import com.Elvis.ticket.repository.EngineerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,9 @@ public class UserController {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private EngineerRepository engineerRepository;
 
     @GetMapping
     public List<UserResponse> getAllUsers() {
@@ -49,6 +53,12 @@ public class UserController {
                         com.Elvis.ticket.model.Customer customer = customerRepository.findByEmail(email);
                         if (customer != null) {
                             response.setCustomerId(customer.getId());
+                        }
+                    }
+                    if ("ENGINEER".equals(user.getRole())) {
+                        com.Elvis.ticket.model.Engineer engineer = engineerRepository.findByEmail(email);
+                        if (engineer != null) {
+                            response.setEngineerId(engineer.getId());
                         }
                     }
                     return ResponseEntity.ok(response);

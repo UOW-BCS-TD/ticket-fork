@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 public class TicketResponse {
     private Long id;
     private String title;
-    private String description;
     private TicketStatus status;
     private String urgency;
     private Product product;
@@ -45,7 +44,6 @@ public class TicketResponse {
         TicketResponse response = new TicketResponse();
         response.setId(ticket.getId());
         response.setTitle(ticket.getTitle());
-        response.setDescription(ticket.getDescription());
         response.setStatus(ticket.getStatus());
         response.setUrgency(ticket.getUrgency());
         response.setProduct(ticket.getProduct());

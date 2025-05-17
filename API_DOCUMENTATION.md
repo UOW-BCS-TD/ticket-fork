@@ -116,7 +116,6 @@
 ### Ticket Object Fields (Updated)
 - `id`: Ticket ID
 - `title`: Ticket title
-- `description`: Detailed description of the issue
 - `status`: Ticket status
 - `urgency`: Priority level of the ticket
 - `product`: Product object
@@ -127,6 +126,8 @@
 - `engineer`: Engineer info
 - `session_id`: Associated session ID
 - `history`: Ticket-specific history as a JSON array (e.g., status changes, system notes, or chat logs)
+
+> **Note:** As of vNEXT, the `description` field has been removed from tickets. All details should be included in the ticket history or related session.
 
 ### Get All Tickets
 - **URL**: `/api/tickets`
@@ -158,7 +159,6 @@
   ```json
   {
     "title": "string",
-    "description": "string",
     "customer": {
       "id": "number"
     },
@@ -181,7 +181,6 @@
   ```
 - **Required Fields**:
   - `title`: Ticket title
-  - `description`: Detailed description of the issue
   - `customer`: Customer ID (must exist)
   - `product`: Product ID (must exist)
   - `type`: Ticket type ID (must exist)
@@ -197,6 +196,7 @@
   - The session must be active
   - The engineer must be available (current tickets < max tickets)
   - The customer must be authenticated and authorized to create tickets
+  - The `description` field has been removed from tickets as of vNEXT. Use the ticket history or session for details.
 
 ### Update Ticket
 - **URL**: `/api/tickets/{id}`
@@ -299,7 +299,6 @@
   {
     "id": 123,
     "title": "Example Ticket",
-    "description": "...",
     "status": "OPEN",
     "urgency": "HIGH",
     "product": { ... },
@@ -428,213 +427,3 @@
 
 ### Increment Engineer's Current Tickets
 - **URL**: `/api/engineers/{id}/increment-tickets`
-- **Method**: `POST`
-- **Description**: Increment engineer's current tickets count
-- **Response**: Success status
-- **Access**: ADMIN, MANAGER
-
-### Decrement Engineer's Current Tickets
-- **URL**: `/api/engineers/{id}/decrement-tickets`
-- **Method**: `POST`
-- **Description**: Decrement engineer's current tickets count
-- **Response**: Success status
-- **Access**: ADMIN, MANAGER
-
-## Manager Management
-
-### Get All Managers
-- **URL**: `/api/managers`
-- **Method**: `GET`
-- **Description**: Get all managers
-- **Response**: List of managers
-- **Access**: ADMIN only
-
-### Get Manager by ID
-- **URL**: `/api/managers/{id}`
-- **Method**: `GET`
-- **Description**: Get manager by ID
-- **Response**: Manager details
-- **Access**: ADMIN only
-
-### Get Manager by Email
-- **URL**: `/api/managers/email/{email}`
-- **Method**: `GET`
-- **Description**: Get manager by email
-- **Response**: Manager details
-- **Access**: ADMIN only
-
-### Get Managers by Department
-- **URL**: `/api/managers/department/{department}`
-- **Method**: `GET`
-- **Description**: Get managers by department
-- **Response**: List of managers
-- **Access**: ADMIN only
-
-### Get Managers by Category
-- **URL**: `/api/managers/category/{category}`
-- **Method**: `GET`
-- **Description**: Get managers by Tesla model category
-- **Response**: List of managers
-- **Access**: ADMIN only
-
-### Create Manager
-- **URL**: `/api/managers`
-- **Method**: `POST`
-- **Description**: Create a new manager
-- **Request Body**:
-  ```json
-  {
-    "name": "John Manager",
-    "email": "manager@example.com",
-    "password": "password123",
-    "department": "string",
-    "category": "MODEL_S | MODEL_3 | MODEL_X | MODEL_Y | CYBERTRUCK"
-  }
-  ```
-- **Response**: Created manager details
-- **Access**: ADMIN only
-
-### Update Manager
-- **URL**: `/api/managers/{id}`
-- **Method**: `PUT`
-- **Description**: Update manager details
-- **Request Body**: Manager details to update
-- **Response**: Updated manager details
-- **Access**: ADMIN only
-
-## Session Management
-
-### Get All Sessions
-- **URL**: `/api/sessions`
-- **Method**: `GET`
-- **Description**: Get all sessions
-- **Response**: List of sessions
-- **Access**: ADMIN, MANAGER
-
-### Get Session by ID
-- **URL**: `/api/sessions/{id}`
-- **Method**: `GET`
-- **Description**: Get session by ID
-- **Response**: Session details
-- **Access**: ADMIN, MANAGER
-
-### Get Session by Session ID
-- **URL**: `/api/sessions/session/{sessionId}`
-- **Method**: `GET`
-- **Description**: Get session by session ID
-- **Response**: Session details
-- **Access**: ADMIN, MANAGER
-
-### Get Sessions by User
-- **URL**: `/api/sessions/user/{userId}`
-- **Method**: `GET`
-- **Description**: Get sessions by user ID
-- **Response**: List of sessions
-- **Access**: ADMIN, MANAGER
-
-### Get Inactive Sessions
-- **URL**: `/api/sessions/inactive`
-- **Method**: `GET`
-- **Description**: Get inactive sessions
-- **Response**: List of sessions
-- **Access**: ADMIN only
-
-### Get Session History
-- **URL**: `/api/sessions/{id}/history`
-- **Method**: `GET`
-- **Description**: Get the chat history for a session
-- **Response**:
-  ```json
-  {
-    "history": [
-      { "role": "user", "content": "First message", "timestamp": "2024-06-01T12:00:00Z" },
-      { "role": "assistant", "content": "Hello! How can I help you?", "timestamp": "2024-06-01T12:00:01Z" }
-    ]
-  }
-  ```
-- **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
-
-### End Session
-- **URL**: `/api/sessions/{id}/end`
-- **Method**: `PUT`
-- **Description**: End a session
-- **Response**: Updated session details
-- **Access**: ADMIN, MANAGER, session owner (CUSTOMER)
-
-### Update Session Activity
-- **URL**: `/api/sessions/{id}/activity`
-- **Method**: `PUT`
-- **Description**: Update session activity
-- **Response**: Updated session details
-- **Access**: ADMIN, MANAGER
-
-### Create Session
-- **URL**: `/api/sessions`
-- **Method**: `POST`
-- **Description**: Create a new session
-- **Request Body**:
-  ```json
-  { "title": "First user message" }
-  ```
-- **Response**: Created session details
-- **Access**: CUSTOMER only
-
-### Update Session Title
-- **URL**: `/api/sessions/{id}/title`
-- **Method**: `PUT`
-- **Description**: Update only the title of a session
-- **Request Body**:
-  ```json
-  { "title": "New Title" }
-  ```
-- **Response**: Updated session details (includes `title` field)
-- **Access**: ADMIN, MANAGER, or session owner (CUSTOMER)
-
-## Enums and Constants
-
-### TeslaModel
-```java
-MODEL_S
-MODEL_3
-MODEL_X
-MODEL_Y
-CYBERTRUCK
-```
-
-### CustomerRole
-```java
-STANDARD
-PREMIUM
-VIP
-```
-
-### TicketPriority
-```java
-LOW
-MEDIUM
-HIGH
-```
-
-### TicketStatus
-```java
-OPEN
-ASSIGNED
-IN_PROGRESS
-PENDING
-RESOLVED
-CLOSED
-ESCALATED
-```
-
-## Error Responses
-
-### 400 Bad Request
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 400,
-    "error": "Bad Request",
-    "message": "Invalid input data",
-    "path": "/api/tickets"
-}
-```

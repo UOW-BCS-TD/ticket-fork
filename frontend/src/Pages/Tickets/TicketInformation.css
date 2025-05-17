@@ -981,3 +981,35 @@ body{overflow-y: scroll;}
   color: #fff;
   transform: scale(0.98);
 }
+
+.escalate-btn {
+  background: linear-gradient(90deg, #f39c12 60%, #f7b731 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.08);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.escalate-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f7b731;
+}
+.escalate-btn:hover:not(:disabled),
+.escalate-btn:focus-visible:not(:disabled) {
+  background: linear-gradient(90deg, #f7b731 60%, #f39c12 100%);
+  box-shadow: 0 4px 16px rgba(243, 156, 18, 0.18);
+  transform: translateY(-2px) scale(1.03);
+  outline: none;
+}
+.escalate-btn i {
+  margin-right: 4px;
+  font-size: 1.1em;
+}

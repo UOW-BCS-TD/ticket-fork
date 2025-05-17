@@ -8,13 +8,11 @@ const CreateTicket = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     product: { id: '' },
     type: { id: '' },
     session: { id: '' },
     urgency: 'MEDIUM',
-    status: 'OPEN',
-    engineer: { id: '' }
+    status: 'OPEN'
   });
 
   const [products, setProducts] = useState([]);
@@ -84,67 +82,28 @@ const CreateTicket = () => {
     try {
       // Create a new session first
       const sessionResponse = await sessionAPI.createSession({ title: 'New Support Ticket', ticketSession: true });
-      // Support both possible response formats
       const sessionId = sessionResponse?.data?.id || sessionResponse?.data?.data?.id;
       if (!sessionId) {
         setError('Failed to create session. Please try again.');
         setLoading(false);
         return;
       }
-
-      // End the session right away
       await sessionAPI.endSession(sessionId);
-
-      // Defensive fallback for possibly undefined objects
       const product = formData.product ?? { id: '' };
       const type = formData.type ?? { id: '' };
-
-      // Fetch the product details to get the category
-      let productCategory = null;
-      if (product.id) {
-        const selectedProduct = products.find(p => p.id == product.id);
-        // Map product name to backend category enum
-        const productNameToCategory = {
-          "Model S": "MODEL_S",
-          "Model 3": "MODEL_3",
-          "Model X": "MODEL_X",
-          "Model Y": "MODEL_Y",
-          "Cybertruck": "CYBERTRUCK"
-        };
-        productCategory = productNameToCategory[selectedProduct?.name];
-      } else {
-        console.log('No product selected');
-      }
-
-      // Find available level 1 engineer for the product's category
-      let assignedEngineer = null;
-      if (productCategory) {
-        assignedEngineer = await engineerAPI.getAvailableLevel1Engineer(productCategory);
-      } else {
-        console.log('No product category, skipping engineer API call');
-      }
-      // If no engineer is found, show error and stop
-      if (!assignedEngineer) {
-        setError('No available engineer found for this product category. Please try again later.');
-        setLoading(false);
-        return;
-      }
-
-      // Build the request body, assign engineer if found
       if (!currentUser?.customerId) {
         setError('Customer profile not found. Cannot create ticket.');
         setLoading(false);
         return;
       }
+      // Build the request body (no description, no engineer)
       const ticketBody = {
         title: formData.title,
-        description: formData.description,
         product: { id: product.id || '' },
         type: { id: type.id || '' },
         session: { id: sessionId },
         urgency: formData.urgency,
         status: formData.status,
-        engineer: { id: assignedEngineer.id },
         customer: { id: currentUser.customerId }
       };
       const response = await ticketAPI.createTicket(ticketBody);
@@ -398,7 +357,6 @@ const CreateTicket = () => {
                       <p><strong>Title:</strong> {formData.title}</p>
                       <p><strong>Type:</strong> {Array.isArray(ticketTypes) && ticketTypes.find(t => t.id == formData.type?.id)?.name || 'Not selected'}</p>
                       <p><strong>Product:</strong> {Array.isArray(products) && products.find(p => p.id == formData.product?.id)?.name || 'Not selected'}</p>
-                      <p><strong>Description:</strong> {formData.description}</p>
                     </div>
                   </div>
                   
