@@ -70,43 +70,84 @@ public class TicketService {
         // Validate all foreign key references exist
         Customer customer = customerRepository.findById(ticket.getCustomer().getId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-        
         Product product = productRepository.findById(ticket.getProduct().getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        
         TicketType type = ticketTypeRepository.findById(ticket.getType().getId())
                 .orElseThrow(() -> new RuntimeException("Ticket type not found"));
-        
         Session session = sessionRepository.findById(ticket.getSession().getId())
                 .orElseThrow(() -> new RuntimeException("Session not found"));
-
         // Set the validated entities
         ticket.setCustomer(customer);
         ticket.setProduct(product);
         ticket.setType(type);
         ticket.setSession(session);
+        // --- Engineer assignment logic ---
+        if (ticket.getEngineer() == null || ticket.getEngineer().getId() == null) {
+            // Map product name to TeslaModel category
+            TeslaModel category = null;
+            String productName = product.getName();
+            if ("Model S".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_S;
+            else if ("Model 3".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_3;
+            else if ("Model X".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_X;
+            else if ("Model Y".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_Y;
+            else if ("Cybertruck".equalsIgnoreCase(productName)) category = TeslaModel.CYBERTRUCK;
 
-        // Ensure engineer is a managed entity
-        if (ticket.getEngineer() != null && ticket.getEngineer().getId() != null) {
+            Engineer assignedEngineer = null;
+            List<Engineer> availableEngineers = null;
+            if (category != null) {
+                // Use only available engineers (currentTickets < maxTickets) and level 1
+                availableEngineers = engineerRepository.findByCategoryAndCurrentTicketsLessThanMaxTickets(category)
+                    .stream().filter(e -> e.getLevel() == 1).toList();
+            }
+            if (availableEngineers != null && !availableEngineers.isEmpty()) {
+                // Find the engineer with the least currentTickets
+                assignedEngineer = availableEngineers.get(0);
+                for (Engineer eng : availableEngineers) {
+                    if (eng.getCurrentTickets() < assignedEngineer.getCurrentTickets()) {
+                        assignedEngineer = eng;
+                    }
+                }
+            } else {
+                // Fallback: get all available level 1 engineers and pick the one with the least tickets
+                List<Engineer> allLevel1 = engineerRepository.findByLevel(1)
+                    .stream().filter(e -> e.getCurrentTickets() < e.getMaxTickets()).toList();
+                if (allLevel1 != null && !allLevel1.isEmpty()) {
+                    assignedEngineer = allLevel1.get(0);
+                    for (Engineer eng : allLevel1) {
+                        if (eng.getCurrentTickets() < assignedEngineer.getCurrentTickets()) {
+                            assignedEngineer = eng;
+                        }
+                    }
+                }
+            }
+            if (assignedEngineer != null) {
+                ticket.setEngineer(assignedEngineer);
+                // Increment engineer's currentTickets
+                assignedEngineer.setCurrentTickets(assignedEngineer.getCurrentTickets() + 1);
+                engineerRepository.save(assignedEngineer);
+            } else {
+                throw new RuntimeException("No available engineer found for this product category.");
+            }
+        } else {
+            // Ensure engineer is a managed entity
             Engineer engineer = engineerRepository.findById(ticket.getEngineer().getId())
                 .orElseThrow(() -> new RuntimeException("Engineer not found"));
             ticket.setEngineer(engineer);
+            // Increment engineer's currentTickets
+            engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
+            engineerRepository.save(engineer);
         }
-
         // Set timestamps and status
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
         ticket.setStatus(TicketStatus.OPEN);
-
         Ticket savedTicket = ticketRepository.save(ticket);
-
         // Add engineer welcome message to ticket history
         if (ticket.getEngineer() != null && ticket.getCustomer() != null) {
             Engineer engineer = ticket.getEngineer();
             String engineerName = engineer.getUser().getName();
             String customerName = customer.getUser().getName();
             String text = String.format("Hi %s, I am %s. I will be helping you to solve your problem, please let me have a look at the problem first.", customerName, engineerName);
-
             ObjectMapper mapper = new ObjectMapper();
             List<Map<String, Object>> ticketHistory = new ArrayList<>();
             try {
@@ -116,14 +157,11 @@ public class TicketService {
             } catch (Exception e) {
                 ticketHistory = new ArrayList<>();
             }
-
             Map<String, Object> engineerMsg = new HashMap<>();
             engineerMsg.put("role", "engineer");
             engineerMsg.put("content", text);
             engineerMsg.put("timestamp", java.time.LocalDateTime.now().toString());
-
             ticketHistory.add(engineerMsg);
-
             try {
                 savedTicket.setHistory(mapper.writeValueAsString(ticketHistory));
                 ticketRepository.save(savedTicket);
@@ -131,7 +169,6 @@ public class TicketService {
                 // handle error
             }
         }
-
         return savedTicket;
     }
 
@@ -233,7 +270,6 @@ public class TicketService {
                     }
 
                     existingTicket.setTitle(ticketDetails.getTitle());
-                    existingTicket.setDescription(ticketDetails.getDescription());
                     existingTicket.setUrgency(ticketDetails.getUrgency());
                     existingTicket.setUpdatedAt(LocalDateTime.now());
                     return ticketRepository.save(existingTicket);
@@ -329,6 +365,35 @@ public class TicketService {
         }
         java.util.Map<String, Object> msg = new java.util.HashMap<>();
         msg.put("role", "customer");
+        msg.put("content", content);
+        msg.put("timestamp", java.time.LocalDateTime.now().toString());
+        history.add(msg);
+        try {
+            ticket.setHistory(mapper.writeValueAsString(history));
+        } catch (Exception e) {
+            // ignore
+        }
+        ticket.setUpdatedAt(java.time.LocalDateTime.now());
+        return ticketRepository.save(ticket);
+    }
+
+    @Transactional
+    public Ticket appendMessageToHistory(Long ticketId, User user, String content, String role) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        java.util.List<java.util.Map<String, Object>> history;
+        try {
+            if (ticket.getHistory() != null && !ticket.getHistory().isEmpty()) {
+                history = mapper.readValue(ticket.getHistory(), new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, Object>>>() {});
+            } else {
+                history = new java.util.ArrayList<>();
+            }
+        } catch (Exception e) {
+            history = new java.util.ArrayList<>();
+        }
+        java.util.Map<String, Object> msg = new java.util.HashMap<>();
+        msg.put("role", role);
         msg.put("content", content);
         msg.put("timestamp", java.time.LocalDateTime.now().toString());
         history.add(msg);

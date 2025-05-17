@@ -34,6 +34,10 @@ const Chatbot = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [botLoading, setBotLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [cachedUserProfile, setCachedUserProfile] = useState(null);
+  const [cachedProducts, setCachedProducts] = useState(null);
+  const [cachedTicketTypes, setCachedTicketTypes] = useState(null);
+  const [showTicketPrompt, setShowTicketPrompt] = useState(false);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -82,101 +86,133 @@ const Chatbot = () => {
     scrollToBottom();
   }, [chatHistory]);
 
+  const getUserProfile = async (token) => {
+    if (cachedUserProfile) return cachedUserProfile;
+    const userResponse = await axios.get(
+      `${API_BASE_URL}/api/users/profile`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+    setCachedUserProfile(userResponse.data);
+    return userResponse.data;
+  };
+
+  const getProducts = async (token) => {
+    if (cachedProducts) return cachedProducts;
+    const productsResponse = await axios.get(`${API_BASE_URL}/api/products`, { headers: { Authorization: `Bearer ${token}` } });
+    setCachedProducts(productsResponse.data);
+    return productsResponse.data;
+  };
+
+  const getTicketTypes = async (token) => {
+    if (cachedTicketTypes) return cachedTicketTypes;
+    const ticketTypesResponse = await axios.get(`${API_BASE_URL}/api/ticket-types`, { headers: { Authorization: `Bearer ${token}` } });
+    setCachedTicketTypes(ticketTypesResponse.data);
+    return ticketTypesResponse.data;
+  };
+
   // Add new function to handle feedback
   const handleFeedback = async (isSolved) => {
     if (isSolved) {
-      // If problem is solved, end the session
       await handleEndSession();
+      setShowFeedback(false);
+      setShowTicketPrompt(false);
     } else {
-      // If problem is not solved, create a ticket
+      // Show ticket prompt instead of creating ticket immediately
+      setShowTicketPrompt(true);
+      setShowFeedback(false);
+    }
+  };
+
+  // New handler for ticket prompt
+  const handleTicketPrompt = async (submitTicket) => {
+    if (submitTicket) {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
           alert('You must be logged in to create a ticket.');
           return;
         }
-
-        // Get user profile to determine role
-        const userResponse = await axios.get(
-          `${API_BASE_URL}/api/users/profile`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-
-        // Determine priority based on customer role
-        let priority = 'MEDIUM'; // default priority
-        if (userResponse.data.customerRole) {
-          switch (userResponse.data.customerRole) {
-            case 'VIP':
-              priority = 'HIGH';
-              break;
-            case 'PREMIUM':
-              priority = 'MEDIUM';
-              break;
-            case 'STANDARD':
-              priority = 'LOW';
-              break;
-            default:
-              priority = 'MEDIUM';
-          }
+        // 1. Get user profile to determine role and customerId
+        const user = await getUserProfile(token);
+        const customerId = user.customerId;
+        if (!customerId) {
+          alert('Customer profile not found. Cannot create ticket.');
+          return;
         }
-
-        // Search for Tesla model keywords in chat history
+        // 2. Determine urgency based on customer role
+        let urgency = 'MEDIUM';
+        if (user.role === 'VIP') urgency = 'HIGH';
+        else if (user.role === 'PREMIUM') urgency = 'MEDIUM';
+        else if (user.role === 'STANDARD') urgency = 'LOW';
+        // 3. Create a new session for the ticket
+        const sessionResponse = await axios.post(
+          `${API_BASE_URL}/api/sessions`,
+          { title: 'New Support Ticket', ticketSession: true },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const sessionId = sessionResponse.data.id;
+        if (!sessionId) {
+          alert('Failed to create session. Please try again.');
+          return;
+        }
+        await axios.put(
+          `${API_BASE_URL}/api/sessions/${sessionId}/end`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // 4. Fetch products and ticket types (cached)
+        const products = await getProducts(token);
+        const ticketTypes = await getTicketTypes(token);
+        // 5. Detect product category from chat
         const chatText = chatHistory.map(msg => msg.text).join(' ').toLowerCase();
-        let category = null;
-        
-        if (chatText.includes('model y')) {
-          category = 'MODEL_Y';
-        } else if (chatText.includes('model s')) {
-          category = 'MODEL_S';
-        } else if (chatText.includes('model x')) {
-          category = 'MODEL_X';
-        } else if (chatText.includes('cybertruck')) {
-          category = 'CYBERTRUCK';
-        } else if (chatText.includes('model 3')) {
-          category = 'MODEL_3';
+        let productCategory = null;
+        if (chatText.includes('model y')) productCategory = 'MODEL_Y';
+        else if (chatText.includes('model s')) productCategory = 'MODEL_S';
+        else if (chatText.includes('model x')) productCategory = 'MODEL_X';
+        else if (chatText.includes('cybertruck')) productCategory = 'CYBERTRUCK';
+        else if (chatText.includes('model 3')) productCategory = 'MODEL_3';
+        // 6. Find product and type IDs
+        let selectedProduct = null;
+        if (productCategory) {
+          selectedProduct = products.find(p => {
+            const productNameToCategory = {
+              'Model S': 'MODEL_S',
+              'Model 3': 'MODEL_3',
+              'Model X': 'MODEL_X',
+              'Model Y': 'MODEL_Y',
+              'Cybertruck': 'CYBERTRUCK'
+            };
+            return productNameToCategory[p.name] === productCategory;
+          });
         }
-
-        // Get available engineers
-        const engineersResponse = await axios.get(
-          `${API_BASE_URL}/api/engineers/available`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-
-        // Find engineer matching the category or default to any available engineer
-        let assignedEngineerId = null;
-        if (category) {
-          const matchingEngineer = engineersResponse.data.find(engineer => 
-            engineer.category === category
-          );
-          if (matchingEngineer) {
-            assignedEngineerId = matchingEngineer.id;
-          }
+        if (!selectedProduct && products.length > 0) {
+          selectedProduct = products[0];
         }
-
-        // If no matching engineer found, assign to any available engineer
-        if (!assignedEngineerId && engineersResponse.data.length > 0) {
-          assignedEngineerId = engineersResponse.data[0].id;
+        if (!selectedProduct) {
+          alert('No product found for ticket.');
+          return;
         }
-
-        // Create ticket using the API
+        const productId = selectedProduct.id;
+        const selectedType = ticketTypes.length > 0 ? ticketTypes[0] : null;
+        if (!selectedType) {
+          alert('No ticket type found.');
+          return;
+        }
+        const typeId = selectedType.id;
+        // 7. Build the request body (no description, no engineer)
+        const ticketBody = {
+          title: activeChat || 'Support Request from Chat',
+          product: { id: productId },
+          type: { id: typeId },
+          session: { id: sessionId },
+          urgency: urgency,
+          status: 'OPEN',
+          customer: { id: customerId }
+        };
+        // 8. Create the ticket
         const ticketResponse = await axios.post(
           `${API_BASE_URL}/api/tickets`,
-          {
-            title: activeChat || 'Support Request from Chat',
-            description: chatHistory.map(msg => `${msg.sender === 'user' ? 'User' : 'Support'}: ${msg.text}`).join('\n'),
-            category: category || 'GENERAL',
-            priority: priority,
-            status: 'OPEN',
-            assignedEngineerId: assignedEngineerId
-          },
+          ticketBody,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -184,18 +220,23 @@ const Chatbot = () => {
             }
           }
         );
-
-        // End the current session
+        const ticketId = ticketResponse.data.id || ticketResponse.data.data?.id;
+        if (!ticketId) {
+          alert('Failed to create ticket. Please try again.');
+          return;
+        }
+        // No need to call /api/tickets/{id}/assign; backend handles assignment
         await handleEndSession();
-
-        // Redirect to the ticket page
-        navigate(`/tickets/${ticketResponse.data.id}`);
+        navigate(`/view-tickets`);
       } catch (error) {
         console.error('Error creating ticket:', error);
         alert('Failed to create ticket. Please try again later.');
       }
+    } else {
+      // User chose not to submit a ticket, just continue conversation
+      setShowTicketPrompt(false);
+      setShowFeedback(false);
     }
-    setShowFeedback(false);
   };
 
   // Modify sendMessage function to show feedback after bot response
@@ -536,6 +577,26 @@ const Chatbot = () => {
                             <button 
                               className="feedback-btn error" 
                               onClick={() => handleFeedback(false)}
+                            >
+                              ❌ No
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {/* Ticket prompt after feedback 'No' */}
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showTicketPrompt && (
+                        <div className="feedback-container">
+                          <p>Do you want to submit a ticket?</p>
+                          <div className="feedback-buttons">
+                            <button 
+                              className="feedback-btn success" 
+                              onClick={() => handleTicketPrompt(true)}
+                            >
+                              ✅ Yes
+                            </button>
+                            <button 
+                              className="feedback-btn error" 
+                              onClick={() => handleTicketPrompt(false)}
                             >
                               ❌ No
                             </button>

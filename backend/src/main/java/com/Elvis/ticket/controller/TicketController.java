@@ -208,14 +208,17 @@ public class TicketController {
             }
             boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
             boolean isTicketOwner = ticket.getCustomer() != null && ticket.getCustomer().getUser().getId().equals(user.getId());
-            if (!isAdminOrManager && !isTicketOwner) {
+            boolean isAssignedEngineer = ticket.getEngineer() != null && ticket.getEngineer().getUser().getId().equals(user.getId());
+            if (!isAdminOrManager && !isTicketOwner && !isAssignedEngineer) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
             String content = message.get("content");
             if (content == null || content.trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
-            Ticket updatedTicket = ticketService.appendCustomerMessageToHistory(id, user, content);
+            // Determine message role
+            String msgRole = isAdminOrManager ? user.getRole().toLowerCase() : (isAssignedEngineer ? "engineer" : "customer");
+            Ticket updatedTicket = ticketService.appendMessageToHistory(id, user, content, msgRole);
             return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

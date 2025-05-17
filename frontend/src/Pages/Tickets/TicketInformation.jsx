@@ -178,10 +178,9 @@ const TicketInformation = () => {
                           <span className={`ticket-item-status ${ticket.status}`}>{ticket.status}</span>
                         </div>
                         <div className="ticket-item-meta">
-                          <span className="ticket-item-id">{ticket.id}</span>
+                          <span className="ticket-item-id">#{ticket.id}</span>
                           <span className="ticket-item-date">{formatDate(ticket.createdAt)}</span>
                         </div>
-                        <p className="ticket-preview">{ticket.description}</p>
                       </div>
                     ))}
                   </div>
@@ -278,12 +277,7 @@ const TicketInformation = () => {
                   </div>
                 </div>
                 
-                <div className="ticket-details">
-                  <p>{currentTicket.description}</p>
-                  {currentTicket.id === 'TK-2023-001' && (
-                    <p>Error message displayed to customers: "Payment processing error. Please try again later."</p>
-                  )}
-                </div>
+                
                 
                 {activeTab === 'conversation' && (
                   <div className="interaction-history">

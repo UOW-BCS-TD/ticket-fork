@@ -92,7 +92,6 @@ CREATE TABLE sessions (
 CREATE TABLE tickets (
     ticket_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
     status VARCHAR(20) NOT NULL,
     urgency VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -206,7 +205,7 @@ INSERT INTO sessions (title, status, user_id, last_activity) VALUES
 ('Cybertruck Delivery Question', 'CLOSED', 10, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- Insert sample tickets
-INSERT INTO tickets (title, description, status, urgency, customer_id, engineer_id, product_id, type_id, history, session_id) VALUES
-('Model S Battery Drain Issue', 'Customer reports unusual battery drain in Model S. Battery drains 20% faster than normal.', 'OPEN', 'HIGH', 1, 1, 1, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
-('Model 3 Software Update Request', 'Customer requesting information about upcoming software update for Model 3.', 'IN_PROGRESS', 'MEDIUM', 2, 2, 2, 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
-('Cybertruck Delivery Timeline', 'Customer inquiry about Cybertruck delivery timeline and process.', 'RESOLVED', 'LOW', 3, 5, 5, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 
+INSERT INTO tickets (title, status, urgency, customer_id, engineer_id, product_id, type_id, history, session_id) VALUES
+('Model S Battery Drain Issue', 'OPEN', 'HIGH', 1, 1, 1, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
+('Model 3 Software Update Request', 'IN_PROGRESS', 'MEDIUM', 2, 2, 2, 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
+('Cybertruck Delivery Timeline', 'RESOLVED', 'LOW', 3, 5, 5, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 
