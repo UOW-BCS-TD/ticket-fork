@@ -15,19 +15,28 @@ const AssignedTickets = () => {
   const [escalating, setEscalating] = useState(false);
   const [escalateError, setEscalateError] = useState(null);
   const [escalateSuccess, setEscalateSuccess] = useState(null);
+  const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState(null);
+  const [resolveSuccess, setResolveSuccess] = useState(null);
+  const [engineerLevel, setEngineerLevel] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(null);
 
   useEffect(() => {
     const fetchTickets = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Get engineer ID from profile
+        // Get engineer ID and level from profile
         const profileResponse = await fetch('/api/users/profile', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if (!profileResponse.ok) throw new Error('Failed to fetch user profile');
         const profileData = await profileResponse.json();
-        const engineerId = profileData.engineerId ;
+        const engineerId = profileData.engineerId;
+        setEngineerLevel(profileData.engineerLevel);
         // Fetch tickets assigned to this engineer
         const ticketsResponse = await fetch(`/api/tickets/engineer/${engineerId}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -46,6 +55,23 @@ const AssignedTickets = () => {
     };
     fetchTickets();
   }, []);
+
+  // Fetch attachments when ticket changes or tab is attachments
+  useEffect(() => {
+    if (!activeTicket || activeTab !== 'attachments') return;
+    const fetchAttachments = async () => {
+      try {
+        const res = await fetch(`/api/tickets/${activeTicket}/attachments`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch attachments');
+        setAttachments(await res.json());
+      } catch {
+        setAttachments([]);
+      }
+    };
+    fetchAttachments();
+  }, [activeTicket, activeTab]);
 
   const filteredTickets = ticketList.filter(ticket => 
     (typeof ticket.title === 'string' && ticket.title.toLowerCase().includes(searchQuery.toLowerCase())) || 
@@ -124,6 +150,59 @@ const AssignedTickets = () => {
       setEscalateError('Failed to escalate ticket.');
     } finally {
       setEscalating(false);
+    }
+  };
+
+  const handleResolve = async () => {
+    if (!currentTicket?.id) return;
+    setResolving(true);
+    setResolveError(null);
+    setResolveSuccess(null);
+    try {
+      const response = await fetch(`/api/tickets/${currentTicket.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify('RESOLVED')
+      });
+      if (!response.ok) throw new Error('Failed to resolve ticket');
+      const updated = await response.json();
+      setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, ...updated } : t));
+      setResolveSuccess('Ticket marked as resolved!');
+    } catch (err) {
+      setResolveError('Failed to resolve ticket.');
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentTicket?.id) return;
+    setUploading(true);
+    setUploadError(null);
+    setUploadSuccess(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`/api/tickets/${currentTicket.id}/attachments`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      setUploadSuccess('File uploaded!');
+      // Refresh list
+      const listRes = await fetch(`/api/tickets/${currentTicket.id}/attachments`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      setAttachments(await listRes.json());
+    } catch (err) {
+      setUploadError('Failed to upload file.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -253,7 +332,7 @@ const AssignedTickets = () => {
                 </div>
                 <div className="estimated-time" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
                   {/* Escalate button for engineers */}
-                  {currentTicket.status !== 'ESCALATED' && currentTicket.status !== 'CLOSED' && (
+                  {engineerLevel !== 3 && currentTicket.status !== 'ESCALATED' && currentTicket.status !== 'CLOSED' && (
                     <button
                       className="escalate-btn"
                       onClick={handleEscalate}
@@ -261,6 +340,18 @@ const AssignedTickets = () => {
                       title="Escalate this ticket to a higher-level engineer"
                     >
                       {escalating ? 'Escalating...' : <><i className="fas fa-arrow-up"></i> Escalate Ticket</>}
+                    </button>
+                  )}
+                  {/* Mark as Resolved button for engineers */}
+                  {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' && (
+                    <button
+                      className="escalate-btn"
+                      style={{ background: 'linear-gradient(90deg, #2ecc71 60%, #27ae60 100%)' }}
+                      onClick={handleResolve}
+                      disabled={resolving}
+                      title="Mark this ticket as resolved"
+                    >
+                      {resolving ? 'Resolving...' : <><i className="fas fa-check"></i> Mark as Resolved</>}
                     </button>
                   )}
                 </div>
@@ -283,7 +374,25 @@ const AssignedTickets = () => {
                 {activeTab === 'attachments' && (
                   <div className="attachments-section">
                     <h4>Attached Files</h4>
-                    <p className="no-attachments">No files have been attached to this ticket.</p>
+                    <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                    {uploadError && <div className="error-message" style={{ color: 'red' }}>{uploadError}</div>}
+                    {uploadSuccess && <div className="success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
+                    {attachments.length === 0 ? (
+                      <p className="no-attachments">No files have been attached to this ticket.</p>
+                    ) : (
+                      <div className="attachment-list">
+                        {attachments.map(att => (
+                          <div className="attachment-item" key={att.id}>
+                            <i className="fas fa-paperclip"></i>
+                            <span className="attachment-name">{att.filename}</span>
+                            <span className="attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
+                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="attachment-action-btn">
+                              <i className="fas fa-download"></i> Download
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
                 {activeTab === 'related' && (
@@ -334,6 +443,8 @@ const AssignedTickets = () => {
                 {/* Escalate success/error messages */}
                 {escalateSuccess && <div className="success-message" style={{ color: 'green', marginBottom: 8 }}>{escalateSuccess}</div>}
                 {escalateError && <div className="error-message" style={{ color: 'red', marginBottom: 8 }}>{escalateError}</div>}
+                {resolveSuccess && <div className="success-message" style={{ color: 'green', marginBottom: 8 }}>{resolveSuccess}</div>}
+                {resolveError && <div className="error-message" style={{ color: 'red', marginBottom: 8 }}>{resolveError}</div>}
               </div>
             )}
           </div>

@@ -28,6 +28,12 @@ import java.util.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.Elvis.ticket.model.TicketAttachment;
+import com.Elvis.ticket.repository.TicketAttachmentRepository;
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 public class TicketService {
@@ -38,6 +44,7 @@ public class TicketService {
     private final TicketTypeRepository ticketTypeRepository;
     private final SessionRepository sessionRepository;
     private final UserService userService;
+    private final TicketAttachmentRepository ticketAttachmentRepository;
 
     public TicketService(TicketRepository ticketRepository, 
                         EngineerRepository engineerRepository,
@@ -45,7 +52,8 @@ public class TicketService {
                         ProductRepository productRepository,
                         TicketTypeRepository ticketTypeRepository,
                         SessionRepository sessionRepository,
-                        UserService userService) {
+                        UserService userService,
+                        TicketAttachmentRepository ticketAttachmentRepository) {
         this.ticketRepository = ticketRepository;
         this.engineerRepository = engineerRepository;
         this.customerRepository = customerRepository;
@@ -53,6 +61,7 @@ public class TicketService {
         this.ticketTypeRepository = ticketTypeRepository;
         this.sessionRepository = sessionRepository;
         this.userService = userService;
+        this.ticketAttachmentRepository = ticketAttachmentRepository;
     }
 
     @Transactional
@@ -122,9 +131,9 @@ public class TicketService {
             }
             if (assignedEngineer != null) {
                 ticket.setEngineer(assignedEngineer);
-                // Increment engineer's currentTickets
                 assignedEngineer.setCurrentTickets(assignedEngineer.getCurrentTickets() + 1);
                 engineerRepository.save(assignedEngineer);
+                ticket.setStatus(TicketStatus.IN_PROGRESS);
             } else {
                 throw new RuntimeException("No available engineer found for this product category.");
             }
@@ -137,10 +146,9 @@ public class TicketService {
             engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
             engineerRepository.save(engineer);
         }
-        // Set timestamps and status
+        // Set timestamps
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
-        ticket.setStatus(TicketStatus.OPEN);
         Ticket savedTicket = ticketRepository.save(ticket);
         // Add engineer welcome message to ticket history
         if (ticket.getEngineer() != null && ticket.getCustomer() != null) {
@@ -200,21 +208,16 @@ public class TicketService {
     public Ticket assignTicket(Long ticketId, Long engineerId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
-        
         Engineer engineer = engineerRepository.findById(engineerId)
                 .orElseThrow(() -> new RuntimeException("Engineer not found"));
-
         if (engineer.getCurrentTickets() >= engineer.getMaxTickets()) {
             throw new RuntimeException("Engineer has reached maximum ticket capacity");
         }
-
         ticket.setEngineer(engineer);
-        ticket.setStatus(TicketStatus.ASSIGNED);
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
         ticket.setUpdatedAt(LocalDateTime.now());
-        
         engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
         engineerRepository.save(engineer);
-        
         return ticketRepository.save(ticket);
     }
 
@@ -222,19 +225,31 @@ public class TicketService {
     public Ticket updateTicketStatus(Long ticketId, TicketStatus status) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
-        
-        ticket.setStatus(status);
-        ticket.setUpdatedAt(LocalDateTime.now());
-        
         if (status == TicketStatus.RESOLVED) {
+            ticket.setStatus(TicketStatus.RESOLVED);
             ticket.setResolvedAt(LocalDateTime.now());
             if (ticket.getEngineer() != null) {
                 Engineer engineer = ticket.getEngineer();
                 engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
                 engineerRepository.save(engineer);
+                ticket.setEngineer(null);
             }
+        } else if (status == TicketStatus.CLOSED) {
+            ticket.setStatus(TicketStatus.CLOSED);
+            if (ticket.getEngineer() != null) {
+                Engineer engineer = ticket.getEngineer();
+                engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
+                engineerRepository.save(engineer);
+                ticket.setEngineer(null);
+            }
+        } else if (status == TicketStatus.IN_PROGRESS) {
+            ticket.setStatus(TicketStatus.IN_PROGRESS);
+        } else if (status == TicketStatus.ESCALATED) {
+            ticket.setStatus(TicketStatus.ESCALATED);
+        } else {
+            ticket.setStatus(status);
         }
-        
+        ticket.setUpdatedAt(LocalDateTime.now());
         return ticketRepository.save(ticket);
     }
 
@@ -298,41 +313,43 @@ public class TicketService {
     public Ticket escalateTicket(Long ticketId) {
         return ticketRepository.findById(ticketId)
                 .map(ticket -> {
-                    // Get current engineer and their category
                     Engineer currentEngineer = ticket.getEngineer();
                     if (currentEngineer == null) {
                         throw new RuntimeException("Ticket has no assigned engineer to escalate from");
                     }
-
                     TeslaModel category = currentEngineer.getCategory();
                     int currentLevel = currentEngineer.getLevel();
-
-                    // Find available engineers in the same category with higher level
-                    List<Engineer> higherLevelEngineers = engineerRepository.findByCategoryAndLevelGreaterThan(category, currentLevel)
-                            .stream()
-                            .filter(e -> e.getCategory().equals(category) && e.getLevel() > currentLevel)
-                            .toList();
-
-                    if (higherLevelEngineers.isEmpty()) {
-                        throw new RuntimeException("No higher-level engineers available in category: " + category);
+                    int nextLevel = currentLevel + 1;
+                    if (nextLevel > 3) {
+                        throw new RuntimeException("This ticket is already assigned to the highest level engineer and cannot be escalated further.");
                     }
-
-                    // Select the first available higher-level engineer
-                    Engineer newEngineer = higherLevelEngineers.get(0);
-
+                    List<Engineer> nextLevelEngineers = engineerRepository.findByCategoryAndLevel(category, nextLevel)
+                        .stream()
+                        .filter(e -> e.getCurrentTickets() < e.getMaxTickets())
+                        .toList();
+                    if (nextLevelEngineers.isEmpty()) {
+                        // No available higher-level engineer, set status to ESCALATED and keep current engineer
+                        ticket.setStatus(TicketStatus.ESCALATED);
+                        ticket.setUpdatedAt(LocalDateTime.now());
+                        return ticketRepository.save(ticket);
+                    }
+                    // Select the engineer with the least current tickets
+                    Engineer newEngineer = nextLevelEngineers.get(0);
+                    for (Engineer eng : nextLevelEngineers) {
+                        if (eng.getCurrentTickets() < newEngineer.getCurrentTickets()) {
+                            newEngineer = eng;
+                        }
+                    }
                     // Decrement old engineer's ticket count
                     currentEngineer.setCurrentTickets(currentEngineer.getCurrentTickets() - 1);
                     engineerRepository.save(currentEngineer);
-
                     // Update ticket with new engineer
                     ticket.setEngineer(newEngineer);
-                    ticket.setStatus(TicketStatus.ESCALATED);
+                    ticket.setStatus(TicketStatus.IN_PROGRESS);
                     ticket.setUpdatedAt(LocalDateTime.now());
-
                     // Increment new engineer's ticket count
                     newEngineer.setCurrentTickets(newEngineer.getCurrentTickets() + 1);
                     engineerRepository.save(newEngineer);
-
                     return ticketRepository.save(ticket);
                 })
                 .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
@@ -404,5 +421,60 @@ public class TicketService {
         }
         ticket.setUpdatedAt(java.time.LocalDateTime.now());
         return ticketRepository.save(ticket);
+    }
+
+    // Add a method to auto-close tickets with last update > 7 days
+    @Transactional
+    public void autoCloseOldTickets() {
+        LocalDateTime threshold = LocalDateTime.now().minusDays(7);
+        List<Ticket> oldTickets = ticketRepository.findAll().stream()
+            .filter(t -> t.getStatus() != TicketStatus.CLOSED && t.getUpdatedAt().isBefore(threshold))
+            .toList();
+        for (Ticket ticket : oldTickets) {
+            if (ticket.getEngineer() != null) {
+                Engineer engineer = ticket.getEngineer();
+                engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
+                engineerRepository.save(engineer);
+                ticket.setEngineer(null);
+            }
+            ticket.setStatus(TicketStatus.CLOSED);
+            ticket.setUpdatedAt(LocalDateTime.now());
+            ticketRepository.save(ticket);
+        }
+    }
+
+    // --- Attachment methods ---
+    private static final String ATTACHMENT_BASE_PATH = "attachments";
+
+    @Transactional
+    public TicketAttachment saveAttachment(Long ticketId, MultipartFile file) throws Exception {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        // Ensure directory exists
+        Path dir = Paths.get(ATTACHMENT_BASE_PATH, String.valueOf(ticketId));
+        Files.createDirectories(dir);
+        // Save file to disk
+        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        Path filePath = dir.resolve(filename);
+        Files.copy(file.getInputStream(), filePath);
+        // Save metadata to DB
+        TicketAttachment attachment = new TicketAttachment();
+        attachment.setTicket(ticket);
+        attachment.setFilename(file.getOriginalFilename());
+        attachment.setContentType(file.getContentType());
+        attachment.setFilePath(filePath.toString());
+        attachment.setUploadedAt(java.time.LocalDateTime.now());
+        return ticketAttachmentRepository.save(attachment);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<TicketAttachment> getAttachments(Long ticketId) {
+        return ticketAttachmentRepository.findByTicketId(ticketId);
+    }
+
+    @Transactional(readOnly = true)
+    public TicketAttachment getAttachment(Long attachmentId) {
+        return ticketAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Attachment not found"));
     }
 } 

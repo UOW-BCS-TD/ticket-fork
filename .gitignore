@@ -16,3 +16,5 @@ backend/log/
 /backend/log/
 
 chat_backend/venv/
+
+/backend/attachments/

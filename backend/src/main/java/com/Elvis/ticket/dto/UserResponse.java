@@ -14,6 +14,7 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private Long customerId;
     private Long engineerId;
+    private Integer engineerLevel;
 
     public static UserResponse fromUser(User user) {
         UserResponse response = new UserResponse();
@@ -30,5 +31,7 @@ public class UserResponse {
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
     public Long getEngineerId() { return engineerId; }
     public void setEngineerId(Long engineerId) { this.engineerId = engineerId; }
+    public Integer getEngineerLevel() { return engineerLevel; }
+    public void setEngineerLevel(Integer engineerLevel) { this.engineerLevel = engineerLevel; }
 } 
  

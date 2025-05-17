@@ -43,25 +43,25 @@ public class DataInitializer {
             createManagerUser("Cybertruck Manager", "ct@example.com", TeslaModel.CYBERTRUCK, userRepository, passwordEncoder, now);
 
             // Create Level 1 Engineers
-            createEngineerUser("John Smith", "l1msj@example.com", TeslaModel.MODEL_S, 1, userRepository, passwordEncoder, now);
-            createEngineerUser("Sarah Johnson", "l1m3s@example.com", TeslaModel.MODEL_3, 1, userRepository, passwordEncoder, now);
-            createEngineerUser("Michael Brown", "l1mxm@example.com", TeslaModel.MODEL_X, 1, userRepository, passwordEncoder, now);
-            createEngineerUser("Emily Davis", "l1mye@example.com", TeslaModel.MODEL_Y, 1, userRepository, passwordEncoder, now);
-            createEngineerUser("David Wilson", "l1ctd@example.com", TeslaModel.CYBERTRUCK, 1, userRepository, passwordEncoder, now);
+            createEngineerUser("John Smith", "l1ms@example.com", TeslaModel.MODEL_S, 1, userRepository, passwordEncoder, now);
+            createEngineerUser("Sarah Johnson", "l1m3@example.com", TeslaModel.MODEL_3, 1, userRepository, passwordEncoder, now);
+            createEngineerUser("Michael Brown", "l1mx@example.com", TeslaModel.MODEL_X, 1, userRepository, passwordEncoder, now);
+            createEngineerUser("Emily Davis", "l1my@example.com", TeslaModel.MODEL_Y, 1, userRepository, passwordEncoder, now);
+            createEngineerUser("David Wilson", "l1ct@example.com", TeslaModel.CYBERTRUCK, 1, userRepository, passwordEncoder, now);
 
             // Create Level 2 Engineers
-            createEngineerUser("James Taylor", "l2msj@example.com", TeslaModel.MODEL_S, 2, userRepository, passwordEncoder, now);
-            createEngineerUser("Lisa Anderson", "l2m3l@example.com", TeslaModel.MODEL_3, 2, userRepository, passwordEncoder, now);
-            createEngineerUser("Robert Martinez", "l2mxr@example.com", TeslaModel.MODEL_X, 2, userRepository, passwordEncoder, now);
-            createEngineerUser("Jennifer Garcia", "l2myj@example.com", TeslaModel.MODEL_Y, 2, userRepository, passwordEncoder, now);
-            createEngineerUser("William Lee", "l2ctw@example.com", TeslaModel.CYBERTRUCK, 2, userRepository, passwordEncoder, now);
+            createEngineerUser("James Taylor", "l2ms@example.com", TeslaModel.MODEL_S, 2, userRepository, passwordEncoder, now);
+            createEngineerUser("Lisa Anderson", "l2m3@example.com", TeslaModel.MODEL_3, 2, userRepository, passwordEncoder, now);
+            createEngineerUser("Robert Martinez", "l2mx@example.com", TeslaModel.MODEL_X, 2, userRepository, passwordEncoder, now);
+            createEngineerUser("Jennifer Garcia", "l2my@example.com", TeslaModel.MODEL_Y, 2, userRepository, passwordEncoder, now);
+            createEngineerUser("William Lee", "l2ct@example.com", TeslaModel.CYBERTRUCK, 2, userRepository, passwordEncoder, now);
 
             // Create Level 3 Engineers
-            createEngineerUser("Elizabeth White", "l3mse@example.com", TeslaModel.MODEL_S, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Thomas Clark", "l3m3t@example.com", TeslaModel.MODEL_3, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Patricia Lewis", "l3mxp@example.com", TeslaModel.MODEL_X, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Daniel Walker", "l3myd@example.com", TeslaModel.MODEL_Y, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Margaret Hall", "l3ctm@example.com", TeslaModel.CYBERTRUCK, 3, userRepository, passwordEncoder, now);
+            createEngineerUser("Elizabeth White", "l3ms@example.com", TeslaModel.MODEL_S, 3, userRepository, passwordEncoder, now);
+            createEngineerUser("Thomas Clark", "l3m3@example.com", TeslaModel.MODEL_3, 3, userRepository, passwordEncoder, now);
+            createEngineerUser("Patricia Lewis", "l3mx@example.com", TeslaModel.MODEL_X, 3, userRepository, passwordEncoder, now);
+            createEngineerUser("Daniel Walker", "l3my@example.com", TeslaModel.MODEL_Y, 3, userRepository, passwordEncoder, now);
+            createEngineerUser("Margaret Hall", "l3ct@example.com", TeslaModel.CYBERTRUCK, 3, userRepository, passwordEncoder, now);
 
             // Create sample customer users
             createCustomerUser("Alice Cooper", "svip@example.com", CustomerRole.VIP, userRepository, passwordEncoder, now);
@@ -76,25 +76,25 @@ public class DataInitializer {
             createManager(managerRepository, userRepository, "ct@example.com", "Cybertruck Support", TeslaModel.CYBERTRUCK);
 
             // Create Level 1 Engineers
-            createEngineer(engineerRepository, userRepository, "l1msj@example.com", TeslaModel.MODEL_S, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1m3s@example.com", TeslaModel.MODEL_3, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1mxm@example.com", TeslaModel.MODEL_X, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1mye@example.com", TeslaModel.MODEL_Y, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1ctd@example.com", TeslaModel.CYBERTRUCK, 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1ms@example.com", TeslaModel.MODEL_S, 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1m3@example.com", TeslaModel.MODEL_3, 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1mx@example.com", TeslaModel.MODEL_X, 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1my@example.com", TeslaModel.MODEL_Y, 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1ct@example.com", TeslaModel.CYBERTRUCK, 1, 3);
 
             // Create Level 2 Engineers
-            createEngineer(engineerRepository, userRepository, "l2msj@example.com", TeslaModel.MODEL_S, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2m3l@example.com", TeslaModel.MODEL_3, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2mxr@example.com", TeslaModel.MODEL_X, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2myj@example.com", TeslaModel.MODEL_Y, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2ctw@example.com", TeslaModel.CYBERTRUCK, 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2ms@example.com", TeslaModel.MODEL_S, 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2m3@example.com", TeslaModel.MODEL_3, 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2mx@example.com", TeslaModel.MODEL_X, 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2my@example.com", TeslaModel.MODEL_Y, 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2ct@example.com", TeslaModel.CYBERTRUCK, 2, 4);
 
             // Create Level 3 Engineers
-            createEngineer(engineerRepository, userRepository, "l3mse@example.com", TeslaModel.MODEL_S, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3m3t@example.com", TeslaModel.MODEL_3, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3mxp@example.com", TeslaModel.MODEL_X, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3myd@example.com", TeslaModel.MODEL_Y, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3ctm@example.com", TeslaModel.CYBERTRUCK, 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3ms@example.com", TeslaModel.MODEL_S, 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3m3@example.com", TeslaModel.MODEL_3, 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3mx@example.com", TeslaModel.MODEL_X, 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3my@example.com", TeslaModel.MODEL_Y, 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3ct@example.com", TeslaModel.CYBERTRUCK, 3, 5);
 
             // Create sample customers
             createCustomer(customerRepository, userRepository, "svip@example.com", CustomerRole.VIP);

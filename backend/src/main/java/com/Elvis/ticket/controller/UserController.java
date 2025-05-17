@@ -59,6 +59,7 @@ public class UserController {
                         com.Elvis.ticket.model.Engineer engineer = engineerRepository.findByEmail(email);
                         if (engineer != null) {
                             response.setEngineerId(engineer.getId());
+                            response.setEngineerLevel(engineer.getLevel());
                         }
                     }
                     return ResponseEntity.ok(response);

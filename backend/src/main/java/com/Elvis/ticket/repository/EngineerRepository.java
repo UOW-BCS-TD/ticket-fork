@@ -25,4 +25,6 @@ public interface EngineerRepository extends JpaRepository<Engineer, Long> {
     List<Engineer> findByCategoryAndCurrentTicketsLessThanMaxTickets(TeslaModel category);
     
     boolean existsByEmail(String email);
+    
+    List<Engineer> findByCategoryAndLevel(TeslaModel category, int level);
 } 
