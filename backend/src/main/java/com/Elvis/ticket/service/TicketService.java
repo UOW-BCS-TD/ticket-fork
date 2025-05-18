@@ -79,28 +79,17 @@ public class TicketService {
         // Validate all foreign key references exist
         Customer customer = customerRepository.findById(ticket.getCustomer().getId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-        Product product = productRepository.findById(ticket.getProduct().getId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
         TicketType type = ticketTypeRepository.findById(ticket.getType().getId())
                 .orElseThrow(() -> new RuntimeException("Ticket type not found"));
         Session session = sessionRepository.findById(ticket.getSession().getId())
                 .orElseThrow(() -> new RuntimeException("Session not found"));
         // Set the validated entities
         ticket.setCustomer(customer);
-        ticket.setProduct(product);
         ticket.setType(type);
         ticket.setSession(session);
         // --- Engineer assignment logic ---
         if (ticket.getEngineer() == null || ticket.getEngineer().getId() == null) {
-            // Map product name to TeslaModel category
-            TeslaModel category = null;
-            String productName = product.getName();
-            if ("Model S".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_S;
-            else if ("Model 3".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_3;
-            else if ("Model X".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_X;
-            else if ("Model Y".equalsIgnoreCase(productName)) category = TeslaModel.MODEL_Y;
-            else if ("Cybertruck".equalsIgnoreCase(productName)) category = TeslaModel.CYBERTRUCK;
-
+            TeslaModel category = ticket.getCategory();
             Engineer assignedEngineer = null;
             List<Engineer> availableEngineers = null;
             if (category != null) {
@@ -131,6 +120,7 @@ public class TicketService {
             }
             if (assignedEngineer != null) {
                 ticket.setEngineer(assignedEngineer);
+                ticket.setCategory(assignedEngineer.getCategory());
                 assignedEngineer.setCurrentTickets(assignedEngineer.getCurrentTickets() + 1);
                 engineerRepository.save(assignedEngineer);
                 ticket.setStatus(TicketStatus.IN_PROGRESS);
@@ -142,6 +132,7 @@ public class TicketService {
             Engineer engineer = engineerRepository.findById(ticket.getEngineer().getId())
                 .orElseThrow(() -> new RuntimeException("Engineer not found"));
             ticket.setEngineer(engineer);
+            ticket.setCategory(engineer.getCategory());
             // Increment engineer's currentTickets
             engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
             engineerRepository.save(engineer);
@@ -208,16 +199,23 @@ public class TicketService {
     public Ticket assignTicket(Long ticketId, Long engineerId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
-        Engineer engineer = engineerRepository.findById(engineerId)
+        Engineer newEngineer = engineerRepository.findById(engineerId)
                 .orElseThrow(() -> new RuntimeException("Engineer not found"));
-        if (engineer.getCurrentTickets() >= engineer.getMaxTickets()) {
+        if (newEngineer.getCurrentTickets() >= newEngineer.getMaxTickets()) {
             throw new RuntimeException("Engineer has reached maximum ticket capacity");
         }
-        ticket.setEngineer(engineer);
+        Engineer oldEngineer = ticket.getEngineer();
+        if (oldEngineer != null && !oldEngineer.getId().equals(newEngineer.getId())) {
+            // Decrement old engineer's ticket count
+            oldEngineer.setCurrentTickets(oldEngineer.getCurrentTickets() - 1);
+            engineerRepository.save(oldEngineer);
+        }
+        ticket.setEngineer(newEngineer);
+        ticket.setCategory(newEngineer.getCategory());
         ticket.setStatus(TicketStatus.IN_PROGRESS);
         ticket.setUpdatedAt(LocalDateTime.now());
-        engineer.setCurrentTickets(engineer.getCurrentTickets() + 1);
-        engineerRepository.save(engineer);
+        newEngineer.setCurrentTickets(newEngineer.getCurrentTickets() + 1);
+        engineerRepository.save(newEngineer);
         return ticketRepository.save(ticket);
     }
 
@@ -268,14 +266,6 @@ public class TicketService {
     public Ticket updateTicket(Long id, Ticket ticketDetails) {
         return ticketRepository.findById(id)
                 .map(existingTicket -> {
-                    // Validate and update product if changed
-                    if (ticketDetails.getProduct() != null && 
-                        !ticketDetails.getProduct().getId().equals(existingTicket.getProduct().getId())) {
-                        Product product = productRepository.findById(ticketDetails.getProduct().getId())
-                                .orElseThrow(() -> new RuntimeException("Product not found"));
-                        existingTicket.setProduct(product);
-                    }
-
                     // Validate and update ticket type if changed
                     if (ticketDetails.getType() != null && 
                         !ticketDetails.getType().getId().equals(existingTicket.getType().getId())) {
@@ -301,8 +291,8 @@ public class TicketService {
         return ticketRepository.findByUrgency(urgency);
     }
 
-    public List<Ticket> getTicketsByProduct(Long productId) {
-        return ticketRepository.findByProductId(productId);
+    public List<Ticket> getTicketsByCategory(TeslaModel category) {
+        return ticketRepository.findByCategory(category);
     }
 
     public List<Ticket> getTicketsByType(Long typeId) {
@@ -345,6 +335,7 @@ public class TicketService {
                     engineerRepository.save(currentEngineer);
                     // Update ticket with new engineer
                     ticket.setEngineer(newEngineer);
+                    ticket.setCategory(newEngineer.getCategory());
                     ticket.setStatus(TicketStatus.IN_PROGRESS);
                     ticket.setUpdatedAt(LocalDateTime.now());
                     // Increment new engineer's ticket count
@@ -476,5 +467,9 @@ public class TicketService {
     public TicketAttachment getAttachment(Long attachmentId) {
         return ticketAttachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new RuntimeException("Attachment not found"));
+    }
+
+    public boolean isEngineerAssignedToSession(Long engineerId, Long sessionId) {
+        return ticketRepository.existsByEngineerIdAndSessionId(engineerId, sessionId);
     }
 } 

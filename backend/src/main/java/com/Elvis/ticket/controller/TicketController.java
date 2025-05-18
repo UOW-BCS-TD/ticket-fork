@@ -5,6 +5,7 @@ import com.Elvis.ticket.model.*;
 import com.Elvis.ticket.service.TicketService;
 import com.Elvis.ticket.service.UserService;
 import com.Elvis.ticket.repository.CustomerRepository;
+import com.Elvis.ticket.repository.ManagerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +28,14 @@ public class TicketController {
     private final TicketService ticketService;
     private final UserService userService;
     private final CustomerRepository customerRepository;
+    private final ManagerRepository managerRepository;
 
     @Autowired
-    public TicketController(TicketService ticketService, UserService userService, CustomerRepository customerRepository) {
+    public TicketController(TicketService ticketService, UserService userService, CustomerRepository customerRepository, ManagerRepository managerRepository) {
         this.ticketService = ticketService;
         this.userService = userService;
         this.customerRepository = customerRepository;
+        this.managerRepository = managerRepository;
     }
 
     @GetMapping
@@ -114,13 +117,6 @@ public class TicketController {
     @GetMapping("/urgency/{urgency}")
     public List<TicketResponse> getTicketsByUrgency(@PathVariable CustomerRole urgency) {
         return ticketService.getTicketsByUrgency(urgency).stream()
-                .map(TicketResponse::fromTicket)
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/product/{productId}")
-    public List<TicketResponse> getTicketsByProduct(@PathVariable Long productId) {
-        return ticketService.getTicketsByProduct(productId).stream()
                 .map(TicketResponse::fromTicket)
                 .collect(Collectors.toList());
     }
@@ -262,5 +258,26 @@ public class TicketController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/manager/category")
+    public List<TicketResponse> getTicketsByManagerCategory(Authentication authentication) {
+        String email = authentication.getName();
+        com.Elvis.ticket.model.Manager manager = managerRepository.findByEmail(email);
+        if (manager == null) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Not a manager");
+        }
+        TeslaModel category = manager.getCategory();
+        return ticketService.getTicketsByCategory(category).stream()
+                .map(TicketResponse::fromTicket)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @GetMapping("/category/{category}")
+    public List<TicketResponse> getTicketsByCategory(@PathVariable String category) {
+        TeslaModel model = TeslaModel.valueOf(category);
+        return ticketService.getTicketsByCategory(model).stream()
+                .map(TicketResponse::fromTicket)
+                .collect(Collectors.toList());
     }
 } 

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './Manager.css';
 
+const categoryOptions = [
+  'MODEL_S', 'MODEL_3', 'MODEL_X', 'MODEL_Y', 'CYBERTRUCK'
+];
+
 const ManageEngineers = () => {
   const [engineers, setEngineers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,14 +17,35 @@ const ManageEngineers = () => {
     specialization: '',
     phone: ''
   });
+  const [modalType, setModalType] = useState(null); // 'add', 'edit', 'view'
+  const [selectedEngineer, setSelectedEngineer] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const [viewError, setViewError] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [addForm, setAddForm] = useState({
+    name: '',
+    email: '',
+    category: '',
+    level: 1,
+    maxTickets: 1
+  });
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState(null);
+  const [addSuccess, setAddSuccess] = useState(null);
 
   useEffect(() => {
     const fetchEngineers = async () => {
       try {
         setLoading(true);
-        // Replace with your actual API endpoint
-        const response = await axios.get('/api/engineers');
-        setEngineers(response.data);
+        const response = await fetch('/api/engineers', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch engineers');
+        const data = await response.json();
+        setEngineers(data);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch engineers');
@@ -28,7 +53,6 @@ const ManageEngineers = () => {
         console.error(err);
       }
     };
-
     fetchEngineers();
   }, []);
 
@@ -40,30 +64,54 @@ const ManageEngineers = () => {
     });
   };
 
-  const handleAddEngineer = async (e) => {
+  const handleAddChange = (e) => {
+    const { name, value } = e.target;
+    setAddForm({ ...addForm, [name]: value });
+  };
+
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
+    setAddLoading(true);
+    setAddError(null);
+    setAddSuccess(null);
     try {
-      // Replace with your actual API endpoint
-      const response = await axios.post('/api/engineers', newEngineer);
-      setEngineers([...engineers, response.data]);
-      setNewEngineer({
-        name: '',
-        email: '',
-        specialization: '',
-        phone: ''
+      const response = await fetch('/api/engineers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          email: addForm.email,
+          category: addForm.category,
+          level: Number(addForm.level),
+          maxTickets: Number(addForm.maxTickets),
+          name: addForm.name
+        })
       });
-      setShowAddForm(false);
+      if (!response.ok) throw new Error('Failed to add engineer');
+      const data = await response.json();
+      setEngineers([...engineers, data]);
+      setAddSuccess('Engineer added successfully!');
+      setTimeout(() => {
+        setAddForm({ name: '', email: '', category: '', level: 1, maxTickets: 1 });
+        closeModal();
+      }, 1200);
     } catch (err) {
-      console.error('Failed to add engineer:', err);
-      alert('Failed to add engineer. Please try again.');
+      setAddError('Failed to add engineer.');
+    } finally {
+      setAddLoading(false);
     }
   };
 
   const handleDeleteEngineer = async (id) => {
     if (window.confirm('Are you sure you want to delete this engineer?')) {
       try {
-        // Replace with your actual API endpoint
-        await axios.delete(`/api/engineers/${id}`);
+        const response = await fetch(`/api/engineers/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error('Failed to delete engineer');
         setEngineers(engineers.filter(engineer => engineer.id !== id));
       } catch (err) {
         console.error('Failed to delete engineer:', err);
@@ -74,10 +122,83 @@ const ManageEngineers = () => {
 
   // Filter engineers based on search term
   const filteredEngineers = engineers.filter(engineer => 
-    engineer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    engineer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    engineer.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+    (engineer.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (engineer.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (engineer.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Modal open/close handlers
+  const openAddModal = () => { setModalType('add'); setSelectedEngineer(null); };
+  const openEditModal = (eng) => {
+    setModalType('edit');
+    setSelectedEngineer(eng);
+    setEditForm({
+      name: eng.user?.name || '',
+      email: eng.email || '',
+      category: eng.category || '',
+      level: eng.level || 1,
+      maxTickets: eng.maxTickets || 1
+    });
+    setEditError(null);
+    setSuccessMsg(null);
+  };
+  const openViewModal = (eng) => {
+    setModalType('view');
+    setSelectedEngineer(eng);
+    setViewError(null);
+    setViewLoading(false);
+  };
+  const closeModal = () => {
+    setModalType(null);
+    setSelectedEngineer(null);
+    setEditForm(null);
+    setEditError(null);
+    setViewError(null);
+    setSuccessMsg(null);
+  };
+
+  // Edit form handlers
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm({ ...editForm, [name]: value });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditError(null);
+    setSuccessMsg(null);
+    try {
+      const response = await fetch(`/api/engineers/${selectedEngineer.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          email: editForm.email,
+          category: editForm.category,
+          level: Number(editForm.level),
+          maxTickets: Number(editForm.maxTickets),
+          // name is in user, so you may need to update user separately if needed
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update engineer');
+      // Optionally update name in user
+      // Update local state
+      setEngineers(engineers.map(eng =>
+        eng.id === selectedEngineer.id
+          ? { ...eng, email: editForm.email, category: editForm.category, level: Number(editForm.level), maxTickets: Number(editForm.maxTickets), user: { ...eng.user, name: editForm.name } }
+          : eng
+      ));
+      setSuccessMsg('Engineer updated successfully!');
+      setTimeout(() => closeModal(), 1200);
+    } catch (err) {
+      setEditError('Failed to update engineer.');
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   if (loading) return <div className="empty-state">Loading engineers...</div>;
   if (error) return <div className="empty-state">Error: {error}</div>;
@@ -89,73 +210,108 @@ const ManageEngineers = () => {
         <div className="manager-actions">
           <button 
             className="action-button edit-button"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={openAddModal}
           >
-            {showAddForm ? 'Cancel' : 'Add New Engineer'}
+            Add New Engineer
           </button>
         </div>
       </div>
 
-      {showAddForm && (
-        <div className="add-form" style={{ marginBottom: '20px', padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-          <h2 style={{ marginTop: 0 }}>Add New Engineer</h2>
-          <form onSubmit={handleAddEngineer}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+      {/* Modal for Add/Edit/View */}
+      {modalType && (
+        <div className="engineer-modal-overlay" role="dialog" aria-modal="true">
+          <div className="engineer-modal">
+            <button className="engineer-modal-close" aria-label="Close" onClick={closeModal}>&times;</button>
+            {modalType === 'add' && (
               <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newEngineer.name}
-                  onChange={handleInputChange}
-                  required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                <h2>Add New Engineer</h2>
+                <form onSubmit={handleAddSubmit} className="engineer-edit-form">
+                  <div className="engineer-form-row">
+                    <label>Name</label>
+                    <input type="text" name="name" value={addForm.name} onChange={handleAddChange} required />
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Email</label>
+                    <input type="email" name="email" value={addForm.email} onChange={handleAddChange} required />
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Category</label>
+                    <select name="category" value={addForm.category} onChange={handleAddChange} required>
+                      <option value="">Select Category</option>
+                      {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Level</label>
+                    <input type="number" name="level" min="1" max="3" value={addForm.level} onChange={handleAddChange} required />
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Max Tickets</label>
+                    <input type="number" name="maxTickets" min="1" value={addForm.maxTickets} onChange={handleAddChange} required />
+                  </div>
+                  {addError && <div className="error-message" style={{ color: 'red', marginTop: 8 }}>{addError}</div>}
+                  {addSuccess && <div className="success-message" style={{ color: 'green', marginTop: 8 }}>{addSuccess}</div>}
+                  <div style={{ marginTop: 18, display: 'flex', gap: 10 }}>
+                    <button className="action-button edit-button" type="submit" disabled={addLoading}>{addLoading ? 'Adding...' : 'Add'}</button>
+                    <button className="action-button delete-button" type="button" onClick={closeModal} disabled={addLoading}>Cancel</button>
+                  </div>
+                </form>
               </div>
+            )}
+            {modalType === 'edit' && selectedEngineer && editForm && (
               <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={newEngineer.email}
-                  onChange={handleInputChange}
-                  required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                <h2>Edit Engineer</h2>
+                <form onSubmit={handleEditSubmit} className="engineer-edit-form">
+                  <div className="engineer-form-row">
+                    <label>Name</label>
+                    <input type="text" name="name" value={editForm.name} disabled />
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Email</label>
+                    <input type="email" name="email" value={editForm.email} disabled />
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Category</label>
+                    <select name="category" value={editForm.category} onChange={handleEditChange} required>
+                      <option value="">Select Category</option>
+                      {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Level</label>
+                    <input type="number" name="level" min="1" max="3" value={editForm.level} onChange={handleEditChange} required />
+                  </div>
+                  <div className="engineer-form-row">
+                    <label>Max Tickets</label>
+                    <input type="number" name="maxTickets" min="1" value={editForm.maxTickets} onChange={handleEditChange} required />
+                  </div>
+                  {editError && <div className="error-message" style={{ color: 'red', marginTop: 8 }}>{editError}</div>}
+                  {successMsg && <div className="success-message" style={{ color: 'green', marginTop: 8 }}>{successMsg}</div>}
+                  <div style={{ marginTop: 18, display: 'flex', gap: 10 }}>
+                    <button className="action-button edit-button" type="submit" disabled={editLoading}>{editLoading ? 'Saving...' : 'Save'}</button>
+                    <button className="action-button delete-button" type="button" onClick={closeModal} disabled={editLoading}>Cancel</button>
+                  </div>
+                </form>
               </div>
+            )}
+            {modalType === 'view' && selectedEngineer && (
               <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Specialization</label>
-                <input
-                  type="text"
-                  name="specialization"
-                  value={newEngineer.specialization}
-                  onChange={handleInputChange}
-                  required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
+                <h2>Engineer Details</h2>
+                <div className="engineer-view-details">
+                  <div><b>Name:</b> {selectedEngineer.user?.name}</div>
+                  <div><b>Email:</b> {selectedEngineer.email}</div>
+                  <div><b>Category:</b> {selectedEngineer.category}</div>
+                  <div><b>Level:</b> {selectedEngineer.level}</div>
+                  <div><b>Max Tickets:</b> {selectedEngineer.maxTickets}</div>
+                  <div><b>Current Tickets:</b> {selectedEngineer.currentTickets}</div>
+                  <div><b>Status:</b> {selectedEngineer.user?.enabled ? 'Active' : 'Inactive'}</div>
+                  <div><b>User ID:</b> {selectedEngineer.user?.id}</div>
+                  <div><b>Role:</b> {selectedEngineer.user?.role}</div>
+                  <div><b>Created At:</b> {selectedEngineer.user?.createdAt}</div>
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={newEngineer.phone}
-                  onChange={handleInputChange}
-                  required
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
-              </div>
-            </div>
-            <div style={{ marginTop: '15px' }}>
-              <button 
-                type="submit" 
-                className="action-button edit-button"
-                style={{ padding: '10px 15px' }}
-              >
-                Add Engineer
-              </button>
-            </div>
-          </form>
+            )}
+          </div>
         </div>
       )}
 
@@ -169,17 +325,17 @@ const ManageEngineers = () => {
         />
       </div>
 
-      {filteredEngineers.length === 0 ? (
-        <div className="empty-state">No engineers found</div>
-      ) : (
-        <table className="manager-table">
+      {/* Desktop Table */}
+      <div className="engineer-table-wrapper">
+        <table className="manager-table engineer-table-desktop">
           <thead>
             <tr>
               <th>Name</th>
               <th>Email</th>
-              <th>Specialization</th>
-              <th>Phone</th>
-              <th>Active Tickets</th>
+              <th>Category</th>
+              <th>Level</th>
+              <th>Max Tickets</th>
+              <th>Current Tickets</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -187,19 +343,20 @@ const ManageEngineers = () => {
           <tbody>
             {filteredEngineers.map((engineer) => (
               <tr key={engineer.id}>
-                <td>{engineer.name}</td>
+                <td>{engineer.user?.name || engineer.email}</td>
                 <td>{engineer.email}</td>
-                <td>{engineer.specialization}</td>
-                <td>{engineer.phone}</td>
-                <td>{engineer.activeTickets}</td>
+                <td>{engineer.category}</td>
+                <td>{engineer.level}</td>
+                <td>{engineer.maxTickets}</td>
+                <td>{engineer.currentTickets}</td>
                 <td>
-                  <span className={`status-badge status-${engineer.status === 'Active' ? 'active' : 'inactive'}`}>
-                    {engineer.status}
+                  <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>
+                    {engineer.user?.enabled ? 'Active' : 'Inactive'}
                   </span>
                 </td>
                 <td>
-                  <button className="action-button view-button">View</button>
-                  <button className="action-button edit-button">Edit</button>
+                  <button className="action-button view-button" onClick={() => openViewModal(engineer)}>View</button>
+                  <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
                   <button 
                     className="action-button delete-button"
                     onClick={() => handleDeleteEngineer(engineer.id)}
@@ -211,7 +368,27 @@ const ManageEngineers = () => {
             ))}
           </tbody>
         </table>
-      )}
+      </div>
+
+      {/* Mobile Card Layout */}
+      <div className="engineer-cards-mobile">
+        {filteredEngineers.map((engineer) => (
+          <div className="engineer-card" key={engineer.id}>
+            <div className="engineer-card-row"><span>Name:</span> {engineer.user?.name || engineer.email}</div>
+            <div className="engineer-card-row"><span>Email:</span> {engineer.email}</div>
+            <div className="engineer-card-row"><span>Category:</span> {engineer.category}</div>
+            <div className="engineer-card-row"><span>Level:</span> {engineer.level}</div>
+            <div className="engineer-card-row"><span>Max Tickets:</span> {engineer.maxTickets}</div>
+            <div className="engineer-card-row"><span>Current Tickets:</span> {engineer.currentTickets}</div>
+            <div className="engineer-card-row"><span>Status:</span> <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>{engineer.user?.enabled ? 'Active' : 'Inactive'}</span></div>
+            <div className="engineer-card-actions">
+              <button className="action-button view-button" onClick={() => openViewModal(engineer)}>View</button>
+              <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
+              <button className="action-button delete-button" onClick={() => handleDeleteEngineer(engineer.id)}>Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

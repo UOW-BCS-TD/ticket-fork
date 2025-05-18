@@ -68,24 +68,29 @@ body{overflow-y: scroll;}
 
 .ticket-item-header h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   color: white;
 }
 
 .ticket-item-status {
-  padding: 3px 8px;
+  padding: 3px 10px;
   border-radius: 12px;
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: capitalize;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+  display: inline-block;
+  text-align: center;
 }
 
+/* Status-specific colors */
 .ticket-item-status.open {
   background: #e3f2fd;
   color: #1976d2;
 }
 
-.ticket-item-status.progress {
+.ticket-item-status.in_progress {
   background: #fff3e0;
   color: #f57c00;
 }
@@ -93,6 +98,16 @@ body{overflow-y: scroll;}
 .ticket-item-status.resolved {
   background: #e8f5e9;
   color: #388e3c;
+}
+
+.ticket-item-status.closed {
+  background: #fbe9e7;
+  color: #d84315;
+}
+
+.ticket-item-status.escalated {
+  background: #fffde7;
+  color: #fbc02d;
 }
 
 .ticket-item-meta {
@@ -442,6 +457,10 @@ body{overflow-y: scroll;}
   font-size: 18px;
   color: #3090FF;
   margin-right: 10px;
+}
+.attachment_download {
+  margin-right: 10px;
+  color: #ffffff !important;
 }
 
 .attachment-name {
@@ -1012,4 +1031,166 @@ body{overflow-y: scroll;}
 .escalate-btn i {
   margin-right: 4px;
   font-size: 1.1em;
+}
+
+/* Attachment Section Styles */
+.attachments-section {
+  background: #f9f9fb;
+  border-radius: 8px;
+  padding: 24px 20px 20px 20px;
+  margin: 24px 0 0 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.attachments-section h4 {
+  margin-bottom: 16px;
+  font-size: 1.15em;
+  color: #2d3a4a;
+}
+
+.attachments-section input[type="file"] {
+  display: block;
+  margin-bottom: 12px;
+  padding: 6px 0;
+  font-size: 1em;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fff;
+  width: 100%;
+  max-width: 350px;
+  cursor: pointer;
+  transition: border 0.2s;
+}
+
+.attachments-section input[type="file"]:hover,
+.attachments-section input[type="file"]:focus {
+  border: 1.5px solid #007bff;
+}
+
+.attachment-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 5px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  font-size: 1em;
+}
+
+.attachment-name {
+  font-weight: 500;
+  color: #2d3a4a;
+  flex: 1;
+  word-break: break-all;
+}
+
+.attachment-date {
+  color: #888;
+  font-size: 0.95em;
+  margin-right: 10px;
+}
+
+.attachment-action-btn {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;
+  text-decoration: none;
+  font-size: 0.98em;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.attachment-action-btn:hover {
+  background: #0056b3;
+}
+
+.no-attachments {
+  color: #888;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+.success-message, .error-message {
+  margin-top: 8px;
+  font-size: 0.98em;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.success-message {
+  background: #eafbe7;
+  color: #2e7d32;
+  border: 1px solid #b2dfdb;
+}
+
+.error-message {
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #f5c6cb;
+}
+
+.custom-file-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: linear-gradient(90deg, #2d7ff9 60%, #3090FF 100%);
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1em;
+  margin-bottom: 14px;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(44, 123, 255, 0.08);
+  border: none;
+  position: relative;
+}
+
+.custom-file-upload:hover,
+.custom-file-upload:focus {
+  background: linear-gradient(90deg, #3090FF 60%, #2d7ff9 100%);
+  box-shadow: 0 4px 16px rgba(44, 123, 255, 0.16);
+  outline: none;
+}
+
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+.attachments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.attachments-header h4 {
+  margin: 0;
+  font-size: 1.15em;
+  color: #2d3a4a;
+}
+
+.attachments-header .custom-file-upload {
+  margin-bottom: 0;
+}
+
+.selected-file-name {
+  margin-left: 12px;
+  color: #2d3a4a;
+  font-size: 0.98em;
+  font-style: italic;
 }

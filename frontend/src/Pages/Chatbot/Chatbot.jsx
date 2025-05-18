@@ -145,54 +145,49 @@ const Chatbot = () => {
         else if (user.role === 'PREMIUM') urgency = 'MEDIUM';
         else if (user.role === 'STANDARD') urgency = 'LOW';
         // 3. Create a new session for the ticket
-        const sessionResponse = await axios.post(
-          `${API_BASE_URL}/api/sessions`,
-          { title: 'New Support Ticket', ticketSession: true },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const sessionId = sessionResponse.data.id;
+        let sessionId = activeSessionId;
         if (!sessionId) {
-          alert('Failed to create session. Please try again.');
-          return;
+          // No active session, create a new one
+          const sessionResponse = await axios.post(
+            `${API_BASE_URL}/api/sessions`,
+            { title: 'New Support Ticket', ticketSession: false },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          sessionId = sessionResponse.data.id;
+          if (!sessionId) {
+            alert('Failed to create session. Please try again.');
+            return;
+          }
+          await axios.put(
+            `${API_BASE_URL}/api/sessions/${sessionId}/end`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
         }
-        await axios.put(
-          `${API_BASE_URL}/api/sessions/${sessionId}/end`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
         // 4. Fetch products and ticket types (cached)
         const products = await getProducts(token);
         const ticketTypes = await getTicketTypes(token);
         // 5. Detect product category from chat
         const chatText = chatHistory.map(msg => msg.text).join(' ').toLowerCase();
+        const modelPatterns = [
+          { key: 'MODEL_3', patterns: [/\bmodel[\s\-]?3\b/i, /\btesla[\s\-]?model[\s\-]?3\b/i] },
+          { key: 'MODEL_Y', patterns: [/\bmodel[\s\-]?y\b/i, /\btesla[\s\-]?model[\s\-]?y\b/i] },
+          { key: 'MODEL_S', patterns: [/\bmodel[\s\-]?s\b/i, /\btesla[\s\-]?model[\s\-]?s\b/i] },
+          { key: 'MODEL_X', patterns: [/\bmodel[\s\-]?x\b/i, /\btesla[\s\-]?model[\s\-]?x\b/i] },
+          { key: 'CYBERTRUCK', patterns: [/\bcybertruck\b/i, /\btesla[\s\-]?cybertruck\b/i] }
+        ];
         let productCategory = null;
-        if (chatText.includes('model y')) productCategory = 'MODEL_Y';
-        else if (chatText.includes('model s')) productCategory = 'MODEL_S';
-        else if (chatText.includes('model x')) productCategory = 'MODEL_X';
-        else if (chatText.includes('cybertruck')) productCategory = 'CYBERTRUCK';
-        else if (chatText.includes('model 3')) productCategory = 'MODEL_3';
+        for (const model of modelPatterns) {
+          for (const pattern of model.patterns) {
+            if (pattern.test(chatText)) {
+              productCategory = model.key;
+              break;
+            }
+          }
+          if (productCategory) break;
+        }
         // 6. Find product and type IDs
-        let selectedProduct = null;
-        if (productCategory) {
-          selectedProduct = products.find(p => {
-            const productNameToCategory = {
-              'Model S': 'MODEL_S',
-              'Model 3': 'MODEL_3',
-              'Model X': 'MODEL_X',
-              'Model Y': 'MODEL_Y',
-              'Cybertruck': 'CYBERTRUCK'
-            };
-            return productNameToCategory[p.name] === productCategory;
-          });
-        }
-        if (!selectedProduct && products.length > 0) {
-          selectedProduct = products[0];
-        }
-        if (!selectedProduct) {
-          alert('No product found for ticket.');
-          return;
-        }
-        const productId = selectedProduct.id;
+        let selectedCategory = productCategory || 'MODEL_S'; // fallback to MODEL_S if not detected
         const selectedType = ticketTypes.length > 0 ? ticketTypes[0] : null;
         if (!selectedType) {
           alert('No ticket type found.');
@@ -200,9 +195,11 @@ const Chatbot = () => {
         }
         const typeId = selectedType.id;
         // 7. Build the request body (no description, no engineer)
+        const currentSession = chatList.find(s => s.id === sessionId);
+        const sessionTitle = currentSession ? currentSession.title : 'Support Request from Chat';
         const ticketBody = {
-          title: activeChat || 'Support Request from Chat',
-          product: { id: productId },
+          title: sessionTitle,
+          category: selectedCategory,
           type: { id: typeId },
           session: { id: sessionId },
           urgency: urgency,

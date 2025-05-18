@@ -41,10 +41,6 @@ public class Ticket {
     private Engineer engineer;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
-
-    @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
     private TicketType type;
 
@@ -54,6 +50,10 @@ public class Ticket {
 
     @Column(name = "history", columnDefinition = "LONGTEXT")
     private String history;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private TeslaModel category;
 
     // Getters and Setters
     public Long getId() {
@@ -136,14 +136,6 @@ public class Ticket {
         this.engineer = engineer;
     }
 
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
     public TicketType getType() {
         return type;
     }
@@ -166,5 +158,13 @@ public class Ticket {
 
     public void setHistory(String history) {
         this.history = history;
+    }
+
+    public TeslaModel getCategory() {
+        return category;
+    }
+
+    public void setCategory(TeslaModel category) {
+        this.category = category;
     }
 } 

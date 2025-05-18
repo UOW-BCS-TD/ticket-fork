@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Manager.css';
+import { ticketAPI } from '../../Services/api';
+import { useNavigate } from 'react-router-dom';
 
 const AllTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -9,14 +11,14 @@ const AllTickets = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [ticketsPerPage] = useState(10);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
-        // Replace with your actual API endpoint
-        const response = await axios.get('/api/tickets');
-        setTickets(response.data);
+        const data = await ticketAPI.getTicketsByManagerCategory();
+        setTickets(data);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch tickets');
@@ -24,15 +26,23 @@ const AllTickets = () => {
         console.error(err);
       }
     };
-
     fetchTickets();
   }, []);
 
   // Filter tickets based on search term and status
   const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = 
+    const matchesSearch =
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (
+        typeof ticket.customer === 'string'
+          ? ticket.customer.toLowerCase().includes(searchTerm.toLowerCase())
+          : (
+              ticket.customer && (
+                (ticket.customer.name && ticket.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (ticket.customer.email && ticket.customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
+              )
+            )
+      ) ||
       ticket.id.toString().includes(searchTerm);
     
     const matchesStatus = filterStatus === 'all' || ticket.status.toLowerCase() === filterStatus.toLowerCase();
@@ -74,10 +84,10 @@ const AllTickets = () => {
           onChange={(e) => setFilterStatus(e.target.value)}
         >
           <option value="all">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="in progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="CLOSED">Closed</option>
         </select>
       </div>
 
@@ -101,26 +111,38 @@ const AllTickets = () => {
             <tbody>
               {currentTickets.map((ticket) => (
                 <tr key={ticket.id}>
-                  <td>#{ticket.id}</td>
-                  <td>{ticket.title}</td>
-                  <td>{ticket.customer}</td>
-                  <td>{ticket.assignedTo || 'Unassigned'}</td>
+                  <td data-label="Ticket ID">#{ticket.id}</td>
+                  <td data-label="Title">{ticket.title}</td>
                   <td>
-                    <span className={`status-badge status-${ticket.priority.toLowerCase()}`}>
-                      {ticket.priority}
+                    {ticket.customer
+                      ? (typeof ticket.customer === 'object'
+                          ? ticket.customer.name || ticket.customer.email || `ID: ${ticket.customer.id}`
+                          : ticket.customer)
+                      : 'N/A'}
+                  </td>
+                  <td>
+                    {ticket.engineer
+                      ? (typeof ticket.engineer === 'object'
+                          ? `${ticket.engineer.name}${ticket.engineer.email ? ` (${ticket.engineer.email})` : ''}`
+                          : ticket.engineer)
+                      : 'Unassigned'}
+                  </td>
+                  <td>
+                    <span className={`status-badge urgency-${(ticket.urgency || '').toLowerCase().trim()}`}>
+                      {ticket.urgency || 'N/A'}
                     </span>
                   </td>
                   <td>
-                    <span className={`status-badge status-${ticket.status === 'Open' ? 'active' : 
-                                                           ticket.status === 'Resolved' ? 'inactive' : 
+                    <span className={`status-badge status-${(ticket.status || '').toLowerCase() === 'open' ? 'active' : 
+                                                           (ticket.status || '').toLowerCase() === 'resolved' ? 'inactive' : 
                                                            'pending'}`}>
-                      {ticket.status}
+                      {ticket.status || 'N/A'}
                     </span>
                   </td>
                   <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <button className="action-button view-button">View</button>
-                    <button className="action-button edit-button">Assign</button>
+                    <button className="action-button view-button" onClick={() => navigate(`/manager/tickets/${ticket.id}`)}>View</button>
+                    <button className="action-button edit-button" onClick={() => navigate(`/manager/tickets/${ticket.id}/assign`)}>Assign</button>
                   </td>
                 </tr>
               ))}

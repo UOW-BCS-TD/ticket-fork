@@ -3,6 +3,7 @@ package com.Elvis.ticket.controller;
 import com.Elvis.ticket.model.Engineer;
 import com.Elvis.ticket.model.TeslaModel;
 import com.Elvis.ticket.service.EngineerService;
+import com.Elvis.ticket.dto.EngineerResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,14 +54,11 @@ public class EngineerController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<Map<String, Object>>> getAvailableEngineers() {
+    public ResponseEntity<List<EngineerResponseDTO>> getAvailableEngineers() {
         List<Engineer> engineers = engineerService.getAvailableEngineers();
-        List<Map<String, Object>> result = engineers.stream().map(e -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", e.getId());
-            map.put("category", e.getCategory());
-            return map;
-        }).collect(Collectors.toList());
+        List<EngineerResponseDTO> result = engineers.stream()
+            .map(EngineerResponseDTO::fromEngineer)
+            .collect(Collectors.toList());
         return ResponseEntity.ok(result);
     }
 

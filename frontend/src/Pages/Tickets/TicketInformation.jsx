@@ -3,6 +3,7 @@ import './TicketInformation.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { ticketAPI } from '../../Services/api';
 import { sessionAPI } from '../../Services/api';
+import ChatbotHistory from './ChatbotHistory';
 // import { format } from 'date-fns'; // Uncomment if date-fns is available
 
 const TicketInformation = () => {
@@ -23,6 +24,7 @@ const TicketInformation = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
   
   useEffect(() => {
     const fetchTickets = async () => {
@@ -65,7 +67,14 @@ const TicketInformation = () => {
         setSession(sessionData);
         // Fetch chatbot history from /history endpoint
         const historyResp = await sessionAPI.getSessionHistory(currentTicket.session_id);
-        setChatbotHistory(Array.isArray(historyResp.history) ? historyResp.history : []);
+        // Accept both .history and .messages as possible keys
+        let historyArr = [];
+        if (Array.isArray(historyResp.history)) {
+          historyArr = historyResp.history;
+        } else if (Array.isArray(historyResp.messages)) {
+          historyArr = historyResp.messages;
+        }
+        setChatbotHistory(historyArr);
       } catch (err) {
         setSessionError('Failed to fetch chatbot history.');
       } finally {
@@ -156,6 +165,7 @@ const TicketInformation = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !currentTicket?.id) return;
+    setSelectedFileName(file ? file.name : "");
     setUploading(true);
     setUploadError(null);
     setUploadSuccess(null);
@@ -224,7 +234,9 @@ const TicketInformation = () => {
                       >
                         <div className="ticket-item-header">
                           <h4>{ticket.title}</h4>
-                          <span className={`ticket-item-status ${ticket.status}`}>{ticket.status}</span>
+                          <span className={`ticket-item-status ${ticket.status ? ticket.status.toLowerCase() : ''}`}>
+                            {ticket.status ? ticket.status.replace(/_/g, ' ') : 'Unknown'}
+                          </span>
                         </div>
                         <div className="ticket-item-meta">
                           <span className="ticket-item-id">#{ticket.id}</span>
@@ -283,7 +295,9 @@ const TicketInformation = () => {
                   <div className="ticket-title-section" aria-label="Ticket Title Section">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                       <span className="ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
-                      <span className={`ticket-status ${currentTicket.status}`} aria-label="Ticket Status">{currentTicket.status}</span>
+                      <span className={`ticket-item-status ${currentTicket.status ? currentTicket.status.toLowerCase() : ''}`} aria-label="Ticket Status">
+                        {currentTicket.status ? currentTicket.status.replace(/_/g, ' ') : 'Unknown'}
+                      </span>
                     </div>
                     <h2 className="ticket-title" aria-label="Ticket Title">{currentTicket.title}</h2>
                   </div>
@@ -318,13 +332,15 @@ const TicketInformation = () => {
                   </div>
                 </div>
                 
-                <div className="estimated-time">
-                  <i className="fas fa-hourglass-half"></i>
-                  <div>
-                    <strong>Estimated Resolution Time:</strong>
-                    <p>Our team is working on your issue. Estimated time to resolution: 24-48 hours</p>
+                {currentTicket.status === 'IN_PROGRESS' && (
+                  <div className="estimated-time">
+                    <i className="fas fa-hourglass-half"></i>
+                    <div>
+                      <strong>Estimated Resolution Time:</strong>
+                      <p>Our team is working on your issue. Estimated time to resolution: 24-48 hours</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 
                 
@@ -347,8 +363,23 @@ const TicketInformation = () => {
                 
                 {activeTab === 'attachments' && (
                   <div className="attachments-section">
-                    <h4>Attached Files</h4>
-                    <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                    <div className="attachments-header">
+                      <h4>Attached Files</h4>
+                      <div>
+                        {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' ? (
+                          <label className="custom-file-upload">
+                            <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                            <i className="fas fa-upload"></i> {uploading ? "Uploading..." : "Upload File"}
+                          </label>
+                        ) : null}
+                        {(currentTicket.status === 'RESOLVED' || currentTicket.status === 'CLOSED') && (
+                          <div className="info-message" style={{ color: '#888', marginBottom: 12 }}>
+                            This ticket is closed. You cannot reply or upload attachments.
+                          </div>
+                        )}
+                        {selectedFileName && <span className="selected-file-name">{selectedFileName}</span>}
+                      </div>
+                    </div>
                     {uploadError && <div className="error-message" style={{ color: 'red' }}>{uploadError}</div>}
                     {uploadSuccess && <div className="success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
                     {attachments.length === 0 ? (
@@ -361,7 +392,7 @@ const TicketInformation = () => {
                             <span className="attachment-name">{att.filename}</span>
                             <span className="attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
                             <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="attachment-action-btn">
-                              <i className="fas fa-download"></i> Download
+                              <i className="fas fa-download attachment_download"></i> Download
                             </a>
                           </div>
                         ))}
@@ -407,30 +438,20 @@ const TicketInformation = () => {
                 )}
                 
                 {activeTab === 'chatbot' && session && session.ticketSession !== true && (
-                  <div className="chatbot-history-section">
-                    <h4>Chatbot Conversation History</h4>
-                    {sessionLoading ? (
-                      <div className="empty-state">Loading chatbot history...</div>
-                    ) : sessionError ? (
-                      <div className="empty-state">{sessionError}</div>
-                    ) : chatbotHistory.length > 0 ? (
-                      <div className="interaction-history">
-                        {chatbotHistory.map((msg, idx) => (
-                          <div key={idx} className={`interaction ${msg.role === 'user' ? 'customer-message' : 'agent-message'}`}>
-                            <span className="time">{formatMessageTime(msg.timestamp)}</span>
-                            <span className="sender">{msg.role === 'user' ? 'You' : 'Bot'}:</span>
-                            <p>{msg.content}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="empty-state">No chatbot conversation found for this session.</div>
-                    )}
-                  </div>
+                  <ChatbotHistory
+                    chatbotHistory={chatbotHistory}
+                    loading={sessionLoading}
+                    error={sessionError}
+                    formatMessageTime={formatMessageTime}
+                  />
                 )}
                 
-                {/* Only show reply box for the Conversation tab */}
-                {activeTab === 'conversation' && (
+                {activeTab === 'conversation' && (currentTicket.status === 'RESOLVED' || currentTicket.status === 'CLOSED') && (
+                  <div className="info-message" style={{ color: '#888', marginTop: 16 }}>
+                    This ticket is closed. You cannot reply or upload attachments.
+                  </div>
+                )}
+                {activeTab === 'conversation' && currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' && (
                   <div className="reply-box">
                     <textarea 
                       placeholder="Type your reply here..."
