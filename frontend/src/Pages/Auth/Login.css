@@ -165,7 +165,7 @@ form.sign-up-form {
   text-decoration: underline;
 }
 
-.btn {
+.login-btn {
   width: 150px;
   height: 49px;
   border: none;
@@ -180,7 +180,7 @@ form.sign-up-form {
   transition: 0.5s;
 }
 
-.btn.transparent {
+.login-btn.transparent {
   margin: 0;
   background: none;
   border: 2px solid #fff;
@@ -245,6 +245,10 @@ form.sign-up-form {
 
 .right-panel .content, .right-panel .image {
   transform: translateX(800px);
+}
+
+.password-requirements {
+  color:#000;
 }
 
 /* ANIMATION */
@@ -430,7 +434,7 @@ form.sign-up-form {
     padding: 0.5rem 0;
   }
   
-  .btn.transparent {
+  .login-btn.transparent {
     width: 110px;
     height: 35px;
     font-size: 0.7rem;
@@ -510,7 +514,7 @@ form.sign-up-form {
   }
 }
 
-.btn:hover {
+.login-btn:hover {
   background-color: #2570c5;
 }
 
