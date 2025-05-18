@@ -6,7 +6,6 @@ const authFunctions = {
   login: async (email, password) => {
     try {
       const response = await authService.login({ email, password });
-      console.log('Login response:', response); // Debug log
       
       // Store token in localStorage
       if (response.token) {
@@ -61,7 +60,6 @@ const authFunctions = {
       }
 
       const { confirmPassword, ...dataToSend } = userData;
-      console.log('Sending registration data:', dataToSend); // Add logging
     
       const response = await authService.register(dataToSend);
       

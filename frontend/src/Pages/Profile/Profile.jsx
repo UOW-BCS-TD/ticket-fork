@@ -62,7 +62,6 @@ const Profile = () => {
       try {
         // Call the API to get the current user profile
         const userData = await auth.getCurrentUserProfile();
-        console.log("User data from API:", userData);
         
         // Normalize the API response if needed
         const normalizedUserData = {
@@ -132,12 +131,8 @@ const Profile = () => {
         return;
       }
       
-      console.log('Sending update request with data:', updateData);
-      
       // Call the API to update the user profile
       const updatedProfile = await auth.updateCurrentUserProfile(updateData);
-      
-      console.log('Received updated profile:', updatedProfile);
       
       // Update the local state with the updated profile data
       setUser(prevUser => ({

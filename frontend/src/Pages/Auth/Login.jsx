@@ -44,13 +44,11 @@ const Login = () => {
     setError('');
     
     try {
-      console.log('Attempting to login with:', email);
       
       // Use the auth service's Login function
       const response = await auth.login(email, password);
       
       if (response.success) {
-        console.log('Login successful:', response);
         
         // If remember me is checked, store email in localStorage
         if (rememberMe) {
@@ -99,7 +97,6 @@ const Login = () => {
     setError('');
     
     try {
-      console.log('Attempting to register:', regEmail);
       
       // Create userData object as expected by the auth.register function
       const userData = {
@@ -113,7 +110,6 @@ const Login = () => {
       const response = await auth.register(userData);
       
       if (response.success) {
-        console.log('Registration successful:', response);
         setSuccessMessage('Registration successful! Logging you in...');
         
         // The enhanced register function should handle auto-login

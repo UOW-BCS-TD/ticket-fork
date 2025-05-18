@@ -47,6 +47,9 @@ public class SecurityConfig {
                 
                 // User management endpoints (admin only)
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
+
+                // Log endpoints (admin only)
+                .requestMatchers("/api/logs/**").hasRole("ADMIN")
                 
                 // Ticket endpoints
                 .requestMatchers(HttpMethod.POST, "/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")

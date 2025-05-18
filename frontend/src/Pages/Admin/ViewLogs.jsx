@@ -1,85 +1,140 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
+import { logService } from '../../Services/api';
+import authFunctions from '../../Services/auth';
+import { useNavigate } from 'react-router-dom';
 
 const ViewLogs = () => {
   const [logs, setLogs] = useState([]);
+  const [logFiles, setLogFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState({
     level: 'all',
-    startDate: '',
-    endDate: '',
-    search: ''
+    search: '',
+    limit: 100
   });
+  const navigate = useNavigate();
 
-  // Mock log data for demonstration
+  // Check if user is admin
   useEffect(() => {
-    // Simulate API call to fetch logs
-    setTimeout(() => {
-      const mockLogs = [
-        { id: 1, timestamp: '2023-07-15T08:23:45', level: 'INFO', message: 'User login successful', user: 'admin@example.com', ip: '192.168.1.1' },
-        { id: 2, timestamp: '2023-07-15T09:12:30', level: 'WARNING', message: 'Failed login attempt', user: 'unknown', ip: '203.0.113.42' },
-        { id: 3, timestamp: '2023-07-15T10:45:12', level: 'ERROR', message: 'Database connection failed', user: 'system', ip: 'localhost' },
-        { id: 4, timestamp: '2023-07-15T11:30:22', level: 'INFO', message: 'Ticket #1234 created', user: 'customer@example.com', ip: '198.51.100.73' },
-        { id: 5, timestamp: '2023-07-15T12:15:40', level: 'INFO', message: 'User profile updated', user: 'engineer@example.com', ip: '192.168.1.15' },
-        { id: 6, timestamp: '2023-07-15T13:05:18', level: 'WARNING', message: 'High server load detected', user: 'system', ip: 'localhost' },
-        { id: 7, timestamp: '2023-07-15T14:22:33', level: 'ERROR', message: 'Payment processing failed', user: 'customer@example.com', ip: '198.51.100.73' },
-        { id: 8, timestamp: '2023-07-15T15:10:05', level: 'INFO', message: 'System backup completed', user: 'system', ip: 'localhost' },
-        { id: 9, timestamp: '2023-07-15T16:45:59', level: 'CRITICAL', message: 'Security breach detected', user: 'system', ip: '203.0.113.42' },
-        { id: 10, timestamp: '2023-07-15T17:30:11', level: 'INFO', message: 'User logout', user: 'admin@example.com', ip: '192.168.1.1' },
-      ];
-      setLogs(mockLogs);
-      setLoading(false);
-    }, 1000);
+    if (!authFunctions.isAdmin()) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
+  // Fetch available log files
+  useEffect(() => {
+    const fetchLogFiles = async () => {
+      try {
+        setLoading(true);
+        const files = await logService.getLogFiles();
+        setLogFiles(files);
+        if (files.length > 0) {
+          setSelectedFile(files[0]);
+        }
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching log files:', err);
+        setError('Failed to load log files. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogFiles();
   }, []);
+
+  // Fetch logs when filters or selected file changes
+  useEffect(() => {
+    if (selectedFile) {
+      fetchLogs();
+    }
+  }, [selectedFile]);
+
+  const fetchLogs = async () => {
+    if (!selectedFile) return;
+    
+    try {
+      setLoading(true);
+      const data = await logService.getLogsFromFile(selectedFile, {
+        level: filter.level === 'all' ? '' : filter.level,
+        search: filter.search,
+        limit: filter.limit
+      });
+      setLogs(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching logs:', err);
+      setError('Failed to load logs. Please try again later.');
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.value);
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilter({
-      ...filter,
+    setFilter(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
   const applyFilters = () => {
-    // This would typically be an API call with filter parameters
-    // For now, we'll just simulate filtering the mock data
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
+    fetchLogs();
   };
 
   const clearFilters = () => {
     setFilter({
       level: 'all',
-      startDate: '',
-      endDate: '',
-      search: ''
+      search: '',
+      limit: 100
     });
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    // Don't fetch logs here, let the effect handle it
   };
 
   const getLogLevelClass = (level) => {
-    switch(level.toUpperCase()) {
-      case 'INFO':
-        return 'log-info';
-      case 'WARNING':
-        return 'log-warning';
-      case 'ERROR':
-        return 'log-error';
-      case 'CRITICAL':
-        return 'log-critical';
-      default:
-        return '';
+    switch (level?.toLowerCase()) {
+      case 'error': return 'log-error';
+      case 'warn': return 'log-warning';
+      case 'debug': return 'log-debug';
+      case 'trace': return 'log-trace';
+      case 'info': 
+      default: return 'log-info';
     }
   };
 
-  if (loading) {
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    
+    try {
+      // Parse the timestamp string to a Date object
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return timestamp; // Return original if parsing fails
+      }
+      
+      // Format using native JavaScript
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    } catch (e) {
+      return timestamp; // Return original if any error occurs
+    }
+  };
+
+  if (loading && logs.length === 0) {
     return (
       <div className="admin-loading">
         <div className="admin-loader"></div>
@@ -92,121 +147,122 @@ const ViewLogs = () => {
     <div className="admin-page">
       <div className="admin-header">
         <h1>System Logs</h1>
-        <p>View and analyze system activity logs</p>
+        <p>View and analyze application logs</p>
       </div>
 
       {error && <div className="admin-error">{error}</div>}
 
-      <div className="admin-content">
-        <div className="logs-container">
-          <div className="logs-filter">
-            <div className="filter-row">
-              <div className="filter-group">
-                <label htmlFor="level">Log Level</label>
-                <select 
-                  id="level" 
-                  name="level" 
-                  value={filter.level}
-                  onChange={handleFilterChange}
-                >
-                  <option value="all">All Levels</option>
-                  <option value="info">Info</option>
-                  <option value="warning">Warning</option>
-                  <option value="error">Error</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
-              
-              <div className="filter-group">
-                <label htmlFor="startDate">Start Date</label>
-                <input 
-                  type="date" 
-                  id="startDate" 
-                  name="startDate" 
-                  value={filter.startDate}
-                  onChange={handleFilterChange}
-                />
-              </div>
-              
-              <div className="filter-group">
-                <label htmlFor="endDate">End Date</label>
-                <input 
-                  type="date" 
-                  id="endDate" 
-                  name="endDate" 
-                  value={filter.endDate}
-                  onChange={handleFilterChange}
-                />
-              </div>
-              
-              <div className="filter-group search">
-                <label htmlFor="search">Search</label>
-                <input 
-                  type="text" 
-                  id="search" 
-                  name="search" 
-                  placeholder="Search logs..." 
-                  value={filter.search}
-                  onChange={handleFilterChange}
-                />
-              </div>
+      <div className="logs-container">
+        <div className="logs-controls">
+          <div className="logs-filters">
+            <div className="filter-group">
+              <label>Log File</label>
+              <select 
+                value={selectedFile} 
+                onChange={handleFileChange}
+                className="log-select"
+              >
+                {logFiles.map(file => (
+                  <option key={file} value={file}>{file}</option>
+                ))}
+              </select>
             </div>
-            
+            <div className="filter-group">
+              <label>Level</label>
+              <select 
+                name="level" 
+                value={filter.level} 
+                onChange={handleFilterChange}
+                className="level-select"
+              >
+                <option value="all">All Levels</option>
+                <option value="INFO">Info</option>
+                <option value="WARN">Warning</option>
+                <option value="ERROR">Error</option>
+                <option value="DEBUG">Debug</option>
+                <option value="TRACE">Trace</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Search</label>
+              <input 
+                type="text" 
+                name="search" 
+                value={filter.search} 
+                onChange={handleFilterChange}
+                placeholder="Search in logs..."
+                className="search-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Limit</label>
+              <select 
+                name="limit" 
+                value={filter.limit} 
+                onChange={handleFilterChange}
+                className="limit-select"
+              >
+                <option value="50">50 entries</option>
+                <option value="100">100 entries</option>
+                <option value="200">200 entries</option>
+                <option value="500">500 entries</option>
+                <option value="1000">1000 entries</option>
+              </select>
+            </div>
             <div className="filter-actions">
-              <button className="filter-btn clear" onClick={clearFilters}>Clear Filters</button>
-              <button className="filter-btn apply" onClick={applyFilters}>Apply Filters</button>
+              <button 
+                className="admin-btn-primary" 
+                onClick={applyFilters}
+              >
+                Apply Filters
+              </button>
+              <button 
+                className="admin-btn-secondary" 
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </button>
             </div>
           </div>
-          
-          <div className="logs-table-container">
+        </div>
+
+        <div className="logs-table-container">
+          {logFiles.length === 0 ? (
+            <div className="no-logs">
+              <i className="fas fa-exclamation-circle"></i>
+              <p>No log files found. Please check your server configuration.</p>
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="no-logs">
+              <i className="fas fa-search"></i>
+              <p>No logs found matching your criteria</p>
+            </div>
+          ) : (
             <table className="logs-table">
               <thead>
                 <tr>
                   <th>Timestamp</th>
                   <th>Level</th>
+                  <th>Logger</th>
+                  <th>Thread</th>
                   <th>Message</th>
-                  <th>User</th>
-                  <th>IP Address</th>
                 </tr>
               </thead>
               <tbody>
-                {logs.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="no-data">No logs found</td>
+                {logs.map((log, index) => (
+                  <tr key={index} className={getLogLevelClass(log.level)}>
+                    <td className="log-timestamp">{formatTimestamp(log.timestamp)}</td>
+                    <td className="log-level">{log.level}</td>
+                    <td className="log-logger">{log.logger}</td>
+                    <td className="log-thread">{log.threadName || '-'}</td>
+                    <td className="log-message">
+                      <div className="message-contents">{log.message}</div>
+                    </td>
                   </tr>
-                ) : (
-                  logs.map(log => (
-                    <tr key={log.id}>
-                      <td>{formatDate(log.timestamp)}</td>
-                      <td>
-                        <span className={`log-level ${getLogLevelClass(log.level)}`}>
-                          {log.level}
-                        </span>
-                      </td>
-                      <td>{log.message}</td>
-                      <td>{log.user}</td>
-                      <td>{log.ip}</td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
-          </div>
-          
-          <div className="logs-pagination">
-            <button className="page-btn" disabled>&laquo; Previous</button>
-            <span className="page-info">Page 1 of 1</span>
-            <button className="page-btn" disabled>Next &raquo;</button>
-          </div>
-          
-          <div className="logs-actions">
-            <button className="action-btn">
-              <i className="fas fa-download"></i> Export Logs
-            </button>
-            <button className="action-btn">
-              <i className="fas fa-trash-alt"></i> Clear Logs
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>

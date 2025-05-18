@@ -461,7 +461,7 @@ const UserManagement = () => {
                     value={editFormData.phoneNumber}
                     onChange={handleEditInputChange}
                   />
-                </div>
+                                </div>
                 <div className="form-group">
                   <label htmlFor="role">Role</label>
                   <select
@@ -479,10 +479,10 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>
+                <button type="button" className="admin-btn-secondary" onClick={() => setShowEditModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
+                <button type="submit" className="admin-btn-primary" disabled={loading}>
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
@@ -519,7 +519,7 @@ const UserManagement = () => {
                 <div className="form-group">
                   <label htmlFor="confirmPassword">Confirm Password</label>
                   <input
-                                        type="password"
+                    type="password"
                     id="confirmPassword"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -528,10 +528,10 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowResetPasswordModal(false)}>
+                <button type="button" className="admin-btn-secondary" onClick={() => setShowResetPasswordModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
+                <button type="submit" className="admin-btn-primary" disabled={loading}>
                   {loading ? 'Resetting...' : 'Reset Password'}
                 </button>
               </div>
@@ -626,10 +626,10 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
+                <button type="button" className="admin-btn-secondary" onClick={() => setShowAddModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
+                <button type="submit" className="admin-btn-primary" disabled={loading}>
                   {loading ? 'Creating...' : 'Create User'}
                 </button>
               </div>
@@ -656,12 +656,12 @@ const UserManagement = () => {
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>
+              <button type="button" className="admin-btn-secondary" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </button>
               <button 
                 type="button" 
-                className="btn btn-primary" 
+                className="admin-btn-danger" 
                 onClick={confirmDeleteUser}
                 disabled={loading}
               >
@@ -676,4 +676,3 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
-
