@@ -6,7 +6,6 @@ const authFunctions = {
   login: async (email, password) => {
     try {
       const response = await authService.login({ email, password });
-      console.log('Login response:', response); // Debug log
       
       // Store token in localStorage
       if (response.token) {
@@ -31,7 +30,7 @@ const authFunctions = {
       console.error('Login error:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed. Please check your credentials.'
+        message: error.response?.data?.message || 'Invalid email or password.'
       };
     }
   },
@@ -61,7 +60,6 @@ const authFunctions = {
       }
 
       const { confirmPassword, ...dataToSend } = userData;
-      console.log('Sending registration data:', dataToSend); // Add logging
     
       const response = await authService.register(dataToSend);
       
@@ -258,24 +256,10 @@ export const userManagement = {
   // Update user password (admin only)
   updatePassword: async (id, passwordData) => {
     try {
-      const adminResetData = {
-        oldPassword: "",
-        newPassword: passwordData.password || passwordData.newPassword
-      };
-
-      const response = await userService.updatePassword(id, adminResetData);
-      
-      return {
-        success: true,
-        message: 'Password changed successfully',
-        user: response
-      };
+      return await userService.updatePassword(id, passwordData);
     } catch (error) {
-      console.error(`Error updating password for user with ID ${id}:`, error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to update password.'
-      };
+      console.error(`Error updating password with ID ${id}:`, error);
+      throw error;
     }
   },
 

@@ -11,7 +11,6 @@
   position: relative;
   width: 100%;
   max-width: 1200px;
-  min-height: 650px;
   background-color: #fff;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -27,6 +26,7 @@
 .support-ticket-form {
   padding: 0 5rem;
   overflow: hidden;
+  color: #333;
 }
 
 /* Left Panel Styles */

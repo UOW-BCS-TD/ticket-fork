@@ -27,9 +27,7 @@ export const authService = {
   // Register a new user
   register: async (userData) => {
     try {
-      console.log('Making registration request with data:', userData);
       const response = await api.post('/auth/register', userData);
-      console.log('Registration response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Registration API error:', error.response?.data || error);
@@ -102,16 +100,6 @@ export const userService = {
 
   // Update user password (admin only)
   updatePassword: async (id, passwordData) => {
-    try {
-      const response = await api.put(`/users/${id}/password`, passwordData);
-      return response.data;
-    } catch (error) {
-      throw error.response ? error.response.data : error;
-    }
-  },
-
-  // Alias for compatibility with UserManagement.jsx
-  updateUserPassword: async (id, passwordData) => {
     try {
       const response = await api.put(`/users/${id}/password`, passwordData);
       return response.data;
@@ -425,6 +413,39 @@ export const engineerAPI = {
       }
       return null;
     } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+};
+
+// Log management services
+export const logService = {
+  // Get all available log files
+  getLogFiles: async () => {
+    try {
+      const response = await api.get('/logs/files');
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching log files:", error);
+      throw error.response ? error.response.data : error;
+    }
+  },
+
+  // Get logs from a specific file with optional filters
+  getLogsFromFile: async (fileName, filters = {}) => {
+    try {
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (filters.level && filters.level !== 'all') params.append('level', filters.level);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.limit) params.append('limit', filters.limit);
+      
+      const url = `/logs/file/${encodeURIComponent(fileName)}?${params.toString()}`;
+      
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching logs:", error);
       throw error.response ? error.response.data : error;
     }
   },

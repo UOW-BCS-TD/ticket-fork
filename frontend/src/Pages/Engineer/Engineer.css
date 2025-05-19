@@ -57,7 +57,7 @@
 }
 
 /* Button Styles */
-.btn-primary {
+.engineer-btn-primary {
   background-color: #3498db;
   color: white;
   border: none;
@@ -68,11 +68,11 @@
   transition: background-color 0.3s;
 }
 
-.btn-primary:hover {
+.engineer-btn-primary:hover {
   background-color: #2980b9;
 }
 
-.btn-secondary {
+.engineer-btn-secondary {
   background-color: #95a5a6;
   color: white;
   border: none;
@@ -83,11 +83,11 @@
   transition: background-color 0.3s;
 }
 
-.btn-secondary:hover {
+.engineer-btn-secondary:hover {
   background-color: #7f8c8d;
 }
 
-.btn-back {
+.engineer-btn-back {
   background-color: transparent;
   color: #3498db;
   border: none;
@@ -99,7 +99,7 @@
   margin-bottom: 20px;
 }
 
-.btn-back:hover {
+.engineer-btn-back:hover {
   color: #2980b9;
 }
 

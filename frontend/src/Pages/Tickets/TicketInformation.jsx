@@ -284,7 +284,7 @@ const TicketInformation = () => {
                 <div className="empty-state" style={{marginTop: '40px', fontSize: '1.1em', textAlign: 'center'}}>
                   <span className="empty-icon"><i className="fas fa-comments"></i></span>
                   You don't have any support tickets yet. If you have a question or need assistance, please visit our chatbot—it's ready to help you anytime!
-                  <a href="http://localhost:5173/chatbot" className="btn btn-primary">
+                  <a href="/chatbot" className="empty-state-btn btn-primary">
                   <i className="fas fa-robot"></i> Chat with Bot</a>
                 </div>
                 

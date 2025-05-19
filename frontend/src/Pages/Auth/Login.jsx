@@ -44,13 +44,11 @@ const Login = () => {
     setError('');
     
     try {
-      console.log('Attempting to login with:', email);
       
       // Use the auth service's Login function
       const response = await auth.login(email, password);
       
       if (response.success) {
-        console.log('Login successful:', response);
         
         // If remember me is checked, store email in localStorage
         if (rememberMe) {
@@ -99,7 +97,6 @@ const Login = () => {
     setError('');
     
     try {
-      console.log('Attempting to register:', regEmail);
       
       // Create userData object as expected by the auth.register function
       const userData = {
@@ -113,7 +110,6 @@ const Login = () => {
       const response = await auth.register(userData);
       
       if (response.success) {
-        console.log('Registration successful:', response);
         setSuccessMessage('Registration successful! Logging you in...');
         
         // The enhanced register function should handle auto-login
@@ -121,7 +117,7 @@ const Login = () => {
         window.dispatchEvent(new Event('authChange'));
         
         // Redirect to home page after successful registration
-        setTimeout(() => navigate('/profile'), 1000);
+        setTimeout(() => navigate('/profile'), 500);
       } else {
         // Handle unsuccessful registration
         setError(response.message || 'Registration failed. Please try again.');
@@ -193,7 +189,7 @@ const Login = () => {
                 </div>
                 <Link to="/forgot-password" className="forgot-password">Forgot password?</Link>
               </div>
-              <button type="submit" className="btn solid" disabled={isLoading}>
+              <button type="submit" className="login-btn solid" disabled={isLoading}>
                 {isLoading ? 'Logging in...' : 'Login'}
               </button>
 
@@ -272,7 +268,7 @@ const Login = () => {
               <div className="password-requirements">
                 <small>Password must be at least 8 characters long</small>
               </div>
-              <button type="submit" className="btn solid" disabled={isLoading}>
+              <button type="submit" className="login-btn solid" disabled={isLoading}>
                 {isLoading ? 'Signing up...' : 'Sign up'}
               </button>
   
@@ -311,7 +307,7 @@ const Login = () => {
             <div className="content">
               <h3>New here?</h3>
               <p>Create an account and start your journey with us today!</p>
-              <button className="btn transparent" onClick={toggleMode} id="sign-up-btn">Sign up</button>
+              <button className="login-btn transparent" onClick={toggleMode} id="sign-up-btn">Sign up</button>
             </div>
           </div>
   
@@ -319,7 +315,7 @@ const Login = () => {
             <div className="content">
               <h3>One of us?</h3>
               <p>Sign in to access your account and continue your experience.</p>
-              <button className="btn transparent" onClick={toggleMode} id="sign-in-btn">Sign in</button>
+              <button className="login-btn transparent" onClick={toggleMode} id="sign-in-btn">Sign in</button>
             </div>
           </div>
         </div>
