@@ -66,6 +66,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/tickets/*/attachments").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers(HttpMethod.GET, "/api/tickets/*/attachments").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers(HttpMethod.GET, "/api/tickets/*/attachments/*").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets/manager/category").hasAnyRole("ADMIN", "MANAGER")
                 
                 // Customer management endpoints
                 .requestMatchers("/api/customers").hasAnyRole("ADMIN", "MANAGER")
@@ -76,6 +77,7 @@ public class SecurityConfig {
                 // Engineer management endpoints
                 .requestMatchers(HttpMethod.GET, "/api/engineers/available/category/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/engineers/available").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.POST, "/api/engineers").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/{id}").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/email/**").hasAnyRole("ADMIN", "MANAGER")
@@ -85,14 +87,14 @@ public class SecurityConfig {
                 // Session management endpoints
                 .requestMatchers(HttpMethod.POST, "/api/sessions").hasRole("CUSTOMER")
                 .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER", "ENGINEER", "CUSTOMER")
                 .requestMatchers("/api/sessions/session/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/sessions/user/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/sessions/inactive").hasRole("ADMIN")
                 .requestMatchers("/api/sessions/{id}/end").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/{id}/activity").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/{id}/history").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/list").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers("/api/sessions/{id}/activity").hasAnyRole("ADMIN", "MANAGER", "ENGINEER", "CUSTOMER")
+                .requestMatchers("/api/sessions/*/history").hasAnyRole("ADMIN", "MANAGER", "ENGINEER", "CUSTOMER")
+                .requestMatchers("/api/sessions/list").hasAnyRole("ADMIN", "MANAGER", "ENGINEER", "CUSTOMER")
                 
                 // Product endpoints
                 .requestMatchers(HttpMethod.GET, "/api/products").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")

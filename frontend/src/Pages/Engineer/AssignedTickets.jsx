@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../Tickets/TicketInformation.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { sessionAPI } from '../../Services/api';
+import ChatbotHistory from '../Tickets/ChatbotHistory';
 
 const AssignedTickets = () => {
   const [ticketList, setTicketList] = useState([]);
@@ -23,6 +25,10 @@ const AssignedTickets = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(null);
+  const [session, setSession] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(false);
+  const [sessionError, setSessionError] = useState(null);
+  const [chatbotHistory, setChatbotHistory] = useState([]);
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -206,6 +212,42 @@ const AssignedTickets = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchSession = async () => {
+      setSession(null);
+      setSessionLoading(false);
+      setSessionError(null);
+      setChatbotHistory([]);
+      if (!currentTicket || !currentTicket.session_id) return;
+      setSessionLoading(true);
+      try {
+        // Fetch session info (for ticketSession flag)
+        const sessionData = await sessionAPI.getSessionById(currentTicket.session_id);
+        setSession(sessionData);
+        // Fetch chatbot history from new engineer-specific endpoint
+        const historyResp = await fetch(`/api/sessions/${currentTicket.session_id}/history/ticket/${currentTicket.id}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!historyResp.ok) throw new Error('Failed to fetch chatbot history');
+        const historyJson = await historyResp.json();
+        let historyArr = [];
+        if (Array.isArray(historyJson.history)) {
+          historyArr = historyJson.history;
+        } else if (Array.isArray(historyJson.messages)) {
+          historyArr = historyJson.messages;
+        }
+        setChatbotHistory(historyArr);
+      } catch (err) {
+        setSessionError('Failed to fetch chatbot history.');
+      } finally {
+        setSessionLoading(false);
+      }
+    };
+    if (currentTicket && currentTicket.session_id) {
+      fetchSession();
+    }
+  }, [currentTicket]);
+
   return (
     <div className="ticket-view-container">
       <div className="sidebar-toggle" onClick={() => {
@@ -251,7 +293,9 @@ const AssignedTickets = () => {
                       >
                         <div className="ticket-item-header">
                           <h4>{ticket.title}</h4>
-                          <span className={`ticket-item-status ${ticket.status}`}>{ticket.status}</span>
+                          <span className={`ticket-item-status ${ticket.status ? ticket.status.toLowerCase() : ''}`}>
+                            {ticket.status ? ticket.status.replace(/_/g, ' ') : 'Unknown'}
+                          </span>
                         </div>
                         <div className="ticket-item-meta">
                           <span className="ticket-item-id">#{ticket.id}</span>
@@ -304,8 +348,9 @@ const AssignedTickets = () => {
                   <div className="ticket-title-section" aria-label="Ticket Title Section">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                       <span className="ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
-                      <span className={`ticket-status ${currentTicket.status}`} aria-label="Ticket Status">{currentTicket.status}</span>
-                     
+                      <span className={`ticket-item-status ${currentTicket.status ? currentTicket.status.toLowerCase() : ''}`} aria-label="Ticket Status">
+                        {currentTicket.status ? currentTicket.status.replace(/_/g, ' ') : 'Unknown'}
+                      </span>
                     </div>
                     <h2 className="ticket-title" aria-label="Ticket Title">{currentTicket.title}</h2>
                   </div>
@@ -328,6 +373,14 @@ const AssignedTickets = () => {
                     >
                       <i className="fas fa-link"></i> Related Information
                     </div>
+                    {session && session.ticketSession !== true && (
+                      <div 
+                        className={`ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('chatbot')}
+                      >
+                        <i className="fas fa-robot"></i> Chatbot History
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="estimated-time" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
@@ -373,8 +426,22 @@ const AssignedTickets = () => {
                 )}
                 {activeTab === 'attachments' && (
                   <div className="attachments-section">
-                    <h4>Attached Files</h4>
-                    <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                    <div className="attachments-header">
+                      <h4>Attached Files</h4>
+                      <div>
+                        {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' ? (
+                          <label className="custom-file-upload">
+                            <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                            <i className="fas fa-upload"></i> {uploading ? "Uploading..." : "Upload File"}
+                          </label>
+                        ) : null}
+                        {(currentTicket.status === 'RESOLVED' || currentTicket.status === 'CLOSED') && (
+                          <div className="info-message" style={{ color: '#888', marginBottom: 12 }}>
+                            This ticket is closed. You cannot reply or upload attachments.
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     {uploadError && <div className="error-message" style={{ color: 'red' }}>{uploadError}</div>}
                     {uploadSuccess && <div className="success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
                     {attachments.length === 0 ? (
@@ -387,7 +454,7 @@ const AssignedTickets = () => {
                             <span className="attachment-name">{att.filename}</span>
                             <span className="attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
                             <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="attachment-action-btn">
-                              <i className="fas fa-download"></i> Download
+                              <i className="fas fa-download attachment_download"></i> Download
                             </a>
                           </div>
                         ))}
@@ -418,6 +485,14 @@ const AssignedTickets = () => {
                       </a>
                     </div>
                   </div>
+                )}
+                {activeTab === 'chatbot' && session && session.ticketSession !== true && (
+                  <ChatbotHistory
+                    chatbotHistory={chatbotHistory}
+                    loading={sessionLoading}
+                    error={sessionError}
+                    formatMessageTime={formatMessageTime}
+                  />
                 )}
                 {/* Only show reply box for the Conversation tab */}
                 {activeTab === 'conversation' && (

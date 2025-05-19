@@ -20,6 +20,8 @@ public class DataInitializer {
                                  ManagerRepository managerRepository,
                                  ProductRepository productRepository,
                                  TicketTypeRepository ticketTypeRepository,
+                                 SessionRepository sessionRepository,
+                                 TicketRepository ticketRepository,
                                  PasswordEncoder passwordEncoder) {
         return args -> {
             LocalDateTime now = LocalDateTime.now();
@@ -69,32 +71,32 @@ public class DataInitializer {
             createCustomerUser("Carol White", "cus@example.com", CustomerRole.STANDARD, userRepository, passwordEncoder, now);
 
             // Create managers for each Tesla model
-            createManager(managerRepository, userRepository, "ms@example.com", "Model S Support", TeslaModel.MODEL_S);
-            createManager(managerRepository, userRepository, "m3@example.com", "Model 3 Support", TeslaModel.MODEL_3);
-            createManager(managerRepository, userRepository, "mx@example.com", "Model X Support", TeslaModel.MODEL_X);
-            createManager(managerRepository, userRepository, "my@example.com", "Model Y Support", TeslaModel.MODEL_Y);
-            createManager(managerRepository, userRepository, "ct@example.com", "Cybertruck Support", TeslaModel.CYBERTRUCK);
+            createManager(managerRepository, userRepository, "ms@example.com", "Model S Support", TeslaModel.MODEL_S.name());
+            createManager(managerRepository, userRepository, "m3@example.com", "Model 3 Support", TeslaModel.MODEL_3.name());
+            createManager(managerRepository, userRepository, "mx@example.com", "Model X Support", TeslaModel.MODEL_X.name());
+            createManager(managerRepository, userRepository, "my@example.com", "Model Y Support", TeslaModel.MODEL_Y.name());
+            createManager(managerRepository, userRepository, "ct@example.com", "Cybertruck Support", TeslaModel.CYBERTRUCK.name());
 
             // Create Level 1 Engineers
-            createEngineer(engineerRepository, userRepository, "l1ms@example.com", TeslaModel.MODEL_S, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1m3@example.com", TeslaModel.MODEL_3, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1mx@example.com", TeslaModel.MODEL_X, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1my@example.com", TeslaModel.MODEL_Y, 1, 3);
-            createEngineer(engineerRepository, userRepository, "l1ct@example.com", TeslaModel.CYBERTRUCK, 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1ms@example.com", TeslaModel.MODEL_S.name(), 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1m3@example.com", TeslaModel.MODEL_3.name(), 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1mx@example.com", TeslaModel.MODEL_X.name(), 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1my@example.com", TeslaModel.MODEL_Y.name(), 1, 3);
+            createEngineer(engineerRepository, userRepository, "l1ct@example.com", TeslaModel.CYBERTRUCK.name(), 1, 3);
 
             // Create Level 2 Engineers
-            createEngineer(engineerRepository, userRepository, "l2ms@example.com", TeslaModel.MODEL_S, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2m3@example.com", TeslaModel.MODEL_3, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2mx@example.com", TeslaModel.MODEL_X, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2my@example.com", TeslaModel.MODEL_Y, 2, 4);
-            createEngineer(engineerRepository, userRepository, "l2ct@example.com", TeslaModel.CYBERTRUCK, 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2ms@example.com", TeslaModel.MODEL_S.name(), 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2m3@example.com", TeslaModel.MODEL_3.name(), 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2mx@example.com", TeslaModel.MODEL_X.name(), 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2my@example.com", TeslaModel.MODEL_Y.name(), 2, 4);
+            createEngineer(engineerRepository, userRepository, "l2ct@example.com", TeslaModel.CYBERTRUCK.name(), 2, 4);
 
             // Create Level 3 Engineers
-            createEngineer(engineerRepository, userRepository, "l3ms@example.com", TeslaModel.MODEL_S, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3m3@example.com", TeslaModel.MODEL_3, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3mx@example.com", TeslaModel.MODEL_X, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3my@example.com", TeslaModel.MODEL_Y, 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3ct@example.com", TeslaModel.CYBERTRUCK, 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3ms@example.com", TeslaModel.MODEL_S.name(), 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3m3@example.com", TeslaModel.MODEL_3.name(), 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3mx@example.com", TeslaModel.MODEL_X.name(), 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3my@example.com", TeslaModel.MODEL_Y.name(), 3, 5);
+            createEngineer(engineerRepository, userRepository, "l3ct@example.com", TeslaModel.CYBERTRUCK.name(), 3, 5);
 
             // Create sample customers
             createCustomer(customerRepository, userRepository, "svip@example.com", CustomerRole.VIP);
@@ -103,11 +105,11 @@ public class DataInitializer {
 
             // Create Tesla products
             if (productRepository.count() == 0) {
-                createProduct(productRepository, "Model S", "Tesla Model S - Luxury Electric Sedan", now);
-                createProduct(productRepository, "Model 3", "Tesla Model 3 - Mid-size Electric Sedan", now);
-                createProduct(productRepository, "Model X", "Tesla Model X - Luxury Electric SUV", now);
-                createProduct(productRepository, "Model Y", "Tesla Model Y - Compact Electric SUV", now);
-                createProduct(productRepository, "Cybertruck", "Tesla Cybertruck - Electric Pickup Truck", now);
+                createProduct(productRepository, "Model S", "Tesla Model S - Luxury Electric Sedan", TeslaModel.MODEL_S.name(), now);
+                createProduct(productRepository, "Model 3", "Tesla Model 3 - Mid-size Electric Sedan", TeslaModel.MODEL_3.name(), now);
+                createProduct(productRepository, "Model X", "Tesla Model X - Luxury Electric SUV", TeslaModel.MODEL_X.name(), now);
+                createProduct(productRepository, "Model Y", "Tesla Model Y - Compact Electric SUV", TeslaModel.MODEL_Y.name(), now);
+                createProduct(productRepository, "Cybertruck", "Tesla Cybertruck - Electric Pickup Truck", TeslaModel.CYBERTRUCK.name(), now);
             }
 
             // Create ticket types
@@ -115,6 +117,8 @@ public class DataInitializer {
                 createTicketType(ticketTypeRepository, "Technical Support", "Technical support and troubleshooting tickets");
                 createTicketType(ticketTypeRepository, "General Inquiry", "General questions and information requests");
             }
+
+          
         };
     }
 
@@ -161,7 +165,7 @@ public class DataInitializer {
     }
 
     private void createManager(ManagerRepository managerRepository, UserRepository userRepository, 
-                             String email, String department, TeslaModel category) {
+                             String email, String department, String category) {
         if (!managerRepository.existsByEmail(email)) {
             User user = userRepository.findByEmail(email);
             if (user != null) {
@@ -169,21 +173,21 @@ public class DataInitializer {
                 manager.setUser(user);
                 manager.setEmail(email);
                 manager.setDepartment(department);
-                manager.setCategory(category);
+                manager.setCategory(TeslaModel.valueOf(category));
                 managerRepository.save(manager);
             }
         }
     }
 
     private void createEngineer(EngineerRepository engineerRepository, UserRepository userRepository, 
-                              String email, TeslaModel category, int level, int maxTickets) {
+                              String email, String category, int level, int maxTickets) {
         if (!engineerRepository.existsByEmail(email)) {
             User user = userRepository.findByEmail(email);
             if (user != null) {
                 Engineer engineer = new Engineer();
                 engineer.setUser(user);
                 engineer.setEmail(email);
-                engineer.setCategory(category);
+                engineer.setCategory(TeslaModel.valueOf(category));
                 engineer.setLevel(level);
                 engineer.setMaxTickets(maxTickets);
                 engineer.setCurrentTickets(0);
@@ -206,10 +210,11 @@ public class DataInitializer {
         }
     }
 
-    private void createProduct(ProductRepository productRepository, String name, String description, LocalDateTime now) {
+    private void createProduct(ProductRepository productRepository, String name, String description, String category, LocalDateTime now) {
         Product product = new Product();
         product.setName(name);
         product.setDescription(description);
+        product.setCategory(category);
         product.setCreatedAt(now);
         productRepository.save(product);
     }

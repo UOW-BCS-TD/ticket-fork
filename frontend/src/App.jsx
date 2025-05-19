@@ -21,6 +21,8 @@ import AllTickets from './Pages/Manager/AllTickets';
 import ManageEngineers from './Pages/Manager/ManageEngineers';
 import ViewCustomers from './Pages/Manager/ViewCustomers';
 import ActiveSessions from './Pages/Manager/ActiveSessions';
+import ManagerTicketDetails from './Pages/Manager/ManagerTicketDetails';
+import AssignEngineer from './Pages/Manager/AssignEngineer';
 
 import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute } from './Pages/Tickets/Auth';
 import './App.css';
@@ -127,6 +129,9 @@ const App = () => {
                 <ActiveSessions />
               </ManagerRoute>
             } />
+
+            <Route path="/manager/tickets/:id" element={<ManagerTicketDetails />} />
+            <Route path="/manager/tickets/:id/assign" element={<AssignEngineer />} />
             
             <Route path="/resources" element={
               <>

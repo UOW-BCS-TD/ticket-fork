@@ -220,6 +220,16 @@ export const ticketAPI = {
       throw error.response ? error.response.data : error;
     }
   },
+
+  // Get tickets by manager category
+  getTicketsByManagerCategory: async () => {
+    try {
+      const response = await api.get('/tickets/manager/category');
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
 };
 
 // Product management services

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class UserResponseDTO {
     private Long id;
     private String email;
+    private String name;
     private String role;
     private LocalDateTime createdAt;
 
@@ -16,6 +17,7 @@ public class UserResponseDTO {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
+        dto.setName(user.getName());
         dto.setRole(user.getRole());
         dto.setCreatedAt(user.getCreatedAt());
         return dto;

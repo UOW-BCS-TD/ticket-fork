@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import './Manager.css';
+import './AllTickets.css';
+import { ticketAPI } from '../../Services/api';
+import { useNavigate } from 'react-router-dom';
 
 const AllTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -9,14 +11,15 @@ const AllTickets = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [ticketsPerPage] = useState(10);
+  const navigate = useNavigate();
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
-        // Replace with your actual API endpoint
-        const response = await axios.get('/api/tickets');
-        setTickets(response.data);
+        const data = await ticketAPI.getTicketsByManagerCategory();
+        setTickets(data);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch tickets');
@@ -24,15 +27,23 @@ const AllTickets = () => {
         console.error(err);
       }
     };
-
     fetchTickets();
   }, []);
 
   // Filter tickets based on search term and status
   const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = 
+    const matchesSearch =
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (
+        typeof ticket.customer === 'string'
+          ? ticket.customer.toLowerCase().includes(searchTerm.toLowerCase())
+          : (
+              ticket.customer && (
+                (ticket.customer.name && ticket.customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (ticket.customer.email && ticket.customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
+              )
+            )
+      ) ||
       ticket.id.toString().includes(searchTerm);
     
     const matchesStatus = filterStatus === 'all' || ticket.status.toLowerCase() === filterStatus.toLowerCase();
@@ -40,98 +51,159 @@ const AllTickets = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Get current tickets for pagination
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  const sortedTickets = React.useMemo(() => {
+    const sortable = [...filteredTickets];
+    sortable.sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+      // Special handling for nested/complex fields
+      if (sortConfig.key === 'engineer') {
+        aValue = a.engineer ? (typeof a.engineer === 'object' ? a.engineer.name : a.engineer) : '';
+        bValue = b.engineer ? (typeof b.engineer === 'object' ? b.engineer.name : b.engineer) : '';
+      }
+      if (sortConfig.key === 'urgency') {
+        aValue = a.urgency || '';
+        bValue = b.urgency || '';
+      }
+      if (sortConfig.key === 'status') {
+        aValue = a.status || '';
+        bValue = b.status || '';
+      }
+      if (sortConfig.key === 'title') {
+        aValue = a.title || '';
+        bValue = b.title || '';
+      }
+      if (sortConfig.key === 'id') {
+        aValue = a.id;
+        bValue = b.id;
+      }
+      if (sortConfig.key === 'createdAt') {
+        aValue = new Date(a.createdAt).getTime();
+        bValue = new Date(b.createdAt).getTime();
+      }
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return sortable;
+  }, [filteredTickets, sortConfig]);
+
+  // Pagination on sorted tickets
   const indexOfLastTicket = currentPage * ticketsPerPage;
   const indexOfFirstTicket = indexOfLastTicket - ticketsPerPage;
-  const currentTickets = filteredTickets.slice(indexOfFirstTicket, indexOfLastTicket);
+  const currentTickets = sortedTickets.slice(indexOfFirstTicket, indexOfLastTicket);
+
+  const getSortIndicator = (key) => {
+    if (sortConfig.key !== key) return '';
+    return sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
+  };
 
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  if (loading) return <div className="empty-state">Loading tickets...</div>;
-  if (error) return <div className="empty-state">Error: {error}</div>;
+  if (loading) return <div className="alltickets-empty-state">Loading tickets...</div>;
+  if (error) return <div className="alltickets-empty-state">Error: {error}</div>;
 
   return (
-    <div className="manager-container">
-      <div className="manager-header">
-        <h1 className="manager-title">All Support Tickets</h1>
-        <div className="manager-actions">
-          <button className="action-button edit-button">Create Ticket</button>
-        </div>
+    <div className="alltickets-container">
+      <div className="alltickets-header">
+        <h1 className="alltickets-title">All Support Tickets</h1>
+        
       </div>
 
-      <div className="search-filter">
-        <input
-          type="text"
-          placeholder="Search tickets by ID, title or customer..."
-          className="search-input"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="alltickets-search-filter">
+        <div className="alltickets-search-input-wrapper">
+          <svg className="alltickets-search-icon" viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search tickets by ID, title or customer..."
+            className="alltickets-search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         <select 
-          className="filter-select"
+          className="alltickets-filter-select"
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
           <option value="all">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="in progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="CLOSED">Closed</option>
         </select>
       </div>
 
       {currentTickets.length === 0 ? (
-        <div className="empty-state">No tickets found</div>
+        <div className="alltickets-empty-state">No tickets found</div>
       ) : (
         <>
-          <table className="manager-table">
-            <thead>
-              <tr>
-                <th>Ticket ID</th>
-                <th>Title</th>
-                <th>Customer</th>
-                <th>Assigned To</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentTickets.map((ticket) => (
-                <tr key={ticket.id}>
-                  <td>#{ticket.id}</td>
-                  <td>{ticket.title}</td>
-                  <td>{ticket.customer}</td>
-                  <td>{ticket.assignedTo || 'Unassigned'}</td>
-                  <td>
-                    <span className={`status-badge status-${ticket.priority.toLowerCase()}`}>
-                      {ticket.priority}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${ticket.status === 'Open' ? 'active' : 
-                                                           ticket.status === 'Resolved' ? 'inactive' : 
-                                                           'pending'}`}>
-                      {ticket.status}
-                    </span>
-                  </td>
-                  <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button className="action-button view-button">View</button>
-                    <button className="action-button edit-button">Assign</button>
-                  </td>
+          <div className="alltickets-table-wrapper">
+            <table className="alltickets-table">
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>Ticket ID{getSortIndicator('id')}</th>
+                  <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>Title{getSortIndicator('title')}</th>
+                  <th onClick={() => handleSort('engineer')} style={{ cursor: 'pointer' }}>Assigned To{getSortIndicator('engineer')}</th>
+                  <th onClick={() => handleSort('urgency')} style={{ cursor: 'pointer' }}>Priority{getSortIndicator('urgency')}</th>
+                  <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>Status{getSortIndicator('status')}</th>
+                  <th onClick={() => handleSort('createdAt')} style={{ cursor: 'pointer' }}>Created{getSortIndicator('createdAt')}</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentTickets.map((ticket) => (
+                  <tr key={ticket.id}>
+                    <td data-label="Ticket ID">#{ticket.id}</td>
+                    <td data-label="Title">{ticket.title}</td>
+                    
+                    <td>
+                      {ticket.engineer
+                        ? (typeof ticket.engineer === 'object'
+                            ? `${ticket.engineer.name}`
+                            : ticket.engineer)
+                        : 'Unassigned'}
+                    </td>
+                    <td>
+                      <span className={`status-badge urgency-${(ticket.urgency || '').toLowerCase().trim()}`}>
+                        {ticket.urgency || 'N/A'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge status-${(ticket.status || '').toLowerCase() === 'open' ? 'active' : 
+                                                             (ticket.status || '').toLowerCase() === 'resolved' ? 'inactive' : 
+                                                             'pending'}`}>
+                        {ticket.status || 'N/A'}
+                      </span>
+                    </td>
+                    <td>{new Date(ticket.createdAt).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td>
+                      <button className="action-button view-button" onClick={() => navigate(`/manager/tickets/${ticket.id}`)}>View</button>
+                      <button className="action-button edit-button" onClick={() => navigate(`/manager/tickets/${ticket.id}/assign`)}>Assign</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="pagination">
-            {Array.from({ length: Math.ceil(filteredTickets.length / ticketsPerPage) }).map((_, index) => (
+          <div className="alltickets-pagination">
+            {Array.from({ length: Math.ceil(sortedTickets.length / ticketsPerPage) }).map((_, index) => (
               <button
                 key={index}
-                className={`pagination-button ${currentPage === index + 1 ? 'active' : ''}`}
+                className={`alltickets-pagination-button ${currentPage === index + 1 ? 'active' : ''}`}
                 onClick={() => paginate(index + 1)}
               >
                 {index + 1}

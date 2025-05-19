@@ -62,6 +62,7 @@ CREATE TABLE products (
     product_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
+    category VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -101,17 +102,17 @@ CREATE TABLE tickets (
     last_response_time TIMESTAMP,
     customer_id BIGINT NOT NULL,
     engineer_id BIGINT,
-    product_id BIGINT NOT NULL,
+    category VARCHAR(20) NOT NULL,
     type_id BIGINT NOT NULL,
     history LONGTEXT,
     session_id BIGINT NOT NULL,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
     FOREIGN KEY (engineer_id) REFERENCES engineers(engineer_id) ON DELETE SET NULL,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT,
     FOREIGN KEY (type_id) REFERENCES ticket_types(ticket_type_id) ON DELETE RESTRICT,
     FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
     CONSTRAINT chk_ticket_status CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'ESCALATED')),
     CONSTRAINT chk_ticket_urgency CHECK (urgency IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    CONSTRAINT chk_ticket_category CHECK (category IN ('MODEL_S', 'MODEL_3', 'MODEL_X', 'MODEL_Y', 'CYBERTRUCK')),
     CONSTRAINT chk_ticket_times CHECK (
         (resolved_at IS NULL) OR 
         (resolved_at >= created_at AND resolved_at >= updated_at)
@@ -140,23 +141,23 @@ INSERT INTO users (name, email, password, role, phone_number) VALUES
 ('Model Y Manager', 'my@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'MANAGER', '+1234567894'),
 ('Cybertruck Manager', 'ct@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'MANAGER', '+1234567895'),
 -- Level 1 Engineers
-('John Smith', 'l1msj@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567896'),
-('Sarah Johnson', 'l1m3s@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567893'),
-('Michael Brown', 'l1mxm@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567894'),
-('Emily Davis', 'l1mye@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567895'),
-('David Wilson', 'l1ctd@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567896'),
+('John Smith', 'l1ms@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567896'),
+('Sarah Johnson', 'l1m3@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567893'),
+('Michael Brown', 'l1mx@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567894'),
+('Emily Davis', 'l1my@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567895'),
+('David Wilson', 'l1ct@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567896'),
 -- Level 2 Engineers
-('James Taylor', 'l2msj@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567897'),
-('Lisa Anderson', 'l2m3l@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567898'),
-('Robert Martinez', 'l2mxr@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567899'),
-('Jennifer Garcia', 'l2myj@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567900'),
-('William Lee', 'l2ctw@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567901'),
+('James Taylor', 'l2ms@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567897'),
+('Lisa Anderson', 'l2m3@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567898'),
+('Robert Martinez', 'l2mx@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567899'),
+('Jennifer Garcia', 'l2my@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567900'),
+('William Lee', 'l2ct@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567901'),
 -- Level 3 Engineers
-('Elizabeth White', 'l3mse@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567902'),
-('Thomas Clark', 'l3m3t@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567903'),
-('Patricia Lewis', 'l3mxp@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567904'),
-('Daniel Walker', 'l3myd@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567905'),
-('Margaret Hall', 'l3ctm@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567906'),
+('Elizabeth White', 'l3ms@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567902'),
+('Thomas Clark', 'l3m3@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567903'),
+('Patricia Lewis', 'l3mx@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567904'),
+('Daniel Walker', 'l3my@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567905'),
+('Margaret Hall', 'l3ct@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567906'),
 -- Customer users
 ('Alice Cooper', 'svip@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'CUSTOMER', '+1234567907'),
 ('Bob Wilson', 'vip@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'CUSTOMER', '+1234567908'),
@@ -198,26 +199,26 @@ INSERT INTO managers (email, user_id, department, category) VALUES
 ('ct@example.com', 6, 'Cybertruck Support', 'CYBERTRUCK');
 
 -- Insert sample products
-INSERT INTO products (name, description, created_at) VALUES
-('Model S', 'Tesla Model S - Luxury Electric Sedan', CURRENT_TIMESTAMP),
-('Model 3', 'Tesla Model 3 - Mid-size Electric Sedan', CURRENT_TIMESTAMP),
-('Model X', 'Tesla Model X - Luxury Electric SUV', CURRENT_TIMESTAMP),
-('Model Y', 'Tesla Model Y - Compact Electric SUV', CURRENT_TIMESTAMP),
-('Cybertruck', 'Tesla Cybertruck - Electric Pickup Truck', CURRENT_TIMESTAMP);
+INSERT INTO products (name, description, category, created_at) VALUES
+('Model S', 'Tesla Model S - Luxury Electric Sedan', 'MODEL_S', CURRENT_TIMESTAMP),
+('Model 3', 'Tesla Model 3 - Mid-size Electric Sedan', 'MODEL_3', CURRENT_TIMESTAMP),
+('Model X', 'Tesla Model X - Luxury Electric SUV', 'MODEL_X', CURRENT_TIMESTAMP),
+('Model Y', 'Tesla Model Y - Compact Electric SUV', 'MODEL_Y', CURRENT_TIMESTAMP),
+('Cybertruck', 'Tesla Cybertruck - Electric Pickup Truck', 'CYBERTRUCK', CURRENT_TIMESTAMP);
 
 -- Insert sample ticket types
 INSERT INTO ticket_types (name, description) VALUES
 ('Technical Support', 'Technical support and troubleshooting tickets'),
 ('General Inquiry', 'General questions and information requests');
 
--- Insert sample sessions
+-- Insert demo sessions
 INSERT INTO sessions (title, status, user_id, last_activity) VALUES
 ('Model S Battery Issue', 'CLOSED', 8, DATE_SUB(NOW(), INTERVAL 2 DAY)),
 ('Model 3 Software Update', 'ACTIVE', 9, NOW()),
 ('Cybertruck Delivery Question', 'CLOSED', 10, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
--- Insert sample tickets
-INSERT INTO tickets (title, status, urgency, customer_id, engineer_id, product_id, type_id, history, session_id) VALUES
-('Model S Battery Drain Issue', 'OPEN', 'HIGH', 1, 1, 1, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
-('Model 3 Software Update Request', 'IN_PROGRESS', 'MEDIUM', 2, 2, 2, 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
-('Cybertruck Delivery Timeline', 'RESOLVED', 'LOW', 3, 5, 5, 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 
+-- Insert demo tickets
+INSERT INTO tickets (title, status, urgency, customer_id, engineer_id, category, type_id, history, session_id) VALUES
+('Model S Battery Drain Issue', 'OPEN', 'HIGH', 1, 1, 'MODEL_S', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
+('Model 3 Software Update Request', 'IN_PROGRESS', 'MEDIUM', 2, 2, 'MODEL_3', 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
+('Cybertruck Delivery Timeline', 'RESOLVED', 'LOW', 3, 5, 'CYBERTRUCK', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 

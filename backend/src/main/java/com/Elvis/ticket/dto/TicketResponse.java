@@ -10,7 +10,7 @@ public class TicketResponse {
     private String title;
     private TicketStatus status;
     private String urgency;
-    private Product product;
+    private TeslaModel category;
     private TicketType type;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -46,7 +46,6 @@ public class TicketResponse {
         response.setTitle(ticket.getTitle());
         response.setStatus(ticket.getStatus());
         response.setUrgency(ticket.getUrgency());
-        response.setProduct(ticket.getProduct());
         response.setType(ticket.getType());
         response.setCreatedAt(ticket.getCreatedAt());
         response.setUpdatedAt(ticket.getUpdatedAt());
@@ -56,6 +55,7 @@ public class TicketResponse {
             response.setSession_id(ticket.getSession().getId());
         }
         response.setHistory(ticket.getHistory());
+        response.setCategory(ticket.getCategory());
         return response;
     }
 } 
