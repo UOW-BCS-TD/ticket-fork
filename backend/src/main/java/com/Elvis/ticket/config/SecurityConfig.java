@@ -74,6 +74,7 @@ public class SecurityConfig {
                 // Engineer management endpoints
                 .requestMatchers(HttpMethod.GET, "/api/engineers/available/category/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
                 .requestMatchers("/api/engineers/available").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.POST, "/api/engineers").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/{id}").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/engineers/email/**").hasAnyRole("ADMIN", "MANAGER")

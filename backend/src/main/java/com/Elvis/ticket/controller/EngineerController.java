@@ -4,6 +4,7 @@ import com.Elvis.ticket.model.Engineer;
 import com.Elvis.ticket.model.TeslaModel;
 import com.Elvis.ticket.service.EngineerService;
 import com.Elvis.ticket.dto.EngineerResponseDTO;
+import com.Elvis.ticket.dto.CreateEngineerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -71,8 +72,8 @@ public class EngineerController {
     }
 
     @PostMapping
-    public ResponseEntity<Engineer> createEngineer(@RequestBody Engineer engineer) {
-        return ResponseEntity.ok(engineerService.createEngineer(engineer));
+    public ResponseEntity<Engineer> createEngineer(@RequestBody CreateEngineerRequest req) {
+        return ResponseEntity.ok(engineerService.createEngineerWithUser(req));
     }
 
     @PutMapping("/{id}")

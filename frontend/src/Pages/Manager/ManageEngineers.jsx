@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './Manager.css';
+import './EngineerTable.css';
 
 const categoryOptions = [
   'MODEL_S', 'MODEL_3', 'MODEL_X', 'MODEL_Y', 'CYBERTRUCK'
@@ -35,6 +35,9 @@ const ManageEngineers = () => {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState(null);
   const [addSuccess, setAddSuccess] = useState(null);
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
     const fetchEngineers = async () => {
@@ -120,12 +123,27 @@ const ManageEngineers = () => {
     }
   };
 
-  // Filter engineers based on search term
-  const filteredEngineers = engineers.filter(engineer => 
-    (engineer.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (engineer.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (engineer.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Enhanced filtering logic
+  const filteredEngineers = engineers.filter(engineer => {
+    // Search term match (name, email, category, level)
+    const search = searchTerm.toLowerCase();
+    const matchesSearch =
+      (engineer.user?.name || '').toLowerCase().includes(search) ||
+      (engineer.email || '').toLowerCase().includes(search) ||
+      (engineer.category || '').toLowerCase().includes(search) ||
+      (engineer.level + '').includes(search);
+
+    // Category filter
+    const matchesCategory = filterCategory ? engineer.category === filterCategory : true;
+    // Level filter
+    const matchesLevel = filterLevel ? String(engineer.level) === filterLevel : true;
+    // Status filter
+    const matchesStatus = filterStatus
+      ? (filterStatus === 'active' ? engineer.user?.enabled : !engineer.user?.enabled)
+      : true;
+
+    return matchesSearch && matchesCategory && matchesLevel && matchesStatus;
+  });
 
   // Modal open/close handlers
   const openAddModal = () => { setModalType('add'); setSelectedEngineer(null); };
@@ -316,13 +334,67 @@ const ManageEngineers = () => {
       )}
 
       <div className="search-filter">
-        <input
-          type="text"
-          placeholder="Search engineers..."
-          className="search-input"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <div className="search-input-wrapper">
+          <svg className="search-icon" viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by name, email, category, or level..."
+            className="search-input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              className="action-button delete-button search-clear-btn"
+              onClick={() => setSearchTerm('')}
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        <select
+          className="filter-dropdown category"
+          value={filterCategory}
+          onChange={e => setFilterCategory(e.target.value)}
+        >
+          <option value="">All Categories</option>
+          {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+        <select
+          className="filter-dropdown level"
+          value={filterLevel}
+          onChange={e => setFilterLevel(e.target.value)}
+        >
+          <option value="">All Levels</option>
+          <option value="1">Level 1</option>
+          <option value="2">Level 2</option>
+          <option value="3">Level 3</option>
+        </select>
+        <select
+          className="filter-dropdown status"
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+        >
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <button
+          type="button"
+          className="action-button view-button"
+          style={{ minWidth: 80, marginLeft: 8 }}
+          onClick={() => {
+            setSearchTerm('');
+            setFilterCategory('');
+            setFilterLevel('');
+            setFilterStatus('');
+          }}
+        >
+          Reset
+        </button>
       </div>
 
       {/* Desktop Table */}
@@ -355,7 +427,6 @@ const ManageEngineers = () => {
                   </span>
                 </td>
                 <td>
-                  <button className="action-button view-button" onClick={() => openViewModal(engineer)}>View</button>
                   <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
                   <button 
                     className="action-button delete-button"
@@ -371,24 +442,7 @@ const ManageEngineers = () => {
       </div>
 
       {/* Mobile Card Layout */}
-      <div className="engineer-cards-mobile">
-        {filteredEngineers.map((engineer) => (
-          <div className="engineer-card" key={engineer.id}>
-            <div className="engineer-card-row"><span>Name:</span> {engineer.user?.name || engineer.email}</div>
-            <div className="engineer-card-row"><span>Email:</span> {engineer.email}</div>
-            <div className="engineer-card-row"><span>Category:</span> {engineer.category}</div>
-            <div className="engineer-card-row"><span>Level:</span> {engineer.level}</div>
-            <div className="engineer-card-row"><span>Max Tickets:</span> {engineer.maxTickets}</div>
-            <div className="engineer-card-row"><span>Current Tickets:</span> {engineer.currentTickets}</div>
-            <div className="engineer-card-row"><span>Status:</span> <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>{engineer.user?.enabled ? 'Active' : 'Inactive'}</span></div>
-            <div className="engineer-card-actions">
-              <button className="action-button view-button" onClick={() => openViewModal(engineer)}>View</button>
-              <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
-              <button className="action-button delete-button" onClick={() => handleDeleteEngineer(engineer.id)}>Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
+      
     </div>
   );
 };

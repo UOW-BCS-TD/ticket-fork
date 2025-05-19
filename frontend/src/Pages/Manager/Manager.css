@@ -35,10 +35,21 @@
   overflow: hidden;
 }
 
+.manager-table th,
+.manager-table td {
+  text-align: center;
+}
+
+
+.manager-table td:first-child,
+.manager-table td:nth-child(2) {
+  text-align: left;
+}
+
 .manager-table th {
   background-color: #f7fafd;
   padding: 14px 18px;
-  text-align: left;
+  text-align: center;
   font-weight: 700;
   color: #222;
   border-bottom: 2px solid #e3eaf3;
@@ -50,6 +61,8 @@
   border-bottom: 1px solid #e3eaf3;
   background: #fff;
   font-size: 1.03em;
+  text-wrap-mode: nowrap;
+
 }
 
 /* Center action buttons if they wrap */
@@ -68,7 +81,7 @@
 
 /* Ensure hover color always overrides odd row color */
 .manager-table tbody tr:hover {
-  background-color: #e3f2fd;
+  background-color: #00111d !important;
 }
 
 .status-badge {
@@ -172,11 +185,18 @@
   border-radius: 4px;
 }
 
-.filter-select {
+.filter-dropdown {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: white;
+  background-color: #fff;
+  font-size: 15px;
+  color: #333;
+  transition: border 0.15s;
+}
+.filter-dropdown:focus {
+  border-color: #1976d2;
+  outline: none;
 }
 
 .pagination {
@@ -216,6 +236,9 @@
   .manager-table tr {
     margin-bottom: 15px;
     border-bottom: 2px solid #eee;
+  }
+  .manager-table tbody tr:hover {
+    background-color: #81c7f5;
   }
   .manager-table td {
     padding-left: 50%;
@@ -544,4 +567,19 @@
     min-width: 80px;
     font-size: 0.97em;
   }
+}
+
+/* Improve hover for edit and delete buttons */
+.edit-button:hover {
+  background-color: #c8e6c9;
+  color: #1b5e20;
+}
+.delete-button:hover {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+}
+
+
+.engineer-table-wrapper{
+  overflow-x: auto;
 }

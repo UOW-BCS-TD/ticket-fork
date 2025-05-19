@@ -5,21 +5,27 @@ import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.model.TeslaModel;
 import com.Elvis.ticket.repository.EngineerRepository;
 import com.Elvis.ticket.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
+
+import com.Elvis.ticket.dto.CreateEngineerRequest;
 
 @Service
 public class EngineerService {
 
     private final EngineerRepository engineerRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public EngineerService(EngineerRepository engineerRepository, UserRepository userRepository) {
+    public EngineerService(EngineerRepository engineerRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.engineerRepository = engineerRepository;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -29,6 +35,28 @@ public class EngineerService {
             throw new RuntimeException("User not found with email: " + engineer.getEmail());
         }
         engineer.setUser(user);
+        return engineerRepository.save(engineer);
+    }
+
+    @Transactional
+    public Engineer createEngineerWithUser(CreateEngineerRequest req) {
+        // 1. Create User
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setPassword(passwordEncoder.encode("changeme123"));
+        user.setRole("ENGINEER");
+        user.setCreatedAt(LocalDateTime.now());
+        user = userRepository.save(user);
+
+        // 2. Create Engineer
+        Engineer engineer = new Engineer();
+        engineer.setUser(user);
+        engineer.setEmail(req.getEmail());
+        engineer.setCategory(req.getCategory());
+        engineer.setLevel(req.getLevel());
+        engineer.setMaxTickets(req.getMaxTickets());
+        engineer.setCurrentTickets(0);
         return engineerRepository.save(engineer);
     }
 
