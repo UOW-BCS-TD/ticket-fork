@@ -1,8 +1,11 @@
 package com.Elvis.ticket.controller;
 
 import com.Elvis.ticket.dto.UserResponse;
+import com.Elvis.ticket.dto.PasswordChangeRequest;
 import com.Elvis.ticket.model.User;
 import com.Elvis.ticket.service.UserService;
+import com.Elvis.ticket.repository.CustomerRepository;
+import com.Elvis.ticket.repository.EngineerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,6 +21,12 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private EngineerRepository engineerRepository;
 
     @GetMapping
     public List<UserResponse> getAllUsers() {
@@ -38,13 +47,51 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userService.getUserByEmail(email)
-                .map(user -> ResponseEntity.ok(UserResponse.fromUser(user)))
+                .map(user -> {
+                    UserResponse response = UserResponse.fromUser(user);
+                    if ("CUSTOMER".equals(user.getRole())) {
+                        com.Elvis.ticket.model.Customer customer = customerRepository.findByEmail(email);
+                        if (customer != null) {
+                            response.setCustomerId(customer.getId());
+                        }
+                    }
+                    if ("ENGINEER".equals(user.getRole())) {
+                        com.Elvis.ticket.model.Engineer engineer = engineerRepository.findByEmail(email);
+                        if (engineer != null) {
+                            response.setEngineerId(engineer.getId());
+                            response.setEngineerLevel(engineer.getLevel());
+                        }
+                    }
+                    return ResponseEntity.ok(response);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public UserResponse createUser(@RequestBody User user) {
-        return UserResponse.fromUser(userService.createUser(user));
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        try {
+            // Validate required fields
+            if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Email is required");
+            }
+            if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Password is required");
+            }
+            if (user.getName() == null || user.getName().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Name is required");
+            }
+            
+            // Validate password length
+            if (user.getPassword().length() < 8) {
+                return ResponseEntity.badRequest().body("Password must be at least 8 characters long");
+            }
+            
+            // Create the user
+            User createdUser = userService.createUser(user);
+            return ResponseEntity.ok(UserResponse.fromUser(createdUser));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
@@ -55,11 +102,29 @@ public class UserController {
     }
 
     @PutMapping("/{id}/password")
-    public ResponseEntity<Void> updatePassword(@PathVariable Long id, @RequestBody String newPassword) {
-        if (userService.updatePassword(id, newPassword)) {
-            return ResponseEntity.ok().build();
+    public ResponseEntity<?> updatePassword(@PathVariable Long id, @RequestBody PasswordChangeRequest request) {
+        try {
+            User updatedUser = userService.updatePassword(id, request);
+            return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/profile/password")
+    public ResponseEntity<?> updateCurrentUserPassword(@RequestBody PasswordChangeRequest request) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            return userService.getUserByEmail(email)
+                    .map(user -> {
+                        User updatedUser = userService.updatePassword(user.getId(), request);
+                        return ResponseEntity.ok(UserResponse.fromUser(updatedUser));
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -68,5 +133,34 @@ public class UserController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateCurrentUserProfile(@RequestBody User userDetails) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        System.out.println("Received update request for user: " + email);
+        System.out.println("Request data - Name: " + userDetails.getName());
+        System.out.println("Request data - Phone: " + userDetails.getPhoneNumber());
+        System.out.println("Request data - Password: " + userDetails.getPassword());
+        
+        return userService.getUserByEmail(email)
+                .map(user -> {
+                    // Create a new User object with only the fields we want to update
+                    User updateData = new User();
+                    updateData.setId(user.getId());
+                    
+                    // Only set fields that are provided in the request
+                    if (userDetails.getName() != null) {
+                        updateData.setName(userDetails.getName());
+                    }
+                    if (userDetails.getPhoneNumber() != null) {
+                        updateData.setPhoneNumber(userDetails.getPhoneNumber());
+                    }
+                    
+                    // Don't set any other fields - they will be ignored by the service
+                    return ResponseEntity.ok(UserResponse.fromUser(userService.updateUser(user.getId(), updateData).orElse(user)));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 } 

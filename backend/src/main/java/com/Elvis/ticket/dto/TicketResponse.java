@@ -8,15 +8,16 @@ import java.time.LocalDateTime;
 public class TicketResponse {
     private Long id;
     private String title;
-    private String description;
     private TicketStatus status;
     private String urgency;
-    private Product product;
+    private TeslaModel category;
     private TicketType type;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserInfo customer;
     private UserInfo engineer;
+    private Long session_id;
+    private String history;
 
     @Data
     public static class UserInfo {
@@ -36,19 +37,25 @@ public class TicketResponse {
         }
     }
 
+    public String getHistory() { return history; }
+    public void setHistory(String history) { this.history = history; }
+
     public static TicketResponse fromTicket(Ticket ticket) {
         TicketResponse response = new TicketResponse();
         response.setId(ticket.getId());
         response.setTitle(ticket.getTitle());
-        response.setDescription(ticket.getDescription());
         response.setStatus(ticket.getStatus());
         response.setUrgency(ticket.getUrgency());
-        response.setProduct(ticket.getProduct());
         response.setType(ticket.getType());
         response.setCreatedAt(ticket.getCreatedAt());
         response.setUpdatedAt(ticket.getUpdatedAt());
         response.setCustomer(ticket.getCustomer() != null ? UserInfo.fromUser(ticket.getCustomer().getUser()) : null);
         response.setEngineer(ticket.getEngineer() != null ? UserInfo.fromUser(ticket.getEngineer().getUser()) : null);
+        if (ticket.getSession() != null) {
+            response.setSession_id(ticket.getSession().getId());
+        }
+        response.setHistory(ticket.getHistory());
+        response.setCategory(ticket.getCategory());
         return response;
     }
 } 

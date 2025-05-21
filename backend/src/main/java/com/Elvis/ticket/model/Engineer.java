@@ -13,7 +13,8 @@ public class Engineer {
     private String email;
 
     @Column(nullable = false)
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private TeslaModel category;
 
     @Column(nullable = false)
     private int level;
@@ -45,11 +46,11 @@ public class Engineer {
         this.email = email;
     }
 
-    public String getCategory() {
+    public TeslaModel getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(TeslaModel category) {
         this.category = category;
     }
 

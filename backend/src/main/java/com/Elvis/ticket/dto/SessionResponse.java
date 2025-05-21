@@ -11,6 +11,8 @@ public class SessionResponse {
     private LocalDateTime endTime;
     private LocalDateTime lastActivity;
     private UserInfo user;
+    private String title;
+    private boolean ticketSession;
 
     @Data
     public static class UserInfo {
@@ -36,6 +38,8 @@ public class SessionResponse {
         response.setEndTime(session.getEndTime());
         response.setLastActivity(session.getLastActivity());
         response.setUser(UserInfo.fromUser(session.getUser()));
+        response.setTitle(session.getTitle());
+        response.setTicketSession(session.isTicketSession());
         return response;
     }
 } 

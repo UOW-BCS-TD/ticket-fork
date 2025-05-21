@@ -1,0 +1,20 @@
+# Ignore Python virtual environment in chat_backend
+chat_backend/venv/
+
+# Ignore Chroma vectorstore database in chat_backend
+chat_backend/chroma_db/
+
+# Ignore PDF files directory in chat_backend
+chat_backend/pdf_files/
+
+# Ignore log files and log directory in backend
+backend/log/
+*.log
+
+# Ignore all PDF files globally
+*.pdf
+/backend/log/
+
+chat_backend/venv/
+
+/backend/attachments/

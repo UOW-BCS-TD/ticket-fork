@@ -50,6 +50,11 @@ The Support Ticket System is a comprehensive solution for managing customer supp
 - Endpoint: `PUT /api/users/{id}`
 - Request Body: User object with updated fields
 
+### Update Current User Profile
+- Endpoint: `PUT /api/users/profile`
+- Request Body: User object with updated fields
+- Allows authenticated users to update their own profile details
+
 ### Delete User
 - Endpoint: `DELETE /api/users/{id}`
 
@@ -76,6 +81,9 @@ The Support Ticket System is a comprehensive solution for managing customer supp
 
 ### Get Tickets
 - All Tickets: `GET /api/tickets`
+  - Admin and Manager can view all tickets
+  - Customers can view their own tickets
+  - Engineers can view tickets they are assigned to
 - By ID: `GET /api/tickets/{id}`
 - By Customer: `GET /api/tickets/customer/{customerId}`
 - By Engineer: `GET /api/tickets/engineer/{engineerId}`
@@ -87,10 +95,10 @@ The Support Ticket System is a comprehensive solution for managing customer supp
 
 ### Delete Ticket
 - Endpoint: `DELETE /api/tickets/{id}`
+  - Only Admin and Manager roles can delete tickets
 
 ### Escalate Ticket
 - Endpoint: `PUT /api/tickets/{id}/escalate`
-- Automatically assigns to a higher-level engineer in the same category
 
 ## Engineer Management
 

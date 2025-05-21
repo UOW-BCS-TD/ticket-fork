@@ -1,7 +1,9 @@
 package com.Elvis.ticket.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "customers")
 public class Customer {
@@ -9,11 +11,17 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String role;
+
+    @Column(name = "chatbot_id", unique = true)
+    private String chatbotId;
+
+    @Column(name = "conversation_file_path")
+    private String conversationFilePath;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)

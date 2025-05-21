@@ -94,36 +94,116 @@
 - **Response**: Success status
 - **Access**: ADMIN only
 
+### Update Current User Profile
+- **URL**: `/api/users/profile`
+- **Method**: `PUT`
+- **Description**: Update the profile of the currently authenticated user
+- **Request Headers**:
+  - `Authorization: Bearer {token}` (Required)
+  - `Content-Type: application/json`
+- **Request Body**:
+  ```json
+  {
+    "name": "string",        // Optional - New name
+    "phoneNumber": "string"  // Optional - New phone number
+  }
+  ```
+- **Response**: Updated user details
+- **Access**: Any authenticated user
+
 ## Ticket Management
+
+### Ticket Object Fields (Updated)
+- `id`: Ticket ID
+- `title`: Ticket title
+- `status`: Ticket status
+- `urgency`: Priority level of the ticket
+- `product`: Product object
+- `type`: Ticket type object
+- `createdAt`: Ticket creation timestamp
+- `updatedAt`: Last update timestamp
+- `customer`: Customer info
+- `engineer`: Engineer info
+- `session_id`: Associated session ID
+- `history`: Ticket-specific history as a JSON array (e.g., status changes, system notes, or chat logs)
+
+> **Note:** As of vNEXT, the `description` field has been removed from tickets. All details should be included in the ticket history or related session.
 
 ### Get All Tickets
 - **URL**: `/api/tickets`
 - **Method**: `GET`
 - **Description**: Get all tickets
-- **Response**: List of tickets
-- **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Response**: List of tickets (each includes the new `history` field)
+- **Access**:
+  - ADMIN and MANAGER can view all tickets
+  - CUSTOMERS can view their own tickets
+  - ENGINEERS can view tickets they are assigned to
 
 ### Get Ticket by ID
 - **URL**: `/api/tickets/{id}`
 - **Method**: `GET`
 - **Description**: Get ticket by ID
-- **Response**: Ticket details
+- **Response**: Ticket details (includes the new `history` field)
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
 
 ### Create Ticket
 - **URL**: `/api/tickets`
 - **Method**: `POST`
 - **Description**: Create a new ticket
-- **Request Body**: Ticket details
-- **Response**: Created ticket details
+- **Request Headers**:
+  ```
+  Content-Type: application/json
+  Authorization: Bearer {token}
+  ```
+- **Request Body**:
+  ```json
+  {
+    "title": "string",
+    "customer": {
+      "id": "number"
+    },
+    "product": {
+      "id": "number"
+    },
+    "type": {
+      "id": "number"
+    },
+    "session": {
+      "id": "number"
+    },
+    "urgency": "LOW | MEDIUM | HIGH | CRITICAL",
+    "status": "OPEN | ASSIGNED | IN_PROGRESS | PENDING | RESOLVED | CLOSED | ESCALATED",
+    "engineer": {
+      "id": "number"
+    },
+    "history": []
+  }
+  ```
+- **Required Fields**:
+  - `title`: Ticket title
+  - `customer`: Customer ID (must exist)
+  - `product`: Product ID (must exist)
+  - `type`: Ticket type ID (must exist)
+  - `session`: Session ID (must exist)
+  - `urgency`: Priority level of the ticket
+- **Optional Fields**:
+  - `status`: Defaults to "OPEN" if not provided
+  - `engineer`: Engineer ID to assign the ticket to
+- **Response**: Created ticket details (includes the new `history` field)
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Notes**:
+  - All referenced IDs (customer, product, type, session, engineer) must exist in the database
+  - The session must be active
+  - The engineer must be available (current tickets < max tickets)
+  - The customer must be authenticated and authorized to create tickets
+  - The `description` field has been removed from tickets as of vNEXT. Use the ticket history or session for details.
 
 ### Update Ticket
 - **URL**: `/api/tickets/{id}`
 - **Method**: `PUT`
 - **Description**: Update ticket details
-- **Request Body**: Ticket details to update
-- **Response**: Updated ticket details
+- **Request Body**: Ticket details to update (optionally include `history` field)
+- **Response**: Updated ticket details (includes the new `history` field)
 - **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
 
 ### Delete Ticket
@@ -131,7 +211,7 @@
 - **Method**: `DELETE`
 - **Description**: Delete a ticket
 - **Response**: Success status
-- **Access**: ADMIN, ENGINEER, MANAGER, CUSTOMER
+- **Access**: Only ADMIN and MANAGER
 
 ### Get Tickets by Customer
 - **URL**: `/api/tickets/customer/{customerId}`
@@ -146,6 +226,16 @@
 - **Description**: Get tickets by engineer ID
 - **Response**: List of tickets
 - **Access**: ADMIN, ENGINEER, MANAGER
+
+### Get Own Tickets
+- **URL**: `/api/tickets/own`
+- **Method**: `GET`
+- **Description**: Get tickets for the currently authenticated user. Only available to:
+  - CUSTOMERS: Returns tickets where the user is the customer (uses `customer_id`)
+  - ENGINEERS: Returns tickets assigned to the engineer (uses `engineer_id`)
+  - All other roles will receive a 403 Forbidden error
+- **Response**: List of tickets
+- **Access**: Only CUSTOMER and ENGINEER roles
 
 ### Update Ticket Status
 - **URL**: `/api/tickets/status/{id}`
@@ -186,6 +276,42 @@
 - **Response**: Updated ticket details
 - **Access**: ADMIN, MANAGER
 
+### Add Message to Ticket History
+- **URL**: `/api/tickets/{id}/message`
+- **Method**: `POST`
+- **Description**: Append a new message from the customer to the ticket's conversation history.
+- **Request Headers**:
+  - `Authorization: Bearer {token}` (Required)
+  - `Content-Type: application/json`
+- **Request Body**:
+  ```json
+  {
+    "content": "Your message text here"
+  }
+  ```
+- **Response**: Updated ticket details (including the new `history` field)
+- **Access**: Only the ticket's customer, ADMIN, or MANAGER
+- **Notes**:
+  - The message will be appended to the ticket's `history` as a new entry with role `customer`, the user's name, content, and timestamp.
+  - Returns 403 if not authorized, 404 if ticket not found, 400 if content is missing.
+  - Example response:
+  ```json
+  {
+    "id": 123,
+    "title": "Example Ticket",
+    "status": "OPEN",
+    "urgency": "HIGH",
+    "product": { ... },
+    "type": { ... },
+    "createdAt": "2024-06-01T12:00:00Z",
+    "updatedAt": "2024-06-01T12:05:00Z",
+    "customer": { ... },
+    "engineer": { ... },
+    "session_id": 456,
+    "history": "[ { \"role\": \"customer\", \"content\": \"Your message text here\", ... } ]"
+  }
+  ```
+
 ## Customer Management
 
 ### Get All Customers
@@ -213,7 +339,12 @@
 - **URL**: `/api/customers/{id}/role`
 - **Method**: `PUT`
 - **Description**: Update customer role
-- **Request Body**: New role
+- **Request Body**: 
+  ```json
+  {
+    "role": "STANDARD | PREMIUM | VIP"
+  }
+  ```
 - **Response**: Updated customer details
 - **Access**: ADMIN only
 
@@ -240,22 +371,36 @@
 - **Response**: Engineer details
 - **Access**: ADMIN, MANAGER
 
-### Get Engineers by Category
-- **URL**: `/api/engineers/category/{categoryId}`
+### Get Engineers by Level
+- **URL**: `/api/engineers/level/{level}`
 - **Method**: `GET`
-- **Description**: Get engineers by category
+- **Description**: Get engineers by level (1, 2, or 3)
+- **Response**: List of engineers
+- **Access**: ADMIN, MANAGER
+
+### Get Engineers by Category
+- **URL**: `/api/engineers/category/{category}`
+- **Method**: `GET`
+- **Description**: Get engineers by Tesla model category
 - **Response**: List of engineers
 - **Access**: ADMIN, MANAGER
 
 ### Get Available Engineers
 - **URL**: `/api/engineers/available`
 - **Method**: `GET`
-- **Description**: Get available engineers
+- **Description**: Get engineers with current tickets less than max tickets
+- **Response**: List of engineers
+- **Access**: ADMIN, MANAGER
+
+### Get Available Engineers by Category
+- **URL**: `/api/engineers/available/category/{category}`
+- **Method**: `GET`
+- **Description**: Get available engineers by Tesla model category
 - **Response**: List of engineers
 - **Access**: ADMIN, MANAGER
 
 ### Create Engineer
-- **URL**: `/api/engineers/create`
+- **URL**: `/api/engineers`
 - **Method**: `POST`
 - **Description**: Create a new engineer
 - **Request Body**:
@@ -264,116 +409,21 @@
     "name": "John Engineer",
     "email": "engineer@example.com",
     "password": "password123",
-    "category": "SOFTWARE",
-    "level": 2,
-    "maxTickets": 5
+    "category": "MODEL_S | MODEL_3 | MODEL_X | MODEL_Y | CYBERTRUCK",
+    "level": 1 | 2 | 3,
+    "maxTickets": "number"
   }
   ```
 - **Response**: Created engineer details
 - **Access**: ADMIN, MANAGER
 
-## Session Management
-
-### Get All Sessions
-- **URL**: `/api/sessions`
-- **Method**: `GET`
-- **Description**: Get all sessions
-- **Response**: List of sessions
-- **Access**: ADMIN, MANAGER
-
-### Get Session by ID
-- **URL**: `/api/sessions/{id}`
-- **Method**: `GET`
-- **Description**: Get session by ID
-- **Response**: Session details
-- **Access**: ADMIN, MANAGER
-
-### Get Session by Session ID
-- **URL**: `/api/sessions/session/{sessionId}`
-- **Method**: `GET`
-- **Description**: Get session by session ID
-- **Response**: Session details
-- **Access**: ADMIN, MANAGER
-
-### Get Sessions by User
-- **URL**: `/api/sessions/user/{userId}`
-- **Method**: `GET`
-- **Description**: Get sessions by user ID
-- **Response**: List of sessions
-- **Access**: ADMIN, MANAGER
-
-### Get Inactive Sessions
-- **URL**: `/api/sessions/inactive`
-- **Method**: `GET`
-- **Description**: Get inactive sessions
-- **Response**: List of sessions
-- **Access**: ADMIN only
-
-### End Session
-- **URL**: `/api/sessions/{id}/end`
+### Update Engineer
+- **URL**: `/api/engineers/{id}`
 - **Method**: `PUT`
-- **Description**: End a session
-- **Response**: Updated session details
+- **Description**: Update engineer details
+- **Request Body**: Engineer details to update
+- **Response**: Updated engineer details
 - **Access**: ADMIN, MANAGER
 
-### Update Session Activity
-- **URL**: `/api/sessions/{id}/activity`
-- **Method**: `PUT`
-- **Description**: Update session activity
-- **Response**: Updated session details
-- **Access**: ADMIN, MANAGER
-
-## Error Responses
-
-### 400 Bad Request
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 400,
-    "error": "Bad Request",
-    "message": "Invalid input data",
-    "path": "/api/tickets"
-}
-```
-
-### 401 Unauthorized
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 401,
-    "error": "Unauthorized",
-    "message": "Full authentication is required to access this resource",
-    "path": "/api/tickets"
-}
-```
-
-### 403 Forbidden
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 403,
-    "error": "Forbidden",
-    "message": "Access denied",
-    "path": "/api/tickets"
-}
-```
-
-### 404 Not Found
-```json
-{
-    "timestamp": "2024-03-20T10:00:00Z",
-    "status": 404,
-    "error": "Not Found",
-    "message": "Resource not found",
-    "path": "/api/tickets/999"
-}
-```
-
-## Notes
-
-1. All endpoints require authentication except `/api/auth/login`
-2. Replace `<token>` with the JWT token received from login
-3. Timestamps are in ISO 8601 format
-4. IDs are numeric and auto-generated
-5. All endpoints return JSON responses
-6. Error responses include detailed messages and timestamps 
+### Increment Engineer's Current Tickets
+- **URL**: `/api/engineers/{id}/increment-tickets`
