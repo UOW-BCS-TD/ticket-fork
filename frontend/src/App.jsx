@@ -19,8 +19,8 @@ import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
 import KnowledgeBase from './Pages/Engineer/KnowledgeBase';
 import AllTickets from './Pages/Manager/AllTickets';
 import ManageEngineers from './Pages/Manager/ManageEngineers';
-import ViewCustomers from './Pages/Manager/ViewCustomers';
-import ActiveSessions from './Pages/Manager/ActiveSessions';
+// import ViewCustomers from './Pages/Manager/ViewCustomers';
+// import ActiveSessions from './Pages/Manager/ActiveSessions';
 import ManagerTicketDetails from './Pages/Manager/ManagerTicketDetails';
 import AssignEngineer from './Pages/Manager/AssignEngineer';
 
@@ -118,17 +118,17 @@ const App = () => {
               </ManagerRoute>
             } />
 
-            <Route path="/customers" element={
+            {/* <Route path="/customers" element={
               <ManagerRoute>
                 <ViewCustomers />
               </ManagerRoute>
-            } />
+            } /> */}
 
-            <Route path="/sessions" element={
+            {/* <Route path="/sessions" element={
               <ManagerRoute>
                 <ActiveSessions />
               </ManagerRoute>
-            } />
+            } /> */}
 
             <Route path="/manager/tickets/:id" element={<ManagerTicketDetails />} />
             <Route path="/manager/tickets/:id/assign" element={<AssignEngineer />} />

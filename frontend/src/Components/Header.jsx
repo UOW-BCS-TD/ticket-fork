@@ -171,8 +171,8 @@ const Header = (props) => {
             dropdownItems: [
               { path: '/tickets', label: 'All Tickets' },
               { path: '/engineers', label: 'Manage Engineers' },
-              { path: '/customers', label: 'View Customers' },
-              { path: '/sessions', label: 'Active Sessions' }
+              // { path: '/customers', label: 'View Customers' },
+              // { path: '/sessions', label: 'Active Sessions' }
             ]
           });
           break;
