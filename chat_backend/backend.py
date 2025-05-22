@@ -284,25 +284,26 @@ def token_required(f):
 # QA Chain Initialization (Original)
 # --------------------------
 
-techcare_prompt_template = """You are a friendly and helpful customer support bot for Techcare, 
-a technology products and services company. Your role is to assist customers with their inquiries 
-about products, services, orders, troubleshooting, and general company information.
+# Add this near your other constants
+TECHCARE_PROMPT_TEMPLATE = """You are a friendly Techcare support bot. Guidelines:
+- Be polite and professional
+- Use the context below to answer
+- If unsure, offer to connect to a human
 
-Follow these guidelines:
-- Be polite, patient, and professional
-- Provide accurate information based on the context
-- If you don't know the answer, say you'll connect them with a human representative
-- Keep responses concise but helpful
-- For technical issues, provide step-by-step guidance when possible
+Relevant Context:
+{context}
 
-Context: {context}
+Conversation History:
+{chat_history}
 
-Question: {question}
+Question: {query}
 
 Helpful Answer:"""
 
 def initialize_qa_chain():
-    """Initialize QA chain with persistent retriever"""
+    """Initialize QA chain with proper prompt and configuration"""
+    from langchain.prompts import PromptTemplate
+    
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
         temperature=0.2,
@@ -318,11 +319,32 @@ def initialize_qa_chain():
         }
     )
 
+    # Define the prompt template
+    template = """You are a friendly Techcare support bot. Guidelines:
+    - Be polite and professional
+    - Use the context below to answer
+    - If unsure, offer to connect to a human
+
+    Context: {context}
+
+    Question: {question}
+
+    Helpful Answer:"""
+
+    QA_PROMPT = PromptTemplate(
+        template=template,
+        input_variables=["context", "question"]
+    )
+
     return RetrievalQA.from_chain_type(
         llm=llm,
+        chain_type="stuff",
         retriever=retriever,
         return_source_documents=True,
-        chain_type="stuff"
+        chain_type_kwargs={
+            "prompt": QA_PROMPT,
+            "document_variable_name": "context"
+        }
     )
 
 # --------------------------
@@ -376,13 +398,21 @@ def query(current_user_email):
             "timestamp": datetime.now().isoformat()
         })
 
+        # Build conversation context
+        conversation_context = "\n".join([
+            f"{msg['role'].capitalize()}: {msg['content']}" 
+            for msg in chat_history
+        ])
+
+        # Combine conversation history with the current query
+        full_query = f"{conversation_context}\n\nCurrent Question: {query_text}"
+
         # Get response with source documents
         print(f"\n🔍 Query: {query_text}")
         try:
-            response = qa_chain.invoke({
-                "query": query_text,
-                "context": "\n".join([msg['content'] for msg in chat_history if msg['role'] == 'user'])
-            })
+            # Pass only the query to the QA chain
+            response = qa_chain({"query": full_query})
+            
             answer = response["result"]
             sources = response.get("source_documents", [])
             
