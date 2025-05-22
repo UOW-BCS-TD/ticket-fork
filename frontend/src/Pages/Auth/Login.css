@@ -93,6 +93,20 @@ form.sign-up-form {
   font-size: 0.9rem;
 }
 
+.success-message {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #388e3c;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
 .input-field {
   max-width: 380px;
   width: 100%;

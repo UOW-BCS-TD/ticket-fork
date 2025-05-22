@@ -70,7 +70,7 @@
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
 }
 
-.search-btn {
+.admin-search-btn {
   background-color: #3498db;
   color: white;
   border: none;
@@ -84,7 +84,7 @@
   transition: background-color 0.2s ease;
 }
 
-.search-btn:hover {
+.admin-search-btn:hover {
   background-color: #2980b9;
 }
 
@@ -234,8 +234,6 @@
 /* Detail Panel Styles */
 .admin-detail {
   padding: 1.5rem;
-  overflow-y: auto;
-  height: calc(100vh - 150px);
 }
 
 .user-detail-panel {
@@ -555,6 +553,7 @@
   border-radius: 8px;
   font-size: 0.95rem;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,

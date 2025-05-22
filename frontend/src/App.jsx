@@ -24,7 +24,7 @@ import ActiveSessions from './Pages/Manager/ActiveSessions';
 import ManagerTicketDetails from './Pages/Manager/ManagerTicketDetails';
 import AssignEngineer from './Pages/Manager/AssignEngineer';
 
-import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute } from './Pages/Tickets/Auth';
+import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute, CustomerOnlyRoute } from './Pages/Tickets/Auth';
 import './App.css';
 
 const App = () => {
@@ -50,21 +50,21 @@ const App = () => {
             
             {/* Protected routes that require authentication */}
             <Route path="/chatbot" element={
-              <ProtectedRoute>
+              <CustomerOnlyRoute>
                 <Chatbot />
-              </ProtectedRoute>
+              </CustomerOnlyRoute>
             } />
 
             <Route path="/view-tickets" element={
-              <ProtectedRoute>
+              <CustomerOnlyRoute>
                 <TicketInformation />
-              </ProtectedRoute>
+              </CustomerOnlyRoute>
             } />
             
             <Route path="/create-ticket" element={
-              <ProtectedRoute>
+              <CustomerOnlyRoute>
                 <CreateTicket />
-              </ProtectedRoute>
+              </CustomerOnlyRoute>
             } />
             
             <Route path="/profile" element={

@@ -3,14 +3,13 @@
   align-items: center;
   justify-content: center;
   background-color: #f4f7ff;
-  padding: 2rem;
+  padding: 2rem 100px;
   background: linear-gradient(to bottom, #72b3f0, #54a2ec);
 }
 
 .support-ticket-container {
   position: relative;
   width: 100%;
-  max-width: 1200px;
   background-color: #fff;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
