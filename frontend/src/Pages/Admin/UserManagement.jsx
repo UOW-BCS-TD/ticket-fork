@@ -299,7 +299,7 @@ const UserManagement = () => {
               onChange={handleSearchInputChange}
               onKeyPress={handleSearchKeyPress}
             />
-            <button className="search-btn" onClick={handleSearch}>
+            <button className="admin-search-btn" onClick={handleSearch}>
               <i className="fas fa-search"></i>
             </button>
           </div>

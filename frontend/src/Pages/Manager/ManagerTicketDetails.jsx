@@ -176,7 +176,7 @@ const ManagerTicketDetails = () => {
 
   return (
     <div className="ticket-view-container">
-      <div className="ticket-main" style={{ display: 'flex', gap: 32 }}>
+      <div className="ticket" style={{ display: 'flex', gap: 32 }}>
         {/* Left: Meta Info */}
         <div className="ticket-meta-sidebar" style={{ minWidth: 260, maxWidth: 320, flex: '0 0 260px', background: '#fafbfc', borderRadius: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.04)', padding: 24, marginRight: 24, height: 'fit-content' }}>
           <div className="meta-item"><i className="fas fa-calendar-alt"></i><div className="meta-text"><b>Created:</b><span>{ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : '-'}</span></div></div>
