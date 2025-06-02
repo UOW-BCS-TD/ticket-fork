@@ -41,18 +41,18 @@ public class TicketController {
     @GetMapping
     public List<TicketResponse> getAllTickets(Authentication authentication) {
         String role = authentication.getAuthorities().iterator().next().getAuthority();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = authentication.getName();
         if (role.equals("ROLE_ADMIN") || role.equals("ROLE_MANAGER")) {
             return ticketService.getAllTickets().stream()
                     .map(TicketResponse::fromTicket)
                     .collect(Collectors.toList());
         } else if (role.equals("ROLE_CUSTOMER")) {
-            Long customerId = userService.getUserByEmail(userDetails.getUsername()).get().getId();
+            Long customerId = userService.getUserByEmail(username).get().getId();
             return ticketService.getTicketsByCustomerId(customerId).stream()
                     .map(TicketResponse::fromTicket)
                     .collect(Collectors.toList());
         } else if (role.equals("ROLE_ENGINEER")) {
-            Long engineerId = userService.getUserByEmail(userDetails.getUsername()).get().getId();
+            Long engineerId = userService.getUserByEmail(username).get().getId();
             return ticketService.getTicketsByEngineerId(engineerId).stream()
                     .map(TicketResponse::fromTicket)
                     .collect(Collectors.toList());
@@ -262,15 +262,33 @@ public class TicketController {
 
     @GetMapping("/manager/category")
     public List<TicketResponse> getTicketsByManagerCategory(Authentication authentication) {
-        String email = authentication.getName();
-        com.Elvis.ticket.model.Manager manager = managerRepository.findByEmail(email);
-        if (manager == null) {
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Not a manager");
+        try {
+            String email = authentication.getName();
+            com.Elvis.ticket.model.Manager manager = managerRepository.findByEmail(email);
+            if (manager == null) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, 
+                    "User is not a manager"
+                );
+            }
+            TeslaModel category = manager.getCategory();
+            if (category == null) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, 
+                    "Manager has no assigned category"
+                );
+            }
+            return ticketService.getTicketsByCategory(category).stream()
+                    .map(TicketResponse::fromTicket)
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error fetching tickets: " + e.getMessage()
+            );
         }
-        TeslaModel category = manager.getCategory();
-        return ticketService.getTicketsByCategory(category).stream()
-                .map(TicketResponse::fromTicket)
-                .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/category/{category}")

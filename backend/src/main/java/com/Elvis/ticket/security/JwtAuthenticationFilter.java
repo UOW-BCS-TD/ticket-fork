@@ -47,11 +47,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .parseClaimsJws(jwt)
                     .getBody();
 
+                @SuppressWarnings("unchecked")
                 List<String> authorities = claims.get("authorities", List.class);
                 List<SimpleGrantedAuthority> grantedAuthorities = authorities != null ? authorities.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList()) : List.of();
 
+                logger.debug("Setting authentication for user: " + username + " with authorities: " + grantedAuthorities);
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

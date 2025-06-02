@@ -157,6 +157,7 @@ const Header = (props) => {
             label: 'Admin Panel', 
             hasDropdown: true,
             dropdownItems: [
+              { path: '/admin/dashboard', label: 'Dashboard' },
               { path: '/admin/users', label: 'User Management' },
               { path: '/admin/logs', label: 'View Logs' }
             ]
@@ -169,10 +170,9 @@ const Header = (props) => {
             label: 'Management', 
             hasDropdown: true,
             dropdownItems: [
+              { path: '/manager/dashboard', label: 'Dashboard' },
               { path: '/tickets', label: 'All Tickets' },
-              { path: '/engineers', label: 'Manage Engineers' },
-              // { path: '/customers', label: 'View Customers' },
-              // { path: '/sessions', label: 'Active Sessions' }
+              { path: '/engineers', label: 'Manage Engineers' }
             ]
           });
           break;
