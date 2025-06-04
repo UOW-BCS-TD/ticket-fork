@@ -145,6 +145,15 @@ export const ticketAPI = {
     }
   },
 
+  getTicketsOwn: async () => {
+    try {
+      const response = await api.get('/tickets/own');
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+
   // Get ticket by ID
   getTicketById: async (id) => {
     try {
@@ -363,6 +372,14 @@ export const sessionAPI = {
       throw error.response ? error.response.data : error;
     }
   },
+  getSessionsList: async () => {
+    try {
+      const response = await api.get('/sessions/list');
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
 
   // Get session by ID
   getSessionById: async (id) => {
@@ -470,7 +487,13 @@ export const chatbotAPI = {
   // Send a query to the chatbot
   sendQuery: async (query) => {
     try {
-      const response = await api.post('/chatbot/query', { query });
+      // Use the Python backend on port 5000
+      const response = await axios.post('http://localhost:5000/query', { query }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error;

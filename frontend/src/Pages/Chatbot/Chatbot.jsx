@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
 import { chatbotAPI, sessionAPI, userService, productAPI, ticketTypeAPI } from '../../Services/api';
 
-const API_BASE_URL = 'http://0.0.0.0:8082';
+const API_BASE_URL = 'http://localhost:8082';
 
 function formatSessionTime(dateString) {
   if (!dateString) return '';
@@ -55,7 +55,7 @@ const Chatbot = () => {
         return [];
       }
 
-      const response = await sessionAPI.getSessions();
+      const response = await sessionAPI.getSessionsList();
       setChatList(response);
       return response;
     } catch (error) {

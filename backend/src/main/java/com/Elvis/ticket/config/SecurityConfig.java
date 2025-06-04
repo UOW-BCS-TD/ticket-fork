@@ -83,7 +83,7 @@ public class SecurityConfig {
                 
                 // Session management endpoints
                 .requestMatchers(HttpMethod.POST, "/api/sessions").hasAuthority("ROLE_CUSTOMER")
-                .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
                 .requestMatchers("/api/sessions/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_ENGINEER", "ROLE_CUSTOMER")
                 .requestMatchers("/api/sessions/session/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
                 .requestMatchers("/api/sessions/user/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")

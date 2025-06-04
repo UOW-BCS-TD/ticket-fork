@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ticketAPI } from '../../Services/api';
-import './Manager.css';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,9 +8,10 @@ import {
   Title,
   Tooltip,
   Legend,
-  ArcElement,
+  ArcElement
 } from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { ticketAPI } from '../../Services/api';
+import './Manager.css';
 
 ChartJS.register(
   CategoryScale,
@@ -33,10 +33,10 @@ const ManagerDashboard = () => {
     totalTickets: 0,
     resolvedTickets: 0,
     inProgressTickets: 0,
-    openTickets: 0,
+    openTickets: 0
   });
   const [weeklyData, setWeeklyData] = useState([]);
-  const [engineerPerformance, setEngineerPerformance] = useState([]);
+  const [topEngineers, setTopEngineers] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,8 +54,8 @@ const ManagerDashboard = () => {
           .filter(t => t.firstResponseTime)
           .map(t => {
             const created = new Date(t.createdAt);
-            const response = new Date(t.firstResponseTime);
-            return (response - created) / (1000 * 60 * 60); // Convert to hours
+            const responseTime = new Date(t.firstResponseTime);
+            return (responseTime - created) / (1000 * 60 * 60); // hours
           });
         
         const resolveTimes = resolvedTickets
@@ -63,7 +63,7 @@ const ManagerDashboard = () => {
           .map(t => {
             const created = new Date(t.createdAt);
             const resolved = new Date(t.resolvedAt);
-            return (resolved - created) / (1000 * 60 * 60); // Convert to hours
+            return (resolved - created) / (1000 * 60 * 60); // hours
           });
 
         // Calculate weekly ticket counts
@@ -79,13 +79,15 @@ const ManagerDashboard = () => {
           ).length;
         });
 
-        // Calculate engineer performance
+        // Calculate top engineers
         const engineerStats = response.reduce((acc, ticket) => {
-          if (ticket.assignedEngineer) {
-            const engineerId = ticket.assignedEngineer.id;
+          const engineer = ticket.engineer || ticket.assignedEngineer;
+          if (engineer) {
+            const engineerId = engineer.id;
             if (!acc[engineerId]) {
               acc[engineerId] = {
-                name: ticket.assignedEngineer.name,
+                id: engineerId, // Add the engineer ID here
+                name: engineer.name,
                 resolved: 0,
                 total: 0,
                 avgResolveTime: 0,
@@ -93,16 +95,15 @@ const ManagerDashboard = () => {
               };
             }
             acc[engineerId].total++;
-            if (ticket.status === 'RESOLVED' && ticket.resolvedAt) {
+            if (ticket.status === 'RESOLVED' && (ticket.resolvedAt || ticket.updatedAt)) {
               acc[engineerId].resolved++;
-              const resolveTime = (new Date(ticket.resolvedAt) - new Date(ticket.createdAt)) / (1000 * 60 * 60);
+              const resolveTime = (new Date(ticket.resolvedAt || ticket.updatedAt) - new Date(ticket.createdAt)) / (1000 * 60 * 60);
               acc[engineerId].resolveTimes.push(resolveTime);
             }
           }
           return acc;
         }, {});
 
-        // Calculate average resolve time for each engineer
         Object.values(engineerStats).forEach(engineer => {
           if (engineer.resolveTimes.length > 0) {
             engineer.avgResolveTime = (
@@ -110,10 +111,10 @@ const ManagerDashboard = () => {
               engineer.resolveTimes.length
             ).toFixed(1);
           }
-          delete engineer.resolveTimes; // Remove the array after calculating average
+          delete engineer.resolveTimes;
         });
 
-        const engineerPerformanceList = Object.values(engineerStats)
+        const topEngineersList = Object.values(engineerStats)
           .sort((a, b) => b.resolved - a.resolved);
 
         setStats({
@@ -128,7 +129,7 @@ const ManagerDashboard = () => {
         });
 
         setWeeklyData(weeklyCounts);
-        setEngineerPerformance(engineerPerformanceList);
+        setTopEngineers(topEngineersList);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch ticket data');
@@ -220,55 +221,37 @@ const ManagerDashboard = () => {
           <h3>Ticket Status Distribution</h3>
           <Doughnut data={statusChartData} />
         </div>
-        <div className="chart-card">
-          <h3>Engineer Performance</h3>
-          <Bar data={{
-            labels: engineerPerformance.map(e => e.name),
-            datasets: [
-              {
-                label: 'Resolved Tickets',
-                data: engineerPerformance.map(e => e.resolved),
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-              },
-              {
-                label: 'Total Tickets',
-                data: engineerPerformance.map(e => e.total),
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-              }
-            ]
-          }} options={{
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Number of Tickets'
-                }
-              }
-            }
-          }} />
-        </div>
       </div>
 
-      <div className="engineers-list">
+      <div className="engineers-table-container">
         <h3>Engineer Performance</h3>
-        {engineerPerformance.map((engineer, index) => (
-          <div key={index} className="engineer-item">
-            <span className="engineer-name">{engineer.name}</span>
-            <span className="engineer-stats">
-              {engineer.resolved} resolved / {engineer.total} total tickets
-              <br />
-              Avg. resolve time: {engineer.avgResolveTime} hours
-            </span>
-          </div>
-        ))}
+        <table className="engineers-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Engineer ID</th>
+              <th>Engineer Name</th>
+              <th>Resolved Tickets</th>
+              <th>Total Tickets</th>
+              <th>Avg. Resolve Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topEngineers.map((engineer, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{engineer.id}</td>
+                <td>{engineer.name}</td>
+                <td>{engineer.resolved}</td>
+                <td>{engineer.total}</td>
+                <td>{engineer.avgResolveTime} hours</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-export default ManagerDashboard; 
+export default ManagerDashboard;

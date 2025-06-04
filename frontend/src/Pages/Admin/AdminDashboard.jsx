@@ -29,8 +29,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
-    avgResponseTime: 0,
-    avgResolveTime: 0,
+    avgResponseTime: 0, // Average response time for all tickets with firstResponseTime
+    avgResolveTime: 0,  // Average resolve time for resolved tickets only
     totalTickets: 0,
     resolvedTickets: 0,
     inProgressTickets: 0,
@@ -51,21 +51,21 @@ const AdminDashboard = () => {
         const inProgressTickets = response.filter(t => t.status === 'IN_PROGRESS');
         const openTickets = response.filter(t => t.status === 'OPEN');
         
-        // Calculate average response and resolve times
+        // Calculate average response time (in minutes) for all tickets with firstResponseTime
         const responseTimes = response
           .filter(t => t.firstResponseTime)
           .map(t => {
             const created = new Date(t.createdAt);
-            const response = new Date(t.firstResponseTime);
-            return (response - created) / (1000 * 60 * 60); // Convert to hours
+            const responseTime = new Date(t.firstResponseTime);
+            return (responseTime - created) / (1000 * 60); // Convert to minutes
           });
-        
+        // Calculate average resolve time (in minutes) only for resolved tickets
         const resolveTimes = resolvedTickets
           .filter(t => t.resolvedAt)
           .map(t => {
             const created = new Date(t.createdAt);
             const resolved = new Date(t.resolvedAt);
-            return (resolved - created) / (1000 * 60 * 60); // Convert to hours
+            return (resolved - created) / (1000 * 60); // Convert to minutes
           });
 
         // Calculate weekly ticket counts
@@ -87,6 +87,7 @@ const AdminDashboard = () => {
             const engineerId = ticket.engineer.id;
             if (!acc[engineerId]) {
               acc[engineerId] = {
+                id: engineerId,
                 name: ticket.engineer.name,
                 resolved: 0,
                 total: 0,
@@ -97,18 +98,18 @@ const AdminDashboard = () => {
             acc[engineerId].total++;
             if (ticket.status === 'RESOLVED' && ticket.updatedAt) {
               acc[engineerId].resolved++;
-              const resolveTime = (new Date(ticket.updatedAt) - new Date(ticket.createdAt)) / (1000 * 60 * 60);
+              const resolveTime = (new Date(ticket.updatedAt) - new Date(ticket.createdAt)) / (1000 * 60); // Convert to minutes
               acc[engineerId].resolveTimes.push(resolveTime);
             }
           }
           return acc;
         }, {});
 
-        // Calculate average resolve time for each engineer
+        // Calculate average resolve time for each engineer (in minutes)
         Object.values(engineerStats).forEach(engineer => {
           if (engineer.resolveTimes.length > 0) {
             engineer.avgResolveTime = (
-              engineer.resolveTimes.reduce((a, b) => a + b, 0) / 
+              engineer.resolveTimes.reduce((a, b) => a + b, 0) /
               engineer.resolveTimes.length
             ).toFixed(1);
           }
@@ -119,9 +120,9 @@ const AdminDashboard = () => {
           .sort((a, b) => b.resolved - a.resolved);
 
         setStats({
-          avgResponseTime: responseTimes.length ? 
+          avgResponseTime: responseTimes.length ?
             (responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length).toFixed(1) : 0,
-          avgResolveTime: resolveTimes.length ? 
+          avgResolveTime: resolveTimes.length ?
             (resolveTimes.reduce((a, b) => a + b, 0) / resolveTimes.length).toFixed(1) : 0,
           totalTickets: response.length,
           resolvedTickets: resolvedTickets.length,
@@ -197,11 +198,11 @@ const AdminDashboard = () => {
       <div className="stats-grid">
         <div className="stat-card">
           <h3>Average Response Time</h3>
-          <p className="stat-value">{stats.avgResponseTime} hours</p>
+          <p className="stat-value">{stats.avgResponseTime} minutes</p>
         </div>
         <div className="stat-card">
           <h3>Average Resolve Time</h3>
-          <p className="stat-value">{stats.avgResolveTime} hours</p>
+          <p className="stat-value">{stats.avgResolveTime} minutes</p>
         </div>
         <div className="stat-card">
           <h3>Total Tickets</h3>
@@ -230,10 +231,10 @@ const AdminDashboard = () => {
           <thead>
             <tr>
               <th>Rank</th>
+              <th>Engineer ID</th>
               <th>Engineer Name</th>
               <th>Resolved Tickets</th>
               <th>Total Tickets</th>
-              <th>Resolution Rate</th>
               <th>Avg. Resolve Time</th>
             </tr>
           </thead>
@@ -241,11 +242,11 @@ const AdminDashboard = () => {
             {topEngineers.map((engineer, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
+                <td>{engineer.id}</td>
                 <td>{engineer.name}</td>
                 <td>{engineer.resolved}</td>
                 <td>{engineer.total}</td>
-                <td>{((engineer.resolved / engineer.total) * 100).toFixed(1)}%</td>
-                <td>{engineer.avgResolveTime} hours</td>
+                <td>{engineer.avgResolveTime} minutes</td>
               </tr>
             ))}
           </tbody>
@@ -255,4 +256,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard; 
+export default AdminDashboard;
