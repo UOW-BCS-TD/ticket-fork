@@ -207,7 +207,10 @@ export const ticketAPI = {
   // Update ticket urgency
   updateTicketUrgency: async (id, urgency) => {
     try {
-      const response = await api.put(`/tickets/${id}/urgency`, urgency);
+      // Send as plain string, with Content-Type text/plain to avoid quotes
+      const response = await api.put(`/tickets/${id}/urgency`, urgency, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error;

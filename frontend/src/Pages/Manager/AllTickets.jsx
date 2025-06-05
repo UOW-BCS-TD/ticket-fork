@@ -13,6 +13,8 @@ const AllTickets = () => {
   const [ticketsPerPage] = useState(10);
   const navigate = useNavigate();
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+  const [editingTicketId, setEditingTicketId] = useState(null);
+  const [editingUrgency, setEditingUrgency] = useState('');
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -110,6 +112,31 @@ const AllTickets = () => {
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const handleEditClick = (ticket) => {
+    setEditingTicketId(ticket.id);
+    setEditingUrgency(ticket.urgency || '');
+  };
+
+  const handleEditUrgencyChange = (e) => {
+    setEditingUrgency(e.target.value);
+  };
+
+  const handleEditSave = async (ticketId) => {
+    try {
+      // Always send a plain string, not a stringified value
+      await ticketAPI.updateTicketUrgency(ticketId, editingUrgency.trim().toUpperCase());
+      setTickets((prev) => prev.map(t => t.id === ticketId ? { ...t, urgency: editingUrgency.trim().toUpperCase() } : t));
+      setEditingTicketId(null);
+    } catch (err) {
+      alert('Failed to update priority');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingTicketId(null);
+    setEditingUrgency('');
+  };
+
   if (loading) return <div className="alltickets-empty-state">Loading tickets...</div>;
   if (error) return <div className="alltickets-empty-state">Error: {error}</div>;
 
@@ -168,7 +195,6 @@ const AllTickets = () => {
                   <tr key={ticket.id}>
                     <td data-label="Ticket ID">#{ticket.id}</td>
                     <td data-label="Title">{ticket.title}</td>
-                    
                     <td>
                       {ticket.engineer
                         ? (typeof ticket.engineer === 'object'
@@ -177,9 +203,17 @@ const AllTickets = () => {
                         : 'Unassigned'}
                     </td>
                     <td>
-                      <span className={`status-badge urgency-${(ticket.urgency || '').toLowerCase().trim()}`}>
-                        {ticket.urgency || 'N/A'}
-                      </span>
+                      {editingTicketId === ticket.id ? (
+                        <select value={editingUrgency} onChange={handleEditUrgencyChange}>
+                          <option value="LOW">Low</option>
+                          <option value="MEDIUM">Medium</option>
+                          <option value="HIGH">High</option>
+                        </select>
+                      ) : (
+                        <span className={`status-badge urgency-${(ticket.urgency || '').toLowerCase().trim()}`}>
+                          {ticket.urgency ? ticket.urgency.toUpperCase() : 'N/A'}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <span className={`status-badge status-${(ticket.status || '').toLowerCase() === 'open' ? 'active' : 
@@ -192,6 +226,14 @@ const AllTickets = () => {
                     <td>
                       <button className="action-button view-button" onClick={() => navigate(`/manager/tickets/${ticket.id}`)}>View</button>
                       <button className="action-button edit-button" onClick={() => navigate(`/manager/tickets/${ticket.id}/assign`)}>Assign</button>
+                      {editingTicketId === ticket.id ? (
+                        <>
+                          <button className="action-button save-button" onClick={() => handleEditSave(ticket.id)}>Save</button>
+                          <button className="action-button cancel-button" onClick={handleEditCancel}>Cancel</button>
+                        </>
+                      ) : (
+                        <button className="action-button edit-priority-button" onClick={() => handleEditClick(ticket)}>Edit</button>
+                      )}
                     </td>
                   </tr>
                 ))}

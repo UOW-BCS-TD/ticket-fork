@@ -77,19 +77,16 @@ const Chatbot = () => {
     const fetchAndSetActiveSession = async () => {
       setCheckingForActiveSessions(true);
       const fetchedChatList = await fetchChatList();
-      
       // Find and set the first active session if it exists
       const activeSession = fetchedChatList.find(session => 
         session.status === 'ACTIVE' && 
         session.ticketSession !== true && 
         session.ticketSession !== 1
       );
-      
       if (activeSession) {
         setActiveChat(activeSession.title);
         setActiveSessionId(activeSession.id);
         setChatStarted(true);
-        
         // Fetch the chat history for this active session
         try {
           const token = localStorage.getItem('token');
@@ -97,25 +94,24 @@ const Chatbot = () => {
             setCheckingForActiveSessions(false);
             return;
           }
-          
           const response = await sessionAPI.getSessionHistory(activeSession.id);
-          
           const messages = response.messages || [];
           const formattedMessages = messages.map(msg => ({
             text: msg.content,
             sender: msg.role === 'assistant' ? 'support' : 'user',
             timestamp: msg.timestamp
           }));
-          
           setChatHistory(formattedMessages);
         } catch (error) {
           console.error('Error fetching chat history for active session:', error);
         }
+        // Always set to false after try/catch
+        setCheckingForActiveSessions(false);
+      } else {
+        // No active session found, allow user to start a new chat
+        setCheckingForActiveSessions(false);
       }
-      
-      setCheckingForActiveSessions(false);
     };
-    
     fetchAndSetActiveSession();
   }, [navigate]);
 
@@ -305,7 +301,8 @@ const Chatbot = () => {
           setCheckingForActiveSessions(false);
           return;
         }
-      }
+        setCheckingForActiveSessions(false); // Always set to false after session creation
+      } 
       
       // Optimistically update chat history with user message and loading bot message
       const userMessage = {
@@ -360,6 +357,7 @@ const Chatbot = () => {
         const token = localStorage.getItem('token');
         if (!token) {
           alert('You must be logged in to view chat history.');
+          setCheckingForActiveSessions(false);
           return;
         }
         console.log('Fetching history for session:', session.id);
@@ -381,6 +379,8 @@ const Chatbot = () => {
         console.error('Error fetching chat history:', error);
         console.error('Error details:', error.response?.data);
         alert('Failed to fetch chat history.');
+      } finally {
+        setCheckingForActiveSessions(false); // Always set to false after fetching chat history
       }
     };
     fetchChatHistory();
@@ -559,7 +559,7 @@ const Chatbot = () => {
             </div>
             <div className="chat-header-actions">
               <button className="quick-action-btn" onClick={handleNewChat}><b className="new-chat-icon">+</b> New Chat</button>
-              <button className="quick-action-btn" onClick={handleEndSession}><b className="end-chat-icon">✖</b> End Session</button>
+              <button className="quick-action-btn" onClick={handleEndSession} disabled={!activeSessionId}><b className="end-chat-icon">✖</b> End Session</button>
             </div>
           </div>
         )}
@@ -580,7 +580,7 @@ const Chatbot = () => {
                       <span className="message-timestamp">
                         {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && (
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && chatHistory.filter(m => m.sender === 'user').length >= 3 && (
                         <div className="feedback-container">
                           <p>Did I solve your problem?</p>
                           <div className="feedback-buttons">

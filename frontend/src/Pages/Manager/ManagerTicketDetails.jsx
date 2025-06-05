@@ -241,29 +241,9 @@ const ManagerTicketDetails = () => {
               )}
             </div>
           )}
-          {activeTab === 'conversation' && (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') && (
+          {activeTab === 'conversation' && (
             <div className="info-message" style={{ color: '#888', marginTop: 16 }}>
-              This ticket is closed. You cannot reply or upload attachments.
-            </div>
-          )}
-          {activeTab === 'conversation' && ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && (
-            <div className="reply-box">
-              <textarea 
-                placeholder="Type your reply here..."
-                value={reply}
-                onChange={e => setReply(e.target.value)}
-                disabled={sending}
-              ></textarea>
-              <div className="reply-actions">
-                <div className="attach-file">
-                  <i className="fas fa-paperclip"></i>
-                  <span>Attach File</span>
-                </div>
-                <button className="send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
-                  <i className="fas fa-paper-plane"></i> {sending ? "Sending..." : "Send Reply"}
-                </button>
-              </div>
-              {sendError && <div className="error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
+              Managers cannot reply or upload attachments in this ticket.
             </div>
           )}
           {activeTab === 'attachments' && (
@@ -335,4 +315,4 @@ const ManagerTicketDetails = () => {
   );
 };
 
-export default ManagerTicketDetails; 
+export default ManagerTicketDetails;
