@@ -31,7 +31,7 @@ const TicketInformation = () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await ticketAPI.getTickets();
+        const data = await ticketAPI.getTicketsOwn();
         setTicketList(data);
         if (data && data.length > 0) {
           setActiveTicket(data[0].id);

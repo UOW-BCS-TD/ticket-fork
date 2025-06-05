@@ -113,23 +113,23 @@
   border-color: #ffe082;
 }
 .status-badge.urgency-low {
-  background-color: #e3fcec;
-  color: #2e7d32;
+  background-color: #e3fcec !important;
+  color: #2e7d32 !important;
   border-color: #b2dfdb;
 }
 .status-badge.urgency-medium {
-  background-color: #fffde7;
-  color: #fbc02d;
+  background-color: #fffde7 !important;
+  color: #fbc02d !important;
   border-color: #ffe082;
 }
 .status-badge.urgency-high {
-  background-color: #fff3e0;
-  color: #ef6c00;
+  background-color: #fff3e0 !important;
+  color: #ef0000 !important;
   border-color: #ffb74d;
 }
 .status-badge.urgency-critical {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: #ffebee !important;
+  color: #c62828 !important;
   border-color: #ffcdd2;
 }
 
@@ -231,6 +231,71 @@
   color: #757575;
 }
 
+/* Inline editing buttons and dropdown */
+.action-button.edit-priority-button {
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, color 0.18s;
+}
+.action-button.edit-priority-button:hover {
+  background-color: #125ea2;
+}
+.action-button.save-button {
+  background-color: #43a047;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, color 0.18s;
+}
+.action-button.save-button:hover {
+  background-color: #2e7031;
+}
+.action-button.cancel-button {
+  background-color: #bdbdbd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, color 0.18s;
+}
+.action-button.cancel-button:hover {
+  background-color: #757575;
+}
+
+/* Priority dropdown for inline editing */
+.alltickets-table select {
+  padding: 7px 14px;
+  border: 1.5px solid #1976d2;
+  border-radius: 7px;
+  background-color: #e3f2fd;
+  font-size: 15px;
+  color: #1976d2;
+  font-weight: 600;
+  outline: none;
+  margin-right: 8px;
+  transition: border 0.18s, box-shadow 0.18s;
+}
+.alltickets-table select:focus {
+  border-color: #43a047;
+  box-shadow: 0 2px 8px rgba(67, 160, 71, 0.10);
+}
+
 @media (max-width: 900px) {
   .alltickets-table {
     min-width: 700px;
@@ -253,4 +318,4 @@
     width: 100%;
     min-width: 0;
   }
-} 
+}

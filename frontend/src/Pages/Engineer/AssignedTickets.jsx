@@ -79,13 +79,18 @@ const AssignedTickets = () => {
     fetchAttachments();
   }, [activeTicket, activeTab]);
 
+  // Only show tickets that are not CLOSED or RESOLVED
   const filteredTickets = ticketList.filter(ticket => 
-    (typeof ticket.title === 'string' && ticket.title.toLowerCase().includes(searchQuery.toLowerCase())) || 
-    (typeof ticket.id === 'string' && ticket.id.toLowerCase().includes(searchQuery.toLowerCase()))
+    (ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED') &&
+    (
+      (typeof ticket.title === 'string' && ticket.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      ticket.id.toString().toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   // Get the active ticket data
-  const currentTicket = ticketList.find(ticket => ticket.id === activeTicket) || ticketList[0] || {};
+  const currentTicket = filteredTickets.length > 0 ?
+    (filteredTickets.find(ticket => ticket.id === activeTicket) || filteredTickets[0]) : {};
 
   // Helper to parse ticket history JSON
   const parseHistory = (history) => {
