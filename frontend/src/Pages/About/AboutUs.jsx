@@ -10,54 +10,6 @@ const AboutUs = () => {
     setIsVisible(true);
   }, []);
 
-  // Team members data
-  const teamMembers = [
-    {
-      name: 'Sarah Johnson',
-      role: 'CEO & Founder',
-      bio: 'With over 15 years of experience in customer support solutions, Sarah founded TechCare with a vision to transform how businesses handle customer inquiries.',
-      image: '/team/sarah.jpg',
-      social: {
-        linkedin: '#',
-        twitter: '#',
-        github: '#'
-      }
-    },
-    {
-      name: 'Michael Chen',
-      role: 'CTO',
-      bio: 'Michael leads our technology team, bringing 12 years of experience in AI and machine learning to create our innovative support platform.',
-      image: '/team/michael.jpg',
-      social: {
-        linkedin: '#',
-        twitter: '#',
-        github: '#'
-      }
-    },
-    {
-      name: 'Jessica Williams',
-      role: 'Head of Customer Success',
-      bio: 'Jessica ensures our clients achieve their support goals through strategic implementation of our platform.',
-      image: '/team/jessica.jpg',
-      social: {
-        linkedin: '#',
-        twitter: '#',
-        github: '#'
-      }
-    },
-    {
-      name: 'David Rodriguez',
-      role: 'Lead Developer',
-      bio: 'David architects our core systems, focusing on scalability and performance to handle millions of support tickets daily.',
-      image: '/team/david.jpg',
-      social: {
-        linkedin: '#',
-        twitter: '#',
-        github: '#'
-      }
-    }
-  ];
-
   // Company values
   const companyValues = [
     {
@@ -162,41 +114,6 @@ const AboutUs = () => {
                 </div>
                 <h3>{value.title}</h3>
                 <p>{value.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="about-us-section our-team">
-          <div className="section-header">
-            <h2>Our Team</h2>
-            <div className="section-divider"></div>
-          </div>
-          <p className="team-intro">
-            Meet the passionate individuals behind TechCare who are dedicated to revolutionizing customer support.
-          </p>
-          <div className="team-members">
-            {teamMembers.map((member, index) => (
-              <div className="team-member-card" key={index}>
-                <div className="member-image">
-                  <img src={member.image} alt={member.name}/>
-                </div>
-                <div className="member-info">
-                  <h3>{member.name}</h3>
-                  <span className="member-role">{member.role}</span>
-                  <p>{member.bio}</p>
-                  <div className="member-social">
-                    <a href={member.social.linkedin} aria-label="LinkedIn">
-                      <i className="fab fa-linkedin"></i>
-                    </a>
-                    <a href={member.social.twitter} aria-label="Twitter">
-                      <i className="fab fa-twitter"></i>
-                    </a>
-                    <a href={member.social.github} aria-label="GitHub">
-                      <i className="fab fa-github"></i>
-                    </a>
-                  </div>
-                </div>
               </div>
             ))}
           </div>

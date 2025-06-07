@@ -379,10 +379,10 @@ const UserManagement = () => {
                       <label>Created</label>
                       <p>{formatDate(selectedUser.createdAt)}</p>
                     </div>
-                    <div className="detail-item">
+                    {/* <div className="detail-item">
                       <label>Last Login</label>
                       <p>{formatDate(selectedUser.lastLogin)}</p>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

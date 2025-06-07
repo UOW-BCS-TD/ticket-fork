@@ -34,7 +34,7 @@ const KnowledgeBase = () => {
             <li>ISP outages</li>
           </ul>
         `,
-        tags: ['network', 'troubleshooting', 'connectivity']
+        tags: ['troubleshooting', 'connectivity']
       },
       {
         id: 2,
@@ -59,7 +59,7 @@ const KnowledgeBase = () => {
             <li>Antivirus blocking installation</li>
           </ul>
         `,
-        tags: ['software', 'installation', 'best practices']
+        tags: ['installation', 'best practices']
       },
       {
         id: 3,
@@ -90,7 +90,7 @@ const KnowledgeBase = () => {
             <li>Cooling system effectiveness</li>
           </ul>
         `,
-        tags: ['hardware', 'diagnostics', 'troubleshooting']
+        tags: ['diagnostics', 'troubleshooting']
       },
       {
         id: 4,
@@ -141,7 +141,7 @@ Best regards,
 Support Engineer
           </pre>
         `,
-        tags: ['customer service', 'templates', 'communication']
+        tags: ['templates', 'communication']
       },
       {
         id: 5,
@@ -186,7 +186,7 @@ Support Engineer
             <li>Conduct training if necessary</li>
           </ul>
         `,
-        tags: ['security', 'incident response', 'protocol']
+        tags: ['incident response', 'protocol']
       }
     ];
     

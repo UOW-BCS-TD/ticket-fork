@@ -484,7 +484,7 @@ const Chatbot = () => {
             placeholder="Search chats..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
+            className="chat-search-input"
           />
         </div>
         <div className="chat-filters">
@@ -533,7 +533,7 @@ const Chatbot = () => {
                 <div className="chat-item-header">
                   <span className="session-title">{(chat.title && chat.title.length > 20) ? chat.title.slice(0, 20) + '...' : (chat.title || 'Untitled Chat')}</span>
                   <span className="session-meta">
-                    <span className={`status-badge ${chat.status}`}>{chat.status}</span>
+                    <span className={`chat-status-badge ${chat.status}`}>{chat.status}</span>
                     <span className="session-time">
                       {formatSessionTime(chat.lastActivity)}
                     </span>
@@ -553,7 +553,7 @@ const Chatbot = () => {
               {(() => {
                 const currentSession = chatList.find((s) => s.id === activeSessionId);
                 return currentSession ? (
-                  <span className={`status-badge ${currentSession.status}`}>{currentSession.status}</span>
+                  <span className={`chat-status-badge ${currentSession.status}`}>{currentSession.status}</span>
                 ) : null;
               })()}
             </div>
@@ -591,7 +591,7 @@ const Chatbot = () => {
                               ✅ Yes
                             </button>
                             <button 
-                              className="feedback-btn error" 
+                              className="feedback-btn cancel" 
                               onClick={() => handleFeedback(false)}
                             >
                               ❌ No
@@ -611,7 +611,7 @@ const Chatbot = () => {
                               ✅ Yes
                             </button>
                             <button 
-                              className="feedback-btn error" 
+                              className="feedback-btn cancel" 
                               onClick={() => handleTicketPrompt(false)}
                             >
                               ❌ No

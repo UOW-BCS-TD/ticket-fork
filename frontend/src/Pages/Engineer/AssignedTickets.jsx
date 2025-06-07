@@ -254,10 +254,10 @@ const AssignedTickets = () => {
   }, [currentTicket]);
 
   return (
-    <div className="ticket-view-container">
-      <div className="sidebar-toggle" onClick={() => {
-        const sidebar = document.querySelector('.ticket-left-panel');
-        const toggle = document.querySelector('.sidebar-toggle');
+    <div className="engineer-ticket-view-container">
+      <div className="engineer-sidebar-toggle" onClick={() => {
+        const sidebar = document.querySelector('.engineer-ticket-left-panel');
+        const toggle = document.querySelector('.engineer-sidebar-toggle');
         sidebar.classList.toggle('active');
         toggle.classList.toggle('active');
       }}>
@@ -265,122 +265,122 @@ const AssignedTickets = () => {
         <span></span>
         <span></span>
       </div>
-      <div className="ticket-main">
-        <div className="ticket-panels-container">
-          <div className="ticket-left-panel">
-            <div className="ticket-illustration">
+      <div className="engineer-ticket-main">
+        <div className="engineer-ticket-panels-container">
+          <div className="engineer-ticket-left-panel">
+            <div className="engineer-ticket-illustration">
               <i className="fas fa-headset"></i>
             </div>
-            <div className="ticket-panel-content">
+            <div className="engineer-ticket-panel-content">
               <h3>Assigned Tickets</h3>
               <p>All tickets assigned to you as an engineer.</p>
-              <div className="search-ticket-container">
+              <div className="engineer-search-ticket-container">
                 <input
                   type="text"
                   placeholder="Search tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-ticket-input"
+                  className="engineer-search-ticket-input"
                 />
               </div>
               {loading ? (
-                <div className="empty-state">Loading tickets...</div>
+                <div className="engineer-empty-state">Loading tickets...</div>
               ) : error ? (
-                <div className="empty-state">{error}</div>
+                <div className="engineer-empty-state">{error}</div>
               ) : (
-                <div className="ticket-list-section">
-                  <div className="ticket-items-container">
+                <div className="engineer-ticket-list-section">
+                  <div className="engineer-ticket-items-container">
                     {filteredTickets.map((ticket) => (
                       <div 
                         key={ticket.id} 
-                        className={`ticket-item ${activeTicket === ticket.id ? 'active' : ''}`}
+                        className={`engineer-ticket-item ${activeTicket === ticket.id ? 'active' : ''}`}
                         onClick={() => handleTicketClick(ticket.id)}
                       >
-                        <div className="ticket-item-header">
+                        <div className="engineer-ticket-item-header">
                           <h4>{ticket.title}</h4>
-                          <span className={`ticket-item-status ${ticket.status ? ticket.status.toLowerCase() : ''}`}>
+                          <span className={`engineer-ticket-item-status ${ticket.status ? ticket.status.toLowerCase() : ''}`}>
                             {ticket.status ? ticket.status.replace(/_/g, ' ') : 'Unknown'}
                           </span>
                         </div>
-                        <div className="ticket-item-meta">
-                          <span className="ticket-item-id">#{ticket.id}</span>
-                          <span className="ticket-item-date">{currentTicket.createdAt ? new Date(ticket.createdAt).toLocaleString() : '-'}</span>
+                        <div className="engineer-ticket-item-meta">
+                          <span className="engineer-ticket-item-id">#{ticket.id}</span>
+                          <span className="engineer-ticket-item-date">{currentTicket.createdAt ? new Date(ticket.createdAt).toLocaleString() : '-'}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="ticket-meta-info">
-                <div className="meta-item">
+              <div className="engineer-ticket-meta-info">
+                <div className="engineer-meta-item">
                   <i className="fas fa-calendar-alt"></i>
                   <span>Created: {currentTicket.createdAt ? new Date(currentTicket.createdAt).toLocaleString() : '-'}</span>
                 </div>
-                <div className="meta-item">
+                <div className="engineer-meta-item">
                   <i className="fas fa-clock"></i>
                   <span>Last Updated: {currentTicket.updatedAt ? new Date(currentTicket.updatedAt).toLocaleString() : '-'}</span>
                 </div>
-                <div className="meta-item">
+                <div className="engineer-meta-item">
                   <i className="fas fa-tag"></i>
                   <span>Priority: {currentTicket.urgency}</span>
                 </div>
-                <div className="meta-item">
+                <div className="engineer-meta-item">
                   <i className="fas fa-folder"></i>
                   <span>Category: {currentTicket.type && currentTicket.type.name ? currentTicket.type.name : '-'}</span>
                 </div>
-                <div className="meta-item">
+                <div className="engineer-meta-item">
                   <i className="fas fa-user"></i>
                   <span>Customer: {currentTicket.customer && currentTicket.customer.name ? currentTicket.customer.name : '-'}</span>
                 </div>
-                <div className="meta-item">
+                <div className="engineer-meta-item">
                   <i className="fas fa-envelope"></i>
                   <span>Email: {currentTicket.customer && currentTicket.customer.email ? currentTicket.customer.email : '-'}</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="ticket-right-panel">
+          <div className="engineer-ticket-right-panel">
             {!loading && ticketList.length === 0 ? (
-              <div className="ticket-content-wrapper">
-                <div className="empty-state" style={{marginTop: '40px', fontSize: '1.1em', textAlign: 'center'}}>
-                  <span className="empty-icon"><i className="fas fa-comments"></i></span>
+              <div className="engineer-ticket-content-wrapper">
+                <div className="engineer-empty-state" style={{marginTop: '40px', fontSize: '1.1em', textAlign: 'center'}}>
+                  <span className="engineer-empty-icon"><i className="fas fa-comments"></i></span>
                   You don't have any assigned tickets yet.
                 </div>
               </div>
             ) : (
-              <div className="ticket-content-wrapper">
-                <div className="ticket-header">
-                  <div className="ticket-title-section" aria-label="Ticket Title Section">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span className="ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
-                      <span className={`ticket-item-status ${currentTicket.status ? currentTicket.status.toLowerCase() : ''}`} aria-label="Ticket Status">
+              <div className="engineer-ticket-content-wrapper">
+                <div className="engineer-ticket-header">
+                  <div className="engineer-ticket-title-section" aria-label="Ticket Title Section">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className="engineer-ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
+                      <h2 className="engineer-ticket-title" aria-label="Ticket Title">{currentTicket.title}</h2>
+                      <span className={`engineer-ticket-item-status ${currentTicket.status ? currentTicket.status.toLowerCase() : ''}`} aria-label="Ticket Status">
                         {currentTicket.status ? currentTicket.status.replace(/_/g, ' ') : 'Unknown'}
                       </span>
                     </div>
-                    <h2 className="ticket-title" aria-label="Ticket Title">{currentTicket.title}</h2>
                   </div>
-                  <div className="ticket-tabs">
+                  <div className="engineer-ticket-tabs">
                     <div 
-                      className={`ticket-tab ${activeTab === 'conversation' ? 'active' : ''}`}
+                      className={`engineer-ticket-tab ${activeTab === 'conversation' ? 'active' : ''}`}
                       onClick={() => setActiveTab('conversation')}
                     >
                       <i className="fas fa-comments"></i> Conversation
                     </div>
                     <div 
-                      className={`ticket-tab ${activeTab === 'attachments' ? 'active' : ''}`}
+                      className={`engineer-ticket-tab ${activeTab === 'attachments' ? 'active' : ''}`}
                       onClick={() => setActiveTab('attachments')}
                     >
                       <i className="fas fa-paperclip"></i> Attachments
                     </div>
                     <div 
-                      className={`ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
+                      className={`engineer-ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
                       onClick={() => setActiveTab('related')}
                     >
                       <i className="fas fa-link"></i> Related Information
                     </div>
                     {session && session.ticketSession !== true && (
                       <div 
-                        className={`ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
+                        className={`engineer-ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
                         onClick={() => setActiveTab('chatbot')}
                       >
                         <i className="fas fa-robot"></i> Chatbot History
@@ -388,11 +388,11 @@ const AssignedTickets = () => {
                     )}
                   </div>
                 </div>
-                <div className="estimated-time" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
+                <div className="engineer-estimated-time" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
                   {/* Escalate button for engineers */}
                   {engineerLevel !== 3 && currentTicket.status !== 'ESCALATED' && currentTicket.status !== 'CLOSED' && (
                     <button
-                      className="escalate-btn"
+                      className="engineer-escalate-btn"
                       onClick={handleEscalate}
                       disabled={escalating}
                       title="Escalate this ticket to a higher-level engineer"
@@ -403,7 +403,7 @@ const AssignedTickets = () => {
                   {/* Mark as Resolved button for engineers */}
                   {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' && (
                     <button
-                      className="escalate-btn"
+                      className="engineer-escalate-btn"
                       style={{ background: 'linear-gradient(90deg, #2ecc71 60%, #27ae60 100%)' }}
                       onClick={handleResolve}
                       disabled={resolving}
@@ -414,13 +414,13 @@ const AssignedTickets = () => {
                   )}
                 </div>
                 {activeTab === 'conversation' && (
-                  <div className="interaction-history">
+                  <div className="engineer-interaction-history">
                     <h4>Conversation History</h4>
                     {parseHistory(currentTicket.history).length === 0 ? (
-                      <div className="empty-state">No conversation yet. Start the conversation below.</div>
+                      <div className="engineer-empty-state">No conversation yet. Start the conversation below.</div>
                     ) : (
                       parseHistory(currentTicket.history).map((msg, idx) => (
-                        <div key={idx} className={`interaction ${msg.role === 'engineer' ? 'agent-message' : 'customer-message'}`}>
+                        <div key={idx} className={`engineer-interaction ${msg.role === 'engineer' ? 'agent-message' : 'customer-message'}`}>
                           <span className="time">{formatMessageTime(msg.timestamp)}</span>
                           <span className="sender">{msg.role === 'engineer' ? 'Engineer' : 'User'}:</span>
                           <p>{msg.content}</p>
@@ -430,35 +430,35 @@ const AssignedTickets = () => {
                   </div>
                 )}
                 {activeTab === 'attachments' && (
-                  <div className="attachments-section">
-                    <div className="attachments-header">
+                  <div className="engineer-attachments-section">
+                    <div className="engineer-attachments-header">
                       <h4>Attached Files</h4>
                       <div>
                         {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' ? (
-                          <label className="custom-file-upload">
+                          <label className="engineer-custom-file-upload">
                             <input type="file" onChange={handleFileUpload} disabled={uploading} />
                             <i className="fas fa-upload"></i> {uploading ? "Uploading..." : "Upload File"}
                           </label>
                         ) : null}
                         {(currentTicket.status === 'RESOLVED' || currentTicket.status === 'CLOSED') && (
-                          <div className="info-message" style={{ color: '#888', marginBottom: 12 }}>
+                          <div className="engineer-info-message" style={{ color: '#888', marginBottom: 12 }}>
                             This ticket is closed. You cannot reply or upload attachments.
                           </div>
                         )}
                       </div>
                     </div>
-                    {uploadError && <div className="error-message" style={{ color: 'red' }}>{uploadError}</div>}
-                    {uploadSuccess && <div className="success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
+                    {uploadError && <div className="engineer-error-message" style={{ color: 'red' }}>{uploadError}</div>}
+                    {uploadSuccess && <div className="engineer-success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
                     {attachments.length === 0 ? (
-                      <p className="no-attachments">No files have been attached to this ticket.</p>
+                      <p className="engineer-no-attachments">No files have been attached to this ticket.</p>
                     ) : (
-                      <div className="attachment-list">
+                      <div className="engineer-attachment-list">
                         {attachments.map(att => (
-                          <div className="attachment-item" key={att.id}>
+                          <div className="engineer-attachment-item" key={att.id}>
                             <i className="fas fa-paperclip"></i>
-                            <span className="attachment-name">{att.filename}</span>
-                            <span className="attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
-                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="attachment-action-btn">
+                            <span className="engineer-attachment-name">{att.filename}</span>
+                            <span className="engineer-attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
+                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="engineer-attachment-action-btn">
                               <i className="fas fa-download attachment_download"></i> Download
                             </a>
                           </div>
@@ -468,23 +468,23 @@ const AssignedTickets = () => {
                   </div>
                 )}
                 {activeTab === 'related' && (
-                  <div className="related-info-section">
+                  <div className="engineer-related-info-section">
                     <h4>Related Information</h4>
                     <div className="related-tickets">
                       <h5>Related Tickets</h5>
-                      <p className="no-related">No related tickets found.</p>
+                      <p className="engineer-no-related">No related tickets found.</p>
                     </div>
-                    <div className="suggested-articles">
+                    <div className="engineer-suggested-articles">
                       <h5>Suggested Knowledge Base Articles</h5>
-                      <a href="#" className="article-link">
+                      <a href="#" className="engineer-article-link">
                         <i className="fas fa-file-alt"></i>
                         Common Support Issues and Solutions
                       </a>
-                      <a href="#" className="article-link">
+                      <a href="#" className="engineer-article-link">
                         <i className="fas fa-file-alt"></i>
                         How to Provide Effective Information for Support
                       </a>
-                      <a href="#" className="article-link">
+                      <a href="#" className="engineer-article-link">
                         <i className="fas fa-file-alt"></i>
                         Troubleshooting Guide for {currentTicket.type && currentTicket.type.name ? currentTicket.type.name : '-'}
                       </a>
@@ -501,30 +501,30 @@ const AssignedTickets = () => {
                 )}
                 {/* Only show reply box for the Conversation tab */}
                 {activeTab === 'conversation' && (
-                  <div className="reply-box">
+                  <div className="engineer-reply-box">
                     <textarea 
                       placeholder="Type your reply here..."
                       value={reply}
                       onChange={e => setReply(e.target.value)}
                       disabled={sending}
                     ></textarea>
-                    <div className="reply-actions">
-                      <div className="attach-file">
+                    <div className="engineer-reply-actions">
+                      <div className="engineer-attach-file">
                         <i className="fas fa-paperclip"></i>
                         <span>Attach File</span>
                       </div>
-                      <button className="send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
+                      <button className="engineer-send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
                         <i className="fas fa-paper-plane"></i> {sending ? "Sending..." : "Send Reply"}
                       </button>
                     </div>
-                    {sendError && <div className="error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
+                    {sendError && <div className="engineer-error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
                   </div>
                 )}
                 {/* Escalate success/error messages */}
-                {escalateSuccess && <div className="success-message" style={{ color: 'green', marginBottom: 8 }}>{escalateSuccess}</div>}
-                {escalateError && <div className="error-message" style={{ color: 'red', marginBottom: 8 }}>{escalateError}</div>}
-                {resolveSuccess && <div className="success-message" style={{ color: 'green', marginBottom: 8 }}>{resolveSuccess}</div>}
-                {resolveError && <div className="error-message" style={{ color: 'red', marginBottom: 8 }}>{resolveError}</div>}
+                {escalateSuccess && <div className="engineer-success-message" style={{ color: 'green', marginBottom: 8 }}>{escalateSuccess}</div>}
+                {escalateError && <div className="engineer-error-message" style={{ color: 'red', marginBottom: 8 }}>{escalateError}</div>}
+                {resolveSuccess && <div className="engineer-success-message" style={{ color: 'green', marginBottom: 8 }}>{resolveSuccess}</div>}
+                {resolveError && <div className="engineer-error-message" style={{ color: 'red', marginBottom: 8 }}>{resolveError}</div>}
               </div>
             )}
           </div>

@@ -108,7 +108,7 @@ const TicketInformation = () => {
   };
 
   const toggleSidebar = () => {
-    const sidebar = document.querySelector('.ticket-left-panel');
+    const sidebar = document.querySelector('.customer-ticket-left-panel');
     const toggle = document.querySelector('.sidebar-toggle');
     
     sidebar.classList.toggle('active');
@@ -192,138 +192,131 @@ const TicketInformation = () => {
   };
 
   return (
-    <div className="ticket-view-container">
+    <div className="customer-ticket-view-container">
       <div className="sidebar-toggle" onClick={toggleSidebar}>
         <span></span>
         <span></span>
         <span></span>
       </div>
       
-      <div className="ticket-main">
-        <div className="ticket-panels-container">
-          <div className="ticket-left-panel">
-            <div className="ticket-illustration">
+      <div className="customer-ticket-main">
+        <div className="customer-ticket-panels-container">
+          <div className="customer-ticket-left-panel">
+            <div className="customer-ticket-illustration">
               <i className="fas fa-headset"></i>
             </div>
-            <div className="ticket-panel-content">
+            <div className="customer-ticket-panel-content">
               <h3>My Tickets</h3>
               <p>Track and manage your support requests with our team.</p>
               
-              <div className="search-ticket-container">
+              <div className="customer-search-ticket-container">
                 <input
                   type="text"
                   placeholder="Search tickets..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-ticket-input"
+                  className="customer-search-ticket-input"
                 />
               </div>
               
               {loading ? (
-                <div className="empty-state">Loading tickets...</div>
+                <div className="customer-empty-state">Loading tickets...</div>
               ) : error ? (
-                <div className="empty-state">{error}</div>
+                <div className="customer-empty-state">{error}</div>
               ) : (
-                <div className="ticket-list-section">
-                  <div className="ticket-items-container">
+                <div className="customer-ticket-list-section">
+                  <div className="customer-ticket-items-container">
                     {filteredTickets.map((ticket) => (
                       <div 
                         key={ticket.id} 
-                        className={`ticket-item ${activeTicket === ticket.id ? 'active' : ''}`}
+                        className={`customer-ticket-items ${activeTicket === ticket.id ? 'active' : ''}`}
                         onClick={() => handleTicketClick(ticket.id)}
                       >
-                        <div className="ticket-item-header">
-                          <h4>{ticket.title}</h4>
-                          <span className={`ticket-item-status ${ticket.status ? ticket.status.toLowerCase() : ''}`}>
+                        <div className="customer-ticket-item-header">
+                          <span className="customer-ticket-title">{(ticket.title && ticket.title.length > 20) ? ticket.title.slice(0, 20) + '...' : (ticket.title || 'Untitled Ticket')}</span>
+                          <span className={`customer-ticket-status-badge ${ticket.status ? ticket.status.toLowerCase() : ''}`}>
                             {ticket.status ? ticket.status.replace(/_/g, ' ') : 'Unknown'}
                           </span>
                         </div>
-                        <div className="ticket-item-meta">
-                          <span className="ticket-item-id">#{ticket.id}</span>
-                          <span className="ticket-item-date">{formatDate(ticket.createdAt)}</span>
-                        </div>
+                        <span className="customer-ticket-meta">
+                          <span className="customer-ticket-item-id">#{ticket.id}</span>
+                          <span className="customer-ticket-time">
+                            {formatDate(ticket.createdAt)}
+                          </span>
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
               
-              <div className="ticket-meta-info">
-                <div className="meta-item">
+              <div className="customer-ticket-meta-info">
+                <div className="customer-meta-item">
                   <i className="fas fa-calendar-alt"></i>
                   <span>Created: {formatDate(currentTicket.createdAt)}</span>
                 </div>
-                <div className="meta-item">
+                <div className="customer-meta-item">
                   <i className="fas fa-clock"></i>
                   <span>Last Updated: {formatDate(currentTicket.updatedAt)}</span>
                 </div>
-                <div className="meta-item">
+                <div className="customer-meta-item">
                   <i className="fas fa-tag"></i>
                   <span>Priority: {currentTicket.urgency}</span>
                 </div>
-                <div className="meta-item">
+                <div className="customer-meta-item">
                   <i className="fas fa-folder"></i>
                   <span>Category: {currentTicket.type && currentTicket.type.name ? currentTicket.type.name : '-'}</span>
                 </div>
               </div>
-              
-              {/* <div className="quick-actions">
-                <button className="action-btn">
-                  <i className="fas fa-edit"></i> Add More Details
-                </button>
-                <button className="action-btn secondary">
-                  <i className="fas fa-times"></i> Close Ticket
-                </button>
-              </div> */}
             </div>
           </div>
 
-          <div className="ticket-right-panel">
+          <div className="customer-ticket-right-panel">
             {!loading && ticketList.length === 0 ? (
-              <div className="ticket-content-wrapper">
-                <div className="empty-state" style={{marginTop: '40px', fontSize: '1.1em', textAlign: 'center'}}>
-                  <span className="empty-icon"><i className="fas fa-comments"></i></span>
+              <div className="customer-ticket-content-wrapper">
+                <div className="customer-empty-state" style={{marginTop: '40px', fontSize: '1.1em', textAlign: 'center'}}>
+                  <span className="customer-empty-icon"><i className="fas fa-comments"></i></span>
                   You don't have any support tickets yet. If you have a question or need assistance, please visit our chatbot—it's ready to help you anytime!
-                  <a href="/chatbot" className="empty-state-btn btn-primary">
+                  <a href="/chatbot" className="customer-empty-state-btn btn-primary">
                   <i className="fas fa-robot"></i> Chat with Bot</a>
                 </div>
                 
               </div>
             ) : (
-              <div className="ticket-content-wrapper">
-                <div className="ticket-header">
-                  <div className="ticket-title-section" aria-label="Ticket Title Section">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span className="ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
-                      <span className={`ticket-item-status ${currentTicket.status ? currentTicket.status.toLowerCase() : ''}`} aria-label="Ticket Status">
+              <div className="customer-ticket-content-wrapper">
+                <div className="customer-ticket-header">
+                  <div className="customer-ticket-title-section" aria-label="Ticket Title Section">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className="customer-ticket-id" aria-label="Ticket ID">#{currentTicket.id}</span>
+                      <h2 className="customer-ticket-item-title" aria-label="Ticket Title">{currentTicket.title}</h2>
+                      <span className={`customer-ticket-item-status ${currentTicket.status ? currentTicket.status.toLowerCase() : ''}`} aria-label="Ticket Status">
                         {currentTicket.status ? currentTicket.status.replace(/_/g, ' ') : 'Unknown'}
                       </span>
                     </div>
-                    <h2 className="ticket-title" aria-label="Ticket Title">{currentTicket.title}</h2>
                   </div>
                   
-                  <div className="ticket-tabs">
+                  <div className="customer-ticket-tabs">
                     <div 
-                      className={`ticket-tab ${activeTab === 'conversation' ? 'active' : ''}`}
+                      className={`customer-ticket-tab ${activeTab === 'conversation' ? 'active' : ''}`}
                       onClick={() => setActiveTab('conversation')}
                     >
                       <i className="fas fa-comments"></i> Conversation
                     </div>
                     <div 
-                      className={`ticket-tab ${activeTab === 'attachments' ? 'active' : ''}`}
+                      className={`customer-ticket-tab ${activeTab === 'attachments' ? 'active' : ''}`}
                       onClick={() => setActiveTab('attachments')}
                     >
                       <i className="fas fa-paperclip"></i> Attachments
                     </div>
                     <div 
-                      className={`ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
+                      className={`customer-ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
                       onClick={() => setActiveTab('related')}
                     >
                       <i className="fas fa-link"></i> Related Information
                     </div>
                     {session && session.ticketSession !== true && (
                       <div 
-                        className={`ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
+                        className={`customer-ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
                         onClick={() => setActiveTab('chatbot')}
                       >
                         <i className="fas fa-robot"></i> Chatbot History
@@ -333,7 +326,7 @@ const TicketInformation = () => {
                 </div>
                 
                 {currentTicket.status === 'IN_PROGRESS' && (
-                  <div className="estimated-time">
+                  <div className="customer-estimated-time">
                     <i className="fas fa-hourglass-half"></i>
                     <div>
                       <strong>Estimated Resolution Time:</strong>
@@ -342,18 +335,16 @@ const TicketInformation = () => {
                   </div>
                 )}
                 
-                
-                
                 {activeTab === 'conversation' && (
-                  <div className="interaction-history">
+                  <div className="customer-interaction-history">
                     <h4>Conversation History</h4>
                     {parseHistory(currentTicket.history).length === 0 ? (
-                      <div className="empty-state">No conversation yet. Start the conversation below.</div>
+                      <div className="customer-empty-state">No conversation yet. Start the conversation below.</div>
                     ) : (
                       parseHistory(currentTicket.history).map((msg, idx) => (
-                        <div key={idx} className={`interaction ${msg.role === 'engineer' ? 'agent-message' : 'customer-message'}`}>
-                          <span className="time">{formatMessageTime(msg.timestamp)}</span>
-                          <span className="sender">{msg.role === 'engineer' ? 'Engineer' : 'User'}:</span>
+                        <div key={idx} className={`customer-interaction ${msg.role === 'engineer' ? 'customer-agent-message' : 'customer-customer-message'}`}>
+                          <span className="customer-time">{formatMessageTime(msg.timestamp)}</span>
+                          <span className="customer-sender">{msg.role === 'engineer' ? 'Engineer' : 'User'}:</span>
                           <p>{msg.content}</p>
                         </div>
                       ))
@@ -362,37 +353,37 @@ const TicketInformation = () => {
                 )}
                 
                 {activeTab === 'attachments' && (
-                  <div className="attachments-section">
-                    <div className="attachments-header">
+                  <div className="customer-attachments-section">
+                    <div className="customer-attachments-header">
                       <h4>Attached Files</h4>
                       <div>
                         {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' ? (
-                          <label className="custom-file-upload">
+                          <label className="customer-custom-file-upload">
                             <input type="file" onChange={handleFileUpload} disabled={uploading} />
                             <i className="fas fa-upload"></i> {uploading ? "Uploading..." : "Upload File"}
                           </label>
                         ) : null}
                         {(currentTicket.status === 'RESOLVED' || currentTicket.status === 'CLOSED') && (
-                          <div className="info-message" style={{ color: '#888', marginBottom: 12 }}>
+                          <div className="customer-info-message" style={{ color: '#888', marginBottom: 12 }}>
                             This ticket is closed. You cannot reply or upload attachments.
                           </div>
                         )}
-                        {selectedFileName && <span className="selected-file-name">{selectedFileName}</span>}
+                        {selectedFileName && <span className="customer-selected-file-name">{selectedFileName}</span>}
                       </div>
                     </div>
-                    {uploadError && <div className="error-message" style={{ color: 'red' }}>{uploadError}</div>}
-                    {uploadSuccess && <div className="success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
+                    {uploadError && <div className="customer-error-message" style={{ color: 'red' }}>{uploadError}</div>}
+                    {uploadSuccess && <div className="customer-success-message" style={{ color: 'green' }}>{uploadSuccess}</div>}
                     {attachments.length === 0 ? (
-                      <p className="no-attachments">No files have been attached to this ticket.</p>
+                      <p className="customer-no-attachments">No files have been attached to this ticket.</p>
                     ) : (
-                      <div className="attachment-list">
+                      <div className="customer-attachment-list">
                         {attachments.map(att => (
-                          <div className="attachment-item" key={att.id}>
+                          <div className="customer-attachment-item" key={att.id}>
                             <i className="fas fa-paperclip"></i>
-                            <span className="attachment-name">{att.filename}</span>
-                            <span className="attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
-                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="attachment-action-btn">
-                              <i className="fas fa-download attachment_download"></i> Download
+                            <span className="customer-attachment-name">{att.filename}</span>
+                            <span className="customer-attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
+                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="customer-attachment-action-btn">
+                              <i className="fas fa-download customer-attachment_download"></i> Download
                             </a>
                           </div>
                         ))}
@@ -402,32 +393,32 @@ const TicketInformation = () => {
                 )}
                 
                 {activeTab === 'related' && (
-                  <div className="related-info-section">
+                  <div className="customer-related-info-section">
                     <h4>Related Information</h4>
-                    <div className="related-tickets">
+                    <div className="customer-related-tickets">
                       <h5>Related Tickets</h5>
                       {currentTicket.id === 'TK-2023-001' ? (
-                        <div className="related-ticket-item">
-                          <span className="related-ticket-id">#TK-2023-042</span>
-                          <span className="related-ticket-title">API Authentication Issues</span>
-                          <span className="related-ticket-status resolved">Resolved</span>
+                        <div className="customer-related-ticket-item">
+                          <span className="customer-related-ticket-id">#TK-2023-042</span>
+                          <span className="customer-related-ticket-title">API Authentication Issues</span>
+                          <span className="customer-related-ticket-status resolved">Resolved</span>
                         </div>
                       ) : (
-                        <p className="no-related">No related tickets found.</p>
+                        <p className="customer-no-related">No related tickets found.</p>
                       )}
                     </div>
                     
-                    <div className="suggested-articles">
+                    <div className="customer-suggested-articles">
                       <h5>Suggested Knowledge Base Articles</h5>
-                      <a href="#" className="article-link">
+                      <a href="#" className="customer-article-link">
                         <i className="fas fa-file-alt"></i>
                         {currentTicket.id === 'TK-2023-001' ? 'Troubleshooting Payment Gateway Integration Issues' : 'Common Support Issues and Solutions'}
                       </a>
-                      <a href="#" className="article-link">
+                      <a href="#" className="customer-article-link">
                         <i className="fas fa-file-alt"></i>
                         {currentTicket.id === 'TK-2023-001' ? 'Common API Authentication Errors and Solutions' : 'How to Provide Effective Information for Support'}
                       </a>
-                      <a href="#" className="article-link">
+                      <a href="#" className="customer-article-link">
                         <i className="fas fa-file-alt"></i>
                         {currentTicket.id === 'TK-2023-001' ? 
                           'Payment Processing Best Practices' : 
@@ -447,52 +438,30 @@ const TicketInformation = () => {
                 )}
                 
                 {activeTab === 'conversation' && (currentTicket.status === 'RESOLVED' || currentTicket.status === 'CLOSED') && (
-                  <div className="info-message" style={{ color: '#888', marginTop: 16 }}>
+                  <div className="customer-info-message" style={{ color: '#888', marginTop: 16 }}>
                     This ticket is closed. You cannot reply or upload attachments.
                   </div>
                 )}
                 {activeTab === 'conversation' && currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' && (
-                  <div className="reply-box">
+                  <div className="customer-reply-box">
                     <textarea 
                       placeholder="Type your reply here..."
                       value={reply}
                       onChange={e => setReply(e.target.value)}
                       disabled={sending}
                     ></textarea>
-                    <div className="reply-actions">
-                      <div className="attach-file">
+                    <div className="customer-reply-actions">
+                      <div className="customer-attach-file">
                         <i className="fas fa-paperclip"></i>
                         <span>Attach File</span>
                       </div>
-                      <button className="send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
+                      <button className="customer-send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
                         <i className="fas fa-paper-plane"></i> {sending ? "Sending..." : "Send Reply"}
                       </button>
                     </div>
-                    {sendError && <div className="error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
+                    {sendError && <div className="customer-error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
                   </div>
                 )}
-                
-                {/* <div className="satisfaction-survey">
-                  <h4>How would you rate our support so far?</h4>
-                  <div className="rating-options">
-                    <div className="rating-option">
-                      <i className="far fa-frown"></i>
-                      <p>Poor</p>
-                    </div>
-                    <div className="rating-option">
-                      <i className="far fa-meh"></i>
-                      <p>Average</p>
-                    </div>
-                    <div className="rating-option">
-                      <i className="far fa-smile"></i>
-                      <p>Good</p>
-                    </div>
-                    <div className="rating-option">
-                      <i className="far fa-grin-stars"></i>
-                      <p>Excellent</p>
-                    </div>
-                  </div>
-                </div> */}
               </div>
             )}
           </div>

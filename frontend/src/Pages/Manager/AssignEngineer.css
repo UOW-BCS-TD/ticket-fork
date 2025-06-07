@@ -1,0 +1,451 @@
+/* Main container styling - matching ManageEngineers */
+.assign-engineer-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.assign-engineer-main {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e1e5e9;
+}
+
+/* Title styling - matching ManageEngineers */
+.assign-engineer-title {
+  color: #222;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+}
+
+.assign-engineer-subtitle {
+  color: #222;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 20px 0 15px 0;
+}
+
+/* Meta info styling */
+.assign-engineer-meta {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e3eaf3;
+}
+
+.assign-engineer-meta p {
+  margin: 5px 0;
+  font-size: 20px;
+  color: #495057;
+}
+
+.assign-engineer-meta b {
+  color: #222;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.assign-engineer-divider {
+  border: none;
+  height: 1px;
+  background: #e3eaf3;
+  margin: 20px 0;
+}
+
+/* Table controls - matching ManageEngineers search filter */
+.assign-engineer-table-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  flex-wrap: wrap;
+  border: 1px solid #e3eaf3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.assign-engineer-search-input-wrapper {
+  position: relative;
+  flex: 1 1 0%;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+}
+
+.assign-engineer-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  fill: #90a4ae;
+  pointer-events: none;
+}
+
+.assign-engineer-search {
+  width: 100%;
+  padding: 9px 36px 9px 38px;
+  border: 1.5px solid #cfd8dc;
+  border-radius: 7px;
+  font-size: 16px;
+  background: #fff;
+  transition: border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.04);
+  flex: 1 1 0%;
+}
+
+.assign-engineer-search:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+}
+
+.assign-engineer-filter {
+  padding: 9px 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 7px;
+  font-size: 16px;
+  transition: border 0.18s, box-shadow 0.18s;
+  min-width: 140px;
+  height: 40px;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.04);
+}
+
+.assign-engineer-filter:focus {
+  outline: none;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+}
+
+.assign-engineer-filter:hover {
+  border-color: #1976d2;
+}
+
+.managers-return-btn {
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  align-items: center;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.managers-return-btn:hover {
+  background: #e9ecef;
+  color: #343a40;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.managers-return-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.managers-return-btn i {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.managers-return-btn:hover i {
+  transform: translateX(-2px);
+}
+
+/* Table styling - matching ManageEngineers exactly */
+.allengineers-table-wrapper {
+  overflow-x: auto;
+  background: var(--card-background, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color, #e1e5e9);
+}
+
+.assign-engineer-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.07);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 900px;
+  color: black;
+  text-align: center;
+}
+
+.assign-engineer-table th {
+  position: sticky;
+  top: 0;
+  background-color: #f7fafd;
+  padding: 14px 18px;
+  font-weight: 700;
+  color: #222;
+  border-bottom: 2px solid #e3eaf3;
+  font-size: 1.08em;
+  z-index: 2;
+  cursor: pointer;
+  user-select: none;
+}
+
+.assign-engineer-table th:hover {
+  background-color: #e8f4fd;
+}
+
+.assign-engineer-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid #e3eaf3;
+  background: #fff;
+  font-size: 1.03em;
+  white-space: nowrap;
+}
+
+.assign-engineer-table tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+.assign-engineer-table tbody tr:nth-child(even) {
+  background-color: #e3f2fd;
+}
+
+.assign-engineer-table tbody tr:hover {
+  background-color: #fff9c4 !important;
+}
+
+.assign-engineer-table tbody tr.selected {
+  background-color: #d4edda !important;
+  border-left: 4px solid #28a745;
+}
+
+.assign-engineer-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Action buttons - matching ManageEngineers exact colors */
+.action-button {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, color 0.18s;
+  display: inline-block;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-button.edit-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.action-button.edit-button:hover:not(:disabled) {
+  background-color: #1e7e34;
+}
+
+.action-button.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.action-button.delete-button:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+/* Modal styling - matching ManageEngineers */
+.assign-engineer-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.assign-engineer-popup-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.assign-engineer-popup-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+}
+
+.assign-engineer-popup-close:hover:not(:disabled) {
+  color: #333;
+}
+
+.assign-engineer-confirm-text {
+  margin: 20px 0;
+  font-size: 16px;
+  color: #495057;
+  text-align: center;
+}
+
+.assign-engineer-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Message styling - matching ManageEngineers */
+.assign-engineer-success {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 15px;
+  border: 1px solid #c3e6cb;
+  text-align: center;
+}
+
+.assign-engineer-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 15px;
+  border: 1px solid #f5c6cb;
+  text-align: center;
+}
+
+/* Empty state - matching ManageEngineers */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #757575;
+  font-size: 16px;
+}
+
+/* Responsive design - matching ManageEngineers */
+@media (max-width: 900px) {
+  .assign-engineer-table {
+    min-width: 700px;
+  }
+
+  .assign-engineer-table-controls {
+    gap: 10px;
+    padding: 10px 6px;
+  }
+
+  .assign-engineer-search {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .managers-return-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .managers-return-btn {
+    margin-left: 0;
+  }
+
+  .assign-engineer-container {
+    padding: 15px;
+  }
+  
+  .assign-engineer-main {
+    padding: 20px;
+  }
+  
+  .assign-engineer-table-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .assign-engineer-search {
+    min-width: auto;
+  }
+  
+  .assign-engineer-filter {
+    min-width: auto;
+  }
+  
+  .assign-engineer-table th,
+  .assign-engineer-table td {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .action-button {
+    margin-bottom: 4px;
+  }
+  
+  .assign-engineer-popup-modal {
+    padding: 20px;
+    margin: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .managers-return-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .managers-return-btn span {
+    display: none;
+  }
+
+  .assign-engineer-title {
+    font-size: 1.5rem;
+  }
+  
+  .assign-engineer-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .assign-engineer-table {
+    min-width: 600px;
+  }
+  
+  .assign-engineer-popup-modal {
+    width: 95%;
+    margin: 10px;
+  }
+}
