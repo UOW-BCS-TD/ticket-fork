@@ -40,6 +40,7 @@ const Chatbot = () => {
   const [cachedTicketTypes, setCachedTicketTypes] = useState(null);
   const [showTicketPrompt, setShowTicketPrompt] = useState(false);
   const [checkingForActiveSessions, setCheckingForActiveSessions] = useState(true);
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -468,6 +469,13 @@ const Chatbot = () => {
 
   return (
     <div className="chat-container">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className={`sidebar-toggle ${sidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(!sidebarOpen)}>
         <span></span>
         <span></span>

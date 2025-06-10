@@ -27,6 +27,7 @@ const TicketInformation = () => {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [sortOrder, setSortOrder] = useState('DESC'); // 'ASC' or 'DESC'
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
   
   useEffect(() => {
     const fetchTickets = async () => {
@@ -230,6 +231,13 @@ const TicketInformation = () => {
 
   return (
     <div className="customer-ticket-view-container">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className="sidebar-toggle" onClick={toggleSidebar}>
         <span></span>
         <span></span>

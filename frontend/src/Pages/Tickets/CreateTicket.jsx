@@ -22,6 +22,7 @@ const CreateTicket = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState('contact');
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -168,6 +169,13 @@ const CreateTicket = () => {
 
   return (
     <div className="support-ticket-page">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className="support-ticket-container">
         <div className="support-panels-container">
           <div className="support-left-panel">
