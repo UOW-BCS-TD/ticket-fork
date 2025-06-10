@@ -25,6 +25,8 @@ const TicketInformation = () => {
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(null);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sortOrder, setSortOrder] = useState('DESC'); // 'ASC' or 'DESC'
   
   useEffect(() => {
     const fetchTickets = async () => {
@@ -45,10 +47,25 @@ const TicketInformation = () => {
     fetchTickets();
   }, []);
 
-  const filteredTickets = ticketList.filter(ticket => 
-    (typeof ticket.title === 'string' && ticket.title.toLowerCase().includes(searchQuery.toLowerCase())) || 
-    (typeof ticket.id === 'string' && ticket.id.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  useEffect(() => {
+    setSortOrder('DESC');
+  }, []);
+
+  const filteredTickets = ticketList
+    .filter(ticket => 
+      (typeof ticket.title === 'string' && ticket.title.toLowerCase().includes(searchQuery.toLowerCase())) || 
+      (typeof ticket.id === 'string' && ticket.id.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+    .filter(ticket => 
+      statusFilter === 'ALL' || ticket.status === statusFilter
+    )
+    .sort((a, b) => {
+      if (sortOrder === 'ASC') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
 
   // Get the active ticket data
   const currentTicket = ticketList.find(ticket => ticket.id === activeTicket) || ticketList[0] || {};
@@ -191,6 +208,26 @@ const TicketInformation = () => {
     }
   };
 
+  const handleDownloadAttachment = async (attachmentId, filename) => {
+    try {
+      const res = await fetch(`/api/tickets/${currentTicket.id}/attachments/${attachmentId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!res.ok) throw new Error('Failed to download file');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'attachment';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download file.');
+    }
+  };
+
   return (
     <div className="customer-ticket-view-container">
       <div className="sidebar-toggle" onClick={toggleSidebar}>
@@ -217,6 +254,39 @@ const TicketInformation = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="customer-search-ticket-input"
                 />
+              </div>
+              
+              <div className="ticket-filters-row">
+                <div className="ticket-filter-group" style={{ flex: '3' }}>
+                  <label htmlFor="statusFilter"></label>
+                  <select
+                    id="statusFilter"
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="ticket-filter-select"
+                    style={{ width: '100%' }}
+                  >
+                    <option value="ALL">All</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                  </select>
+                </div>
+                <div className="ticket-filter-group" style={{ flex: '1', justifyContent: 'flex-end' }}>
+                  <label htmlFor="sortOrder" style={{ marginRight: 8 }}></label>
+                  <button
+                    id="sortOrder"
+                    type="button"
+                    className="ticket-sort-btn"
+                    onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}
+                    aria-label={sortOrder === 'ASC' ? 'Sort Descending' : 'Sort Ascending'}
+                  >
+                    {sortOrder === 'ASC' ? (
+                      <i className="fas fa-arrow-up"></i>
+                    ) : (
+                      <i className="fas fa-arrow-down"></i>
+                    )}
+                  </button>
+                </div>
               </div>
               
               {loading ? (
@@ -308,12 +378,6 @@ const TicketInformation = () => {
                     >
                       <i className="fas fa-paperclip"></i> Attachments
                     </div>
-                    <div 
-                      className={`customer-ticket-tab ${activeTab === 'related' ? 'active' : ''}`}
-                      onClick={() => setActiveTab('related')}
-                    >
-                      <i className="fas fa-link"></i> Related Information
-                    </div>
                     {session && session.ticketSession !== true && (
                       <div 
                         className={`customer-ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
@@ -382,49 +446,16 @@ const TicketInformation = () => {
                             <i className="fas fa-paperclip"></i>
                             <span className="customer-attachment-name">{att.filename}</span>
                             <span className="customer-attachment-date">{new Date(att.uploadedAt).toLocaleString()}</span>
-                            <a href={`/api/tickets/${currentTicket.id}/attachments/${att.id}`} target="_blank" rel="noopener noreferrer" className="customer-attachment-action-btn">
+                            <button
+                              className="customer-attachment-action-btn"
+                              onClick={() => handleDownloadAttachment(att.id, att.filename)}
+                            >
                               <i className="fas fa-download customer-attachment_download"></i> Download
-                            </a>
+                            </button>
                           </div>
                         ))}
                       </div>
                     )}
-                  </div>
-                )}
-                
-                {activeTab === 'related' && (
-                  <div className="customer-related-info-section">
-                    <h4>Related Information</h4>
-                    <div className="customer-related-tickets">
-                      <h5>Related Tickets</h5>
-                      {currentTicket.id === 'TK-2023-001' ? (
-                        <div className="customer-related-ticket-item">
-                          <span className="customer-related-ticket-id">#TK-2023-042</span>
-                          <span className="customer-related-ticket-title">API Authentication Issues</span>
-                          <span className="customer-related-ticket-status resolved">Resolved</span>
-                        </div>
-                      ) : (
-                        <p className="customer-no-related">No related tickets found.</p>
-                      )}
-                    </div>
-                    
-                    <div className="customer-suggested-articles">
-                      <h5>Suggested Knowledge Base Articles</h5>
-                      <a href="#" className="customer-article-link">
-                        <i className="fas fa-file-alt"></i>
-                        {currentTicket.id === 'TK-2023-001' ? 'Troubleshooting Payment Gateway Integration Issues' : 'Common Support Issues and Solutions'}
-                      </a>
-                      <a href="#" className="customer-article-link">
-                        <i className="fas fa-file-alt"></i>
-                        {currentTicket.id === 'TK-2023-001' ? 'Common API Authentication Errors and Solutions' : 'How to Provide Effective Information for Support'}
-                      </a>
-                      <a href="#" className="customer-article-link">
-                        <i className="fas fa-file-alt"></i>
-                        {currentTicket.id === 'TK-2023-001' ? 
-                          'Payment Processing Best Practices' : 
-                          'Troubleshooting Guide for ' + currentTicket.type.name}
-                      </a>
-                    </div>
                   </div>
                 )}
                 

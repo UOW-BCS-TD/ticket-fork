@@ -419,12 +419,11 @@ body{overflow-y: scroll;}
   margin-bottom: 5px;
 }
 
-.customer-attachments-section, .customer-related-info-section {
+.customer-attachments-section {
   margin: 30px 0;
 }
 
-.customer-attachments-section h4, .customer-related-info-section h4,
-.chatbot-history-section h4 {
+.customer-attachments-section h4 {
   margin-bottom: 15px;
   color: #333;
   font-size: 16px;
@@ -474,69 +473,12 @@ body{overflow-y: scroll;}
   font-size: 16px;
 }
 
-.customer-no-attachments, .customer-no-related {
+.customer-no-attachments {
   color: #666;
   font-style: italic;
   padding: 15px;
   background: #f5f5f5;
   border-radius: 6px;
-}
-
-.customer-related-tickets, .customer-suggested-articles {
-  margin-bottom: 25px;
-}
-
-.customer-related-tickets h5, .customer-suggested-articles h5 {
-  margin-bottom: 15px;
-  color: #666;
-  font-size: 14px;
-}
-
-.customer-related-ticket-item {
-  display: flex;
-  align-items: center;
-  background: #f5f5f5;
-  padding: 12px 15px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-
-.customer-related-ticket-id {
-  color: #666;
-  margin-right: 15px;
-  font-size: 12px;
-}
-
-.customer-related-ticket-title {
-  flex: 1;
-  font-weight: 500;
-}
-
-.customer-related-ticket-status {
-  padding: 4px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.customer-article-link {
-  display: flex;
-  align-items: center;
-  padding: 12px 15px;
-  background: #f5f5f5;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  text-decoration: none;
-  color: #3090FF;
-  transition: background 0.3s;
-}
-
-.customer-article-link i {
-  margin-right: 10px;
-}
-
-.customer-article-link:hover {
-  background: #e9e9e9;
 }
 
 .customer-reply-box {
@@ -1097,5 +1039,98 @@ body{overflow-y: scroll;}
   .customer-send-btn {
     padding: 8px 15px;
     font-size: 13px;
+  }
+}
+
+.ticket-filters-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 22px;
+  background: #f7fafd;
+  border-radius: 14px;
+  padding: 14px 18px 10px 18px;
+  box-shadow: 0 2px 12px rgba(44, 123, 255, 0.06);
+  gap: 18px;
+}
+
+.ticket-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticket-filter-group:first-child {
+  flex: 3;
+}
+.ticket-filter-group:last-child {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.ticket-filter-group label {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 1em;
+}
+
+.ticket-filter-select {
+  padding: 8px 18px;
+  border-radius: 22px;
+  border: 1.5px solid #3090FF;
+  background: #fff;
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 1em;
+  outline: none;
+  transition: border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(44, 123, 255, 0.04);
+  cursor: pointer;
+  width: 100%;
+}
+
+.ticket-filter-select:focus, .ticket-filter-select:hover {
+  border: 1.5px solid #5436DA;
+  box-shadow: 0 2px 8px rgba(44, 123, 255, 0.10);
+}
+
+.ticket-sort-btn {
+  padding: 8px 18px;
+  border-radius: 22px;
+  border: 1.5px solid #3090FF;
+  background: #fff;
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 1.1em;
+  outline: none;
+  transition: border 0.18s, box-shadow 0.18s, background 0.18s;
+  box-shadow: 0 1px 4px rgba(44, 123, 255, 0.04);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticket-sort-btn:focus, .ticket-sort-btn:hover {
+  border: 1.5px solid #5436DA;
+  box-shadow: 0 2px 8px rgba(44, 123, 255, 0.10);
+  background: #f0f4fa;
+}
+
+.ticket-sort-btn i {
+  font-size: 1.2em;
+}
+
+@media (max-width: 768px) {
+  .ticket-filters-row {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 8px 8px 8px;
+  }
+  .ticket-filter-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .ticket-filter-select, .ticket-sort-btn {
+    width: 100%;
   }
 }

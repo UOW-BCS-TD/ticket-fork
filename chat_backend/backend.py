@@ -89,14 +89,27 @@ def chroma_lock():
 
 def kill_processes_using_path(path):
     """Kill processes using files at given path"""
+    abs_path = os.path.abspath(path)
     for proc in psutil.process_iter():
         try:
+            # Check for open files
             for f in proc.open_files():
-                if os.path.abspath(path) in os.path.abspath(f.path):
-                    print(f"🔫 Killing process {proc.pid} ({proc.name()})")
+                if abs_path in os.path.abspath(f.path):
+                    print(f"🔫 Killing process {proc.pid} ({proc.name()}) using {f.path}")
                     proc.kill()
                     time.sleep(0.5)
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    break # Process killed, move to next process
+            # Additionally, check if the process's current working directory is inside the path
+            if proc.cwd() and abs_path in os.path.abspath(proc.cwd()):
+                print(f"🔫 Killing process {proc.pid} ({proc.name()}) with CWD in {abs_path}")
+                proc.kill()
+                time.sleep(0.5)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, FileNotFoundError) as e:
+            # Catch more specific psutil exceptions
+            print(f"  Skipping process {proc.pid} ({proc.name()}) due to: {e}")
+            continue
+        except Exception as e:
+            print(f"  Unexpected error while checking process {proc.pid} ({proc.name()}): {e}")
             continue
 
 def force_delete_directory(path):
@@ -168,6 +181,7 @@ def initialize_chroma():
 
 def build_chroma_db():
     """Build a fresh Chroma DB with proper batch processing"""
+    global vectorstore # Add this line
     try:
         with chroma_lock():
             # Clear existing DB if it exists
@@ -183,7 +197,15 @@ def build_chroma_db():
                         if f.endswith('.pdf')]
             if not pdf_files:
                 print("❌ No PDF files found in directory")
-                return False
+                # If no PDFs, create an empty Chroma DB
+                vectorstore = Chroma(
+                    persist_directory=CHROMA_DIR,
+                    embedding_function=embedding,
+                    collection_name=COLLECTION_NAME
+                )
+                vectorstore.persist()
+                print("✅ Created empty Chroma DB as no PDF files were found.")
+                return True
 
             # Process PDFs with progress reporting
             all_docs = []
@@ -205,12 +227,19 @@ def build_chroma_db():
                     continue
 
             if not all_docs:
-                print("❌ No documents processed")
-                return False
+                print("❌ No documents processed from PDFs")
+                # If no documents processed, create an empty Chroma DB
+                vectorstore = Chroma(
+                    persist_directory=CHROMA_DIR,
+                    embedding_function=embedding,
+                    collection_name=COLLECTION_NAME
+                )
+                vectorstore.persist()
+                print("✅ Created empty Chroma DB as no documents were processed from PDFs.")
+                return True
 
             # Create new persistent DB with batch processing
             print("🏗️ Building Chroma DB in batches...")
-            global vectorstore
             
             # Create initial empty collection
             vectorstore = Chroma(
