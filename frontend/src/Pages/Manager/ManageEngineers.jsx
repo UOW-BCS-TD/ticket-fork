@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './EngineerTable.css';
+import './ManageEngineers.css';
 
 const categoryOptions = [
   'MODEL_S', 'MODEL_3', 'MODEL_X', 'MODEL_Y', 'CYBERTRUCK'
@@ -222,18 +222,20 @@ const ManageEngineers = () => {
   if (error) return <div className="empty-state">Error: {error}</div>;
 
   return (
-    <div className="manager-container">
+    <div className="manager-page">
       <div className="manager-header">
-        <h1 className="manager-title">Engineer Management</h1>
-        <div className="manager-actions">
-          <button 
-            className="action-button edit-button"
-            onClick={openAddModal}
-          >
-            Add New Engineer
-          </button>
+        <div className="manager-header-content">
+          <div>
+            <h1>Engineer Management</h1>
+          </div>
         </div>
       </div>
+
+      {error && (
+        <div className="manager-error">
+          <i className="fas fa-exclamation-circle"></i> {error}
+        </div>
+      )}
 
       {/* Modal for Add/Edit/View */}
       {modalType && (
@@ -341,13 +343,13 @@ const ManageEngineers = () => {
           <input
             type="text"
             placeholder="Search by name, email, category, or level..."
-            className="search-input"
+            className="allengineers-search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {searchTerm && (
             <button
-              className="action-button delete-button search-clear-btn"
+              className="delete-button search-clear-btn"
               onClick={() => setSearchTerm('')}
               aria-label="Clear search"
             >
@@ -382,10 +384,17 @@ const ManageEngineers = () => {
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
+        <button 
+          className="action-button edit-button"
+          style={{ minWidth: 80 }}
+          onClick={openAddModal}
+        >
+          Add New Engineer
+        </button>
         <button
           type="button"
           className="action-button view-button"
-          style={{ minWidth: 80, marginLeft: 8 }}
+          style={{ minWidth: 80 }}
           onClick={() => {
             setSearchTerm('');
             setFilterCategory('');
@@ -397,52 +406,52 @@ const ManageEngineers = () => {
         </button>
       </div>
 
-      {/* Desktop Table */}
       <div className="engineer-table-wrapper">
-        <table className="manager-table engineer-table-desktop">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Category</th>
-              <th>Level</th>
-              <th>Max Tickets</th>
-              <th>Current Tickets</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEngineers.map((engineer) => (
-              <tr key={engineer.id}>
-                <td>{engineer.user?.name || engineer.email}</td>
-                <td>{engineer.email}</td>
-                <td>{engineer.category}</td>
-                <td>{engineer.level}</td>
-                <td>{engineer.maxTickets}</td>
-                <td>{engineer.currentTickets}</td>
-                <td>
-                  <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>
-                    {engineer.user?.enabled ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td>
-                  <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
-                  <button 
-                    className="action-button delete-button"
-                    onClick={() => handleDeleteEngineer(engineer.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+        {filteredEngineers.length === 0 ? (
+          <div className="allengineers-empty-state">No engineers found</div>
+        ) : (
+          <table className="manager-table engineer-table-desktop">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Category</th>
+                <th>Level</th>
+                <th>Max Tickets</th>
+                <th>Current Tickets</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Card Layout */}
-      
+            </thead>
+            <tbody>
+              {filteredEngineers.map((engineer) => (
+                <tr key={engineer.id}>
+                  <td>{engineer.user?.name || engineer.email}</td>
+                  <td>{engineer.email}</td>
+                  <td>{engineer.category}</td>
+                  <td>{engineer.level}</td>
+                  <td>{engineer.maxTickets}</td>
+                  <td>{engineer.currentTickets}</td>
+                  <td>
+                    <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>
+                      {engineer.user?.enabled ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>
+                    <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
+                    <button 
+                      className="action-button delete-button"
+                      onClick={() => handleDeleteEngineer(engineer.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>      
     </div>
   );
 };

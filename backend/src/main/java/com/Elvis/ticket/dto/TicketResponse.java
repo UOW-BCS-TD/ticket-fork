@@ -14,6 +14,7 @@ public class TicketResponse {
     private TicketType type;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime resolvedAt;
     private UserInfo customer;
     private UserInfo engineer;
     private Long session_id;
@@ -49,6 +50,7 @@ public class TicketResponse {
         response.setType(ticket.getType());
         response.setCreatedAt(ticket.getCreatedAt());
         response.setUpdatedAt(ticket.getUpdatedAt());
+        response.setResolvedAt(ticket.getResolvedAt());
         response.setCustomer(ticket.getCustomer() != null ? UserInfo.fromUser(ticket.getCustomer().getUser()) : null);
         response.setEngineer(ticket.getEngineer() != null ? UserInfo.fromUser(ticket.getEngineer().getUser()) : null);
         if (ticket.getSession() != null) {

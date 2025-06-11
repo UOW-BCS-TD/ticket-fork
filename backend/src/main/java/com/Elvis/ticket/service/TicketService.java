@@ -411,6 +411,10 @@ public class TicketService {
             // ignore
         }
         ticket.setUpdatedAt(java.time.LocalDateTime.now());
+        // Update lastResponseTime if engineer replied
+        if ("engineer".equalsIgnoreCase(role)) {
+            ticket.setLastResponseTime(java.time.LocalDateTime.now());
+        }
         return ticketRepository.save(ticket);
     }
 

@@ -456,10 +456,10 @@ const Profile = () => {
                   <span className="profile-info-label">Admin Level</span>
                   <span className="profile-info-value">{user.adminLevel || 'Standard'}</span>
                 </div>
-                <div className="profile-info-item">
+                {/* <div className="profile-info-item">
                   <span className="profile-info-label">Last System Check</span>
                   <span className="profile-info-value">{formatDate(user.lastSystemCheck) || 'Never'}</span>
-                </div>
+                </div> */}
               </div>
             )}
           </div>

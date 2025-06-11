@@ -12,7 +12,7 @@ const CreateTicket = () => {
     type: { id: '' },
     session: { id: '' },
     urgency: 'MEDIUM',
-    status: 'OPEN'
+    status: 'IN_PROGRESS'
   });
 
   const [products, setProducts] = useState([]);
@@ -22,6 +22,7 @@ const CreateTicket = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState('contact');
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,7 +97,30 @@ const CreateTicket = () => {
         setLoading(false);
         return;
       }
-      // Build the request body (no description, no engineer)
+      // Find the selected product object
+      const selectedProduct = products.find(p => p.id == product.id);
+      if (!selectedProduct || !selectedProduct.category) {
+        setError('Selected product does not have a valid category.');
+        setLoading(false);
+        return;
+      }
+      // Use the product category (e.g., MODEL_X, MODEL_3, etc.)
+      const category = selectedProduct.category;
+      // Fetch the available engineer for the category
+      let engineer = null;
+      try {
+        engineer = await engineerAPI.getAvailableLevel1Engineer(category);
+      } catch (engErr) {
+        setError('Failed to assign engineer. Please try again.');
+        setLoading(false);
+        return;
+      }
+      if (!engineer || !engineer.id) {
+        setError('No available engineer found for this category.');
+        setLoading(false);
+        return;
+      }
+      // Build the request body (with engineer)
       const ticketBody = {
         title: formData.title,
         product: { id: product.id || '' },
@@ -104,7 +128,10 @@ const CreateTicket = () => {
         session: { id: sessionId },
         urgency: formData.urgency,
         status: formData.status,
-        customer: { id: currentUser.customerId }
+        customer: { id: currentUser.customerId },
+        engineer: { id: engineer.id },
+        category: category,
+        description: formData.description || ''
       };
       const response = await ticketAPI.createTicket(ticketBody);
       const ticketId = response?.id || response?.data?.id;
@@ -142,6 +169,13 @@ const CreateTicket = () => {
 
   return (
     <div className="support-ticket-page">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className="support-ticket-container">
         <div className="support-panels-container">
           <div className="support-left-panel">

@@ -10,21 +10,40 @@ const Introduction = () => {
     setIsVisible(true);
   }, []);
 
-  const FeatureCard = ({ imageSrc, title, description, benefit, icon }) => {
-    return (
-      <div className="feature-card">
-        <div className="feature-icon">
-          <i className={icon}></i>
-        </div>
-        <div className="feature-photo">
-          <img src={imageSrc} alt={title} />
-        </div>
-        <h3>{title}</h3>
-        <p className="feature-description">{description}</p>
-        <p className="feature-benefit">{benefit}</p>
-      </div>
-    );
-  };
+  const featuresData = [
+    {
+      id: 1,
+      title: "AI-Powered Chatbot",
+      description: "Our AI-driven chatbot is designed to provide instant responses to customer inquiries, handling common queries and assisting with troubleshooting around the clock.",
+      benefit: "By automating routine interactions, the chatbot reduces wait times, enhances customer satisfaction, and allows support staff to focus on more complex issues.",
+      imageSrc: "/ai-chat.jpg",
+      icon: "fas fa-robot"
+    },
+    {
+      id: 2,
+      title: "Centralized Bug Tracking System",
+      description: "We offer a comprehensive bug/problem tracking system that allows businesses to log, categorize, and monitor customer-reported issues in one centralized repository.",
+      benefit: "This system ensures that no issues are overlooked and facilitates timely resolutions, which decreases customer frustration.",
+      imageSrc: "/bug-tracking.jpg",
+      icon: "fas fa-bug"
+    },
+    {
+      id: 3,
+      title: "Task Dispatch Workflow",
+      description: "Our automated task dispatch workflow assigns bug resolution tasks to support engineers based on their skills and availability.",
+      benefit: "By optimizing task allocation, we ensure an even distribution of workload and enhance resource utilization.",
+      imageSrc: "/task-dispatch.jpg",
+      icon: "fas fa-tasks"
+    },
+    {
+      id: 4,
+      title: "Customer Information Management System",
+      description: "Our customer information management system centralizes customer profiles, interaction histories, and preferences, making it easy for support teams to access relevant data.",
+      benefit: "With comprehensive customer insights at their fingertips, support teams can provide more personalized service, improving the overall customer experience.",
+      imageSrc: "/customer-info.jpg",
+      icon: "fas fa-users"
+    }
+  ];
 
   return (
     <div>
@@ -61,35 +80,20 @@ const Introduction = () => {
           <h2>Our Features</h2>
           <div className="section-divider"></div>
         </div>
-        <div className="features-grid">
-          <FeatureCard 
-            title="AI-Powered Chatbot" 
-            description="Our AI-driven chatbot is designed to provide instant responses to customer inquiries, handling common queries and assisting with troubleshooting around the clock." 
-            benefit="By automating routine interactions, the chatbot reduces wait times, enhances customer satisfaction, and allows support staff to focus on more complex issues." 
-            imageSrc="/ai-chat.jpg"
-            icon="fas fa-robot"
-          />
-          <FeatureCard 
-            title="Centralized Bug Tracking System" 
-            description="We offer a comprehensive bug/problem tracking system that allows businesses to log, categorize, and monitor customer-reported issues in one centralized repository." 
-            benefit="This system ensures that no issues are overlooked and facilitates timely resolutions, which decreases customer frustration." 
-            imageSrc="bug-tracking.jpg"
-            icon="fas fa-bug"
-          />
-          <FeatureCard 
-            title="Task Dispatch Workflow" 
-            description="Our automated task dispatch workflow assigns bug resolution tasks to support engineers based on their skills and availability." 
-            benefit="By optimizing task allocation, we ensure an even distribution of workload and enhance resource utilization." 
-            imageSrc="/task-dispatch.jpg"
-            icon="fas fa-tasks"
-          />
-          <FeatureCard 
-            title="Customer Information Management System" 
-            description="Our customer information management system centralizes customer profiles, interaction histories, and preferences, making it easy for support teams to access relevant data." 
-            benefit="With comprehensive customer insights at their fingertips, support teams can provide more personalized service, improving the overall customer experience." 
-            imageSrc="/customer-info.jpg"
-            icon="fas fa-users"
-          />
+        <div className="intro-features-grid">
+          {featuresData.map((feature) => (
+            <div className="intro-feature-card" key={feature.id}>
+              <div className="intro-feature-icon">
+                <i className={feature.icon}></i>
+              </div>
+              <div className="intro-feature-photo">
+                <img src={feature.imageSrc} alt={feature.title} />
+              </div>
+              <h3>{feature.title}</h3>
+              <p className="intro-feature-description">{feature.description}</p>
+              <p className="intro-feature-benefit">{feature.benefit}</p>
+            </div>
+          ))}
         </div>
       </section>
     </div>
