@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import './AssignEngineer.css';
 
 const AssignEngineer = () => {
   const { id } = useParams();
@@ -136,23 +137,48 @@ const AssignEngineer = () => {
   if (!ticket) return <div className="empty-state">Ticket not found.</div>;
 
   return (
-    <div className="assign-engineer-container">
-      <div className="assign-engineer-main">
-        <h2 className="assign-engineer-title">Assign Engineer to Ticket #{ticket.id}</h2>
-        <div className="assign-engineer-meta">
-          <p><b>Title:</b> {ticket.title}</p>
-          <p><b>Category:</b> {ticket.category || (ticket.type && ticket.type.name)}</p>
+    <div className="manager-page">
+      <div className="manager-header">
+        <div className="manager-header-content">
+          <div>
+            <h1>Assign Engineer to Ticket #{ticket.id}</h1>
+            <div className="assign-engineer-meta">
+              <p><b>Title:</b> {ticket.title}</p>
+              <p><b>Category:</b> {ticket.category || (ticket.type && ticket.type.name)}</p>
+            </div>
+          </div>
         </div>
+
+        {error && (
+          <div className="manager-error">
+            <i className="fas fa-exclamation-circle"></i> {error}
+          </div>
+        )}
+
         <hr className="assign-engineer-divider" />
         <h3 className="assign-engineer-subtitle">Available Engineers</h3>
         <div className="assign-engineer-table-controls">
-          <input
-            type="text"
-            className="assign-engineer-search"
-            placeholder="Search by name, email, or category..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <div className="assign-engineer-search-input-wrapper">
+            <svg className="assign-engineer-search-icon" viewBox="0 0 24 24">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+            </svg>
+            <input
+              type="text"
+              className="assign-engineer-search"
+              placeholder="Search by name, email, or category..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                className="delete-button search-clear-btn"
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
           <select
             className="assign-engineer-filter"
             value={filterCategory}
@@ -173,57 +199,64 @@ const AssignEngineer = () => {
               <option key={lvl} value={lvl}>{lvl}</option>
             ))}
           </select>
+          <button className="managers-return-btn" onClick={() => navigate('/tickets')}>
+              <i className="fas fa-arrow-left"></i> Go Back
+          </button>
         </div>
-        {filteredEngineers.length === 0 ? (
-          <div className="empty-state">No available engineers.</div>
-        ) : (
-          <table className="assign-engineer-table">
-            <thead>
-              <tr>
-                <th onClick={() => handleSort('name')} style={{cursor:'pointer'}}>
-                  Name {sortBy === 'name' && (sortDir === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('email')} style={{cursor:'pointer'}}>
-                  Email {sortBy === 'email' && (sortDir === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('level')} style={{cursor:'pointer'}}>
-                  Level {sortBy === 'level' && (sortDir === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('maxTickets')} style={{cursor:'pointer'}}>
-                  Max Tickets {sortBy === 'maxTickets' && (sortDir === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('currentTickets')} style={{cursor:'pointer'}}>
-                  Current Tickets {sortBy === 'currentTickets' && (sortDir === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('category')} style={{cursor:'pointer'}}>
-                  Category {sortBy === 'category' && (sortDir === 'asc' ? '▲' : '▼')}
-                </th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedEngineers.map(eng => (
-                <tr key={eng.id} className={selectedEngineer && selectedEngineer.id === eng.id ? 'selected' : ''}>
-                  <td>{eng.user?.name || eng.email}</td>
-                  <td>{eng.email}</td>
-                  <td>{eng.level}</td>
-                  <td>{eng.maxTickets}</td>
-                  <td>{eng.currentTickets}</td>
-                  <td>{eng.category}</td>
-                  <td>
-                    <button
-                      className="action-button view-button"
-                      onClick={() => { setSelectedEngineer(eng); setConfirm(true); }}
-                      disabled={assigning}
-                    >
-                      Assign
-                    </button>
-                  </td>
+
+        <div className="allengineers-table-wrapper">
+          {filteredEngineers.length === 0 ? (
+            <div className="empty-state">No available engineers.</div>
+          ) : (
+            <table className="assign-engineer-table">
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort('name')} style={{cursor:'pointer'}}>
+                    Name {sortBy === 'name' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('email')} style={{cursor:'pointer'}}>
+                    Email {sortBy === 'email' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('level')} style={{cursor:'pointer'}}>
+                    Level {sortBy === 'level' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('maxTickets')} style={{cursor:'pointer'}}>
+                    Max Tickets {sortBy === 'maxTickets' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('currentTickets')} style={{cursor:'pointer'}}>
+                    Current Tickets {sortBy === 'currentTickets' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('category')} style={{cursor:'pointer'}}>
+                    Category {sortBy === 'category' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {sortedEngineers.map(eng => (
+                  <tr key={eng.id} className={selectedEngineer && selectedEngineer.id === eng.id ? 'selected' : ''}>
+                    <td>{eng.user?.name || eng.email}</td>
+                    <td>{eng.email}</td>
+                    <td>{eng.level}</td>
+                    <td>{eng.maxTickets}</td>
+                    <td>{eng.currentTickets}</td>
+                    <td>{eng.category}</td>
+                    <td>
+                      <button
+                        className="action-button edit-button"
+                        onClick={() => { setSelectedEngineer(eng); setConfirm(true); }}
+                        disabled={assigning}
+                      >
+                        Assign
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
         {confirm && selectedEngineer && (
           <div className="assign-engineer-popup-overlay" role="dialog" aria-modal="true">
             <div className="assign-engineer-popup-modal">

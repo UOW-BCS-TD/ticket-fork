@@ -4,6 +4,7 @@ import './Engineer.css';
 const KnowledgeBase = () => {
   const [articles, setArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // New state for input before search
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -33,7 +34,7 @@ const KnowledgeBase = () => {
             <li>ISP outages</li>
           </ul>
         `,
-        tags: ['network', 'troubleshooting', 'connectivity']
+        tags: ['troubleshooting', 'connectivity']
       },
       {
         id: 2,
@@ -58,7 +59,7 @@ const KnowledgeBase = () => {
             <li>Antivirus blocking installation</li>
           </ul>
         `,
-        tags: ['software', 'installation', 'best practices']
+        tags: ['installation', 'best practices']
       },
       {
         id: 3,
@@ -89,7 +90,7 @@ const KnowledgeBase = () => {
             <li>Cooling system effectiveness</li>
           </ul>
         `,
-        tags: ['hardware', 'diagnostics', 'troubleshooting']
+        tags: ['diagnostics', 'troubleshooting']
       },
       {
         id: 4,
@@ -140,7 +141,7 @@ Best regards,
 Support Engineer
           </pre>
         `,
-        tags: ['customer service', 'templates', 'communication']
+        tags: ['templates', 'communication']
       },
       {
         id: 5,
@@ -185,12 +186,15 @@ Support Engineer
             <li>Conduct training if necessary</li>
           </ul>
         `,
-        tags: ['security', 'incident response', 'protocol']
+        tags: ['incident response', 'protocol']
       }
     ];
     
-    setArticles(mockArticles);
-    setLoading(false);
+    // Simulate API delay
+    setTimeout(() => {
+      setArticles(mockArticles);
+      setLoading(false);
+    }, 400);
   }, []);
 
   const filteredArticles = articles.filter(article => {
@@ -217,21 +221,41 @@ Support Engineer
     setSelectedArticle(null);
   };
 
+  // Handle search when icon is clicked
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+  };
+
+  // Handle Enter key press in search input
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      setSearchTerm(searchInput);
+    }
+  };
+
   if (loading) {
-    return <div className="loading-spinner">Loading...</div>;
+    return (
+      <div className="engineer-loading animate-fade-in">
+        <div className="engineer-loader"></div>
+        <p>Loading knowledge base articles...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="engineer-container knowledge-base">
-      <h2>Knowledge Base</h2>
+    <div className="engineer-page knowledge-base animate-fade-in">
+      <div className="engineer-header">
+        <h1>Knowledge Base</h1>
+        <p>Access technical resources and solutions</p>
+      </div>
       
       {selectedArticle ? (
-        <div className="article-detail">
-          <button className="btn-back" onClick={handleBackClick}>
+        <div className="article-detail animate-fade-in">
+          <button className="engineer-btn-back animate-slide-in" onClick={handleBackClick}>
             &larr; Back to Articles
           </button>
           
-          <div className="article-header">
+          <div className="article-header animate-slide-in" style={{ animationDelay: '0.1s' }}>
             <h3>{selectedArticle.title}</h3>
             <div className="article-meta">
               <span className="article-category">{selectedArticle.category}</span>
@@ -244,20 +268,28 @@ Support Engineer
           </div>
           
           <div 
-            className="article-content"
+            className="article-content animate-slide-in"
+            style={{ animationDelay: '0.2s' }}
             dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
           />
         </div>
       ) : (
         <>
-          <div className="kb-controls">
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search knowledge base..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="kb-controls animate-slide-in">
+            <div className="search-bars">
+              <div className="engineer-search">
+                <input
+                  type="text"
+                  placeholder="Search knowledge base..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="animate-slide-in"
+                />
+                <button className="engineer-search-btn" onClick={handleSearch}>
+                  <i className="fas fa-search"></i>
+                </button>
+              </div>
             </div>
             
             <div className="category-filter">
@@ -266,6 +298,7 @@ Support Engineer
                 id="category-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
+                className="animate-slide-in"
               >
                 <option value="all">All Categories</option>
                 <option value="network">Network</option>
@@ -278,13 +311,14 @@ Support Engineer
           </div>
           
           {filteredArticles.length === 0 ? (
-            <div className="no-articles">No articles found matching your criteria.</div>
+            <div className="no-articles animate-fade-in">No articles found matching your criteria.</div>
           ) : (
             <div className="articles-list">
-              {filteredArticles.map(article => (
+              {filteredArticles.map((article, index) => (
                 <div 
                   key={article.id} 
-                  className="article-card"
+                  className="article-card animate-slide-in"
+                  style={{ animationDelay: `${0.1 + index * 0.05}s` }}
                   onClick={() => handleArticleClick(article)}
                 >
                   <h3>{article.title}</h3>

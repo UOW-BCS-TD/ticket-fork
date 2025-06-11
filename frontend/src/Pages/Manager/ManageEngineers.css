@@ -1,0 +1,451 @@
+/* Search and filter section - matching AllTickets */
+.search-filter {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  flex-wrap: wrap;
+  border: 1px solid #e3eaf3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1 1 0%;
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+}
+
+.allengineers-search-input {
+  width: 100%;
+  padding: 9px 36px 9px 38px;
+  border: 1.5px solid #cfd8dc;
+  border-radius: 7px;
+  font-size: 16px;
+  background: #fff;
+  transition: border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.04);
+  flex: 1 1 0%;
+}
+
+.allengineers-search-input:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  fill: #90a4ae;
+  pointer-events: none;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Filter dropdowns - matching AllTickets */
+.filter-dropdown {
+  padding: 9px 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 7px;
+  font-size: 16px;
+  transition: border 0.18s, box-shadow 0.18s;
+  min-width: 140px;
+  height: 40px;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.04);
+}
+
+.filter-dropdown:focus {
+  outline: none;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+}
+
+.filter-dropdown:hover {
+  border-color: #1976d2;
+}
+
+/* Action buttons - matching AllTickets exact colors */
+.action-button {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, color 0.18s;
+  display: inline-block;
+}
+
+.action-button.view-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.action-button.view-button:hover {
+  background-color: #0056b3;
+}
+
+.action-button.edit-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.action-button.edit-button:hover {
+  background-color: #1e7e34;
+}
+
+.action-button.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.action-button.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Table styling - matching AllTickets exactly */
+.engineer-table-wrapper {
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e1e5e9;
+  text-align: center;
+}
+
+/* Add this to your existing CSS */
+.allengineers-empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #757575;
+  font-size: 16px;
+}
+
+.manager-table.engineer-table-desktop {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.07);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 900px;
+  margin-top: 0;
+}
+
+.manager-table th {
+  position: sticky;
+  top: 0;
+  background-color: #f7fafd;
+  padding: 14px 18px;
+  font-weight: 700;
+  color: #222;
+  border-bottom: 2px solid #e3eaf3;
+  font-size: 1.08em;
+  z-index: 2;
+}
+
+.manager-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid #e3eaf3;
+  background: #fff;
+  font-size: 1.03em;
+  white-space: nowrap;
+}
+
+.manager-table tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+.manager-table tbody tr:nth-child(even) {
+  background-color: #e3f2fd;
+}
+
+.manager-table tbody tr:hover {
+  background-color: #fff9c4 !important;
+}
+
+.manager-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Status badges - matching AllTickets */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid #e0e0e0;
+  min-width: 80px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.status-active {
+  background-color: #e6f7e6;
+  color: #2e7d32;
+  border-color: #b2dfdb;
+}
+
+.status-badge.status-inactive {
+  background: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+/* Modal styling - matching AllTickets */
+.engineer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.engineer-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.engineer-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+}
+
+.engineer-modal-close:hover {
+  color: #333;
+}
+
+.engineer-modal h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #222;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Form styling */
+.engineer-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.engineer-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.engineer-form-row label {
+  font-weight: 600;
+  color: #222;
+  font-size: 14px;
+}
+
+.engineer-form-row input,
+.engineer-form-row select {
+  padding: 9px 14px;
+  border: 1.5px solid #cfd8dc;
+  border-radius: 7px;
+  font-size: 16px;
+  background: #fff;
+  transition: border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.04);
+}
+
+.engineer-form-row input:focus,
+.engineer-form-row select:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+}
+
+.engineer-form-row input:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Message styling */
+.error-message {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.success-message {
+  color: #28a745;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+/* Empty state - matching AllTickets */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #757575;
+}
+
+/* Engineer view details */
+.engineer-view-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.engineer-view-details > div {
+  padding: 8px 0;
+  border-bottom: 1px solid #e3eaf3;
+  font-size: 14px;
+}
+
+.engineer-view-details > div:last-child {
+  border-bottom: none;
+}
+
+.engineer-view-details b {
+  color: #222;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+/* Responsive design - matching AllTickets */
+@media (max-width: 900px) {
+  .manager-table.engineer-table-desktop {
+    min-width: 700px;
+  }
+
+  .search-filter {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 6px;
+    align-items: stretch;
+  }
+  
+  .search-input-wrapper {
+    min-width: auto;
+  }
+  
+  .filter-dropdown {
+    min-width: auto;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .allengineers-search-input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .manager-page {
+    padding: 15px;
+  }
+  
+  .search-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-input-wrapper {
+    min-width: auto;
+  }
+  
+  .filter-dropdown {
+    min-width: auto;
+  }
+  
+  .manager-table th,
+  .manager-table td {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .action-button {
+    padding: 6px 12px;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  .engineer-modal {
+    padding: 20px;
+    margin: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .manager-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .manager-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .engineer-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .manager-table.engineer-table-desktop {
+    min-width: 600px;
+  }
+  
+  .action-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}

@@ -8,6 +8,20 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Authentication services
 export const authService = {
   // Login user and get JWT token
@@ -57,7 +71,16 @@ export const userService = {
       throw error.response ? error.response.data : error;
     }
   },
-  
+
+  updateCurrentUserPassword: async (passwordData) => {
+    try {  
+      const response = await api.put('/users/profile/password', passwordData);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+
   // Get all users (admin only)
   getAllUsers: async () => {
     try {
@@ -124,6 +147,15 @@ export const ticketAPI = {
   // Get all tickets
   getTickets: async () => {
     try {
+      const response = await api.get('/tickets');
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
+
+  getTicketsOwn: async () => {
+    try {
       const response = await api.get('/tickets/own');
       return response.data;
     } catch (error) {
@@ -184,7 +216,10 @@ export const ticketAPI = {
   // Update ticket urgency
   updateTicketUrgency: async (id, urgency) => {
     try {
-      const response = await api.put(`/tickets/${id}/urgency`, urgency);
+      // Send as plain string, with Content-Type text/plain to avoid quotes
+      const response = await api.put(`/tickets/${id}/urgency`, urgency, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error;
@@ -349,6 +384,14 @@ export const sessionAPI = {
       throw error.response ? error.response.data : error;
     }
   },
+  getSessionsList: async () => {
+    try {
+      const response = await api.get('/sessions/list');
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
+  },
 
   // Get session by ID
   getSessionById: async (id) => {
@@ -451,18 +494,33 @@ export const logService = {
   },
 };
 
-// Add request interceptor to include auth token in requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+// Chatbot services
+export const chatbotAPI = {
+  // Send a query to the chatbot
+  sendQuery: async (query) => {
+    try {
+      // Use the Python backend on port 5000
+      const response = await axios.post('http://localhost:5000/query', { query }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
     }
-    return config;
   },
-  (error) => {
-    return Promise.reject(error);
+
+  // Get chatbot history for a session
+  getHistory: async (sessionId) => {
+    try {
+      const response = await api.get(`/chatbot/history/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error;
+    }
   }
-);
+};
 
 export default api;

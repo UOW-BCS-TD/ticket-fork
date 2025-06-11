@@ -253,93 +253,95 @@
   text-align: center;
 }
 
-.features-grid {
+.intro-features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 30px;
-  margin: 0 auto;
 }
 
-.feature-card {
+.intro-feature-card {
   background-color: white;
   border-radius: 10px;
-  padding: 30px;
+  overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   opacity: 0;
   animation: fadeIn 0.8s ease-out forwards;
 }
 
-.feature-card:hover {
+.intro-feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-.feature-card:nth-child(1) {
+.intro-feature-card:nth-child(1) {
   animation-delay: 0.1s;
 }
 
-.feature-card:nth-child(2) {
+.intro-feature-card:nth-child(2) {
   animation-delay: 0.2s;
 }
 
-.feature-card:nth-child(3) {
+.intro-feature-card:nth-child(3) {
   animation-delay: 0.3s;
 }
 
-.feature-card:nth-child(4) {
+.intro-feature-card:nth-child(4) {
   animation-delay: 0.4s;
 }
 
-.feature-icon {
+.intro-feature-icon {
   font-size: 36px;
   color: #3090FF;
-  margin-bottom: 20px;
+  margin: 20px 0;
   text-align: center;
 }
 
-.feature-photo {
+.intro-feature-photo {
   height: 200px;
   width: 100%;
   overflow: hidden;
-  margin-bottom: 20px;
-  border-radius: 8px;
 }
 
-.feature-photo img {
+.intro-feature-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s ease;
 }
 
-.feature-card:hover .feature-photo img {
+.intro-feature-card:hover .intro-feature-photo img {
   transform: scale(1.05);
 }
 
-.feature-card h3 {
-  margin-bottom: 0.8rem;
-  color: #2287FA;
+.intro-feature-card h3 {
+  padding: 1rem 1rem 0.5rem;
+  color: #333;
+  text-align: center;
   min-height: 50px;
-  align-items: center;
+}
+
+.intro-feature-description {
+  padding: 0 20px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 15px;
   text-align: center;
 }
 
-.feature-card p {
-  font-size: 1rem;
+.intro-feature-benefit {
+  padding: 0 20px 20px;
   color: #666;
-  min-height: 100px;
-}
-
-.feature-description {
-  margin-bottom: 15px;
-}
-
-.feature-benefit {
-  padding-top: 15px;
+  line-height: 1.6;
+  font-size: 14px;
   border-top: 1px solid #eee;
-  font-style: italic;
-  color: #555;
+  padding-top: 15px;
+  margin-top: 5px;
+  flex-grow: 1;
 }
 
 @keyframes fadeIn {
@@ -401,7 +403,7 @@
     font-size: 1rem;
   }
   
-  .features-grid {
+  .intro-features-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
   }
@@ -451,16 +453,16 @@
     padding: 50px 40px;
   }
   
-  .features-grid {
+  .intro-features-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 25px;
   }
   
-  .feature-photo {
+  .intro-feature-photo {
     height: 180px;
   }
   
-  .feature-icon {
+  .intro-feature-icon {
     font-size: 28px;
   }
 }
@@ -484,7 +486,6 @@
     padding: 10px 20px;
     margin: 5px;
     font-size: 0.9rem;
-    display: block;
     width: 80%;
     margin-left: auto;
     margin-right: auto;
@@ -501,24 +502,20 @@
     font-size: 22px;
   }
   
-  .features-grid {
+  .intro-features-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
   
-  .feature-card {
-    padding: 20px;
-  }
-  
-  .feature-photo {
+  .intro-feature-photo {
     height: 160px;
   }
   
-  .feature-card h3 {
+  .intro-feature-card h3 {
     font-size: 18px;
   }
   
-  .feature-icon {
+  .intro-feature-icon {
     font-size: 24px;
     margin-bottom: 15px;
   }
@@ -543,19 +540,19 @@
     font-size: 20px;
   }
   
-  .feature-card h3 {
+  .intro-feature-card h3 {
     font-size: 16px;
   }
   
-  .feature-card p {
+  .intro-feature-card p {
     font-size: 14px;
   }
   
-  .feature-photo {
+  .intro-feature-photo {
     height: 140px;
   }
   
-  .feature-icon {
+  .intro-feature-icon {
     font-size: 22px;
     margin-bottom: 10px;
   }

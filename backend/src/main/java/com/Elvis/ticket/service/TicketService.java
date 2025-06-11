@@ -230,7 +230,7 @@ public class TicketService {
                 Engineer engineer = ticket.getEngineer();
                 engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
                 engineerRepository.save(engineer);
-                ticket.setEngineer(null);
+                // ticket.setEngineer(null); // <-- Do NOT remove engineer assignment
             }
         } else if (status == TicketStatus.CLOSED) {
             ticket.setStatus(TicketStatus.CLOSED);
@@ -238,7 +238,7 @@ public class TicketService {
                 Engineer engineer = ticket.getEngineer();
                 engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
                 engineerRepository.save(engineer);
-                ticket.setEngineer(null);
+                // ticket.setEngineer(null); // <-- Do NOT remove engineer assignment
             }
         } else if (status == TicketStatus.IN_PROGRESS) {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
@@ -411,6 +411,10 @@ public class TicketService {
             // ignore
         }
         ticket.setUpdatedAt(java.time.LocalDateTime.now());
+        // Update lastResponseTime if engineer replied
+        if ("engineer".equalsIgnoreCase(role)) {
+            ticket.setLastResponseTime(java.time.LocalDateTime.now());
+        }
         return ticketRepository.save(ticket);
     }
 
@@ -426,7 +430,7 @@ public class TicketService {
                 Engineer engineer = ticket.getEngineer();
                 engineer.setCurrentTickets(engineer.getCurrentTickets() - 1);
                 engineerRepository.save(engineer);
-                ticket.setEngineer(null);
+                // ticket.setEngineer(null); // <-- Do NOT remove engineer assignment
             }
             ticket.setStatus(TicketStatus.CLOSED);
             ticket.setUpdatedAt(LocalDateTime.now());
@@ -472,4 +476,4 @@ public class TicketService {
     public boolean isEngineerAssignedToSession(Long engineerId, Long sessionId) {
         return ticketRepository.existsByEngineerIdAndSessionId(engineerId, sessionId);
     }
-} 
+}

@@ -3,6 +3,7 @@ import axios from 'axios';
 import './Chatbot.css';
 import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
+import { chatbotAPI, sessionAPI, userService, productAPI, ticketTypeAPI } from '../../Services/api';
 
 const API_BASE_URL = 'http://localhost:8082';
 
@@ -38,6 +39,8 @@ const Chatbot = () => {
   const [cachedProducts, setCachedProducts] = useState(null);
   const [cachedTicketTypes, setCachedTicketTypes] = useState(null);
   const [showTicketPrompt, setShowTicketPrompt] = useState(false);
+  const [checkingForActiveSessions, setCheckingForActiveSessions] = useState(true);
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -50,24 +53,21 @@ const Chatbot = () => {
       const token = localStorage.getItem('token');
       if (!token) {
         navigate('/login');
-        return;
+        return [];
       }
 
-      const response = await axios.get(`${API_BASE_URL}/api/sessions/list`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      setChatList(response.data);
+      const response = await sessionAPI.getSessionsList();
+      setChatList(response);
+      return response;
     } catch (error) {
       console.error('Error fetching chat list:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         navigate('/login');
-        return;
+        return [];
       }
       setError('Failed to load chat list. Please try again later.');
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +75,45 @@ const Chatbot = () => {
 
   // Fetch chat sessions on mount
   useEffect(() => {
-    fetchChatList();
+    const fetchAndSetActiveSession = async () => {
+      setCheckingForActiveSessions(true);
+      const fetchedChatList = await fetchChatList();
+      // Find and set the first active session if it exists
+      const activeSession = fetchedChatList.find(session => 
+        session.status === 'ACTIVE' && 
+        session.ticketSession !== true && 
+        session.ticketSession !== 1
+      );
+      if (activeSession) {
+        setActiveChat(activeSession.title);
+        setActiveSessionId(activeSession.id);
+        setChatStarted(true);
+        // Fetch the chat history for this active session
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            setCheckingForActiveSessions(false);
+            return;
+          }
+          const response = await sessionAPI.getSessionHistory(activeSession.id);
+          const messages = response.messages || [];
+          const formattedMessages = messages.map(msg => ({
+            text: msg.content,
+            sender: msg.role === 'assistant' ? 'support' : 'user',
+            timestamp: msg.timestamp
+          }));
+          setChatHistory(formattedMessages);
+        } catch (error) {
+          console.error('Error fetching chat history for active session:', error);
+        }
+        // Always set to false after try/catch
+        setCheckingForActiveSessions(false);
+      } else {
+        // No active session found, allow user to start a new chat
+        setCheckingForActiveSessions(false);
+      }
+    };
+    fetchAndSetActiveSession();
   }, [navigate]);
 
   const scrollToBottom = () => {
@@ -88,26 +126,23 @@ const Chatbot = () => {
 
   const getUserProfile = async (token) => {
     if (cachedUserProfile) return cachedUserProfile;
-    const userResponse = await axios.get(
-      `${API_BASE_URL}/api/users/profile`,
-      { headers: { 'Authorization': `Bearer ${token}` } }
-    );
-    setCachedUserProfile(userResponse.data);
-    return userResponse.data;
+    const userResponse = await userService.getCurrentUserProfile();
+    setCachedUserProfile(userResponse);
+    return userResponse;
   };
 
   const getProducts = async (token) => {
     if (cachedProducts) return cachedProducts;
-    const productsResponse = await axios.get(`${API_BASE_URL}/api/products`, { headers: { Authorization: `Bearer ${token}` } });
-    setCachedProducts(productsResponse.data);
-    return productsResponse.data;
+    const productsResponse = await productAPI.getProducts();
+    setCachedProducts(productsResponse);
+    return productsResponse;
   };
 
   const getTicketTypes = async (token) => {
     if (cachedTicketTypes) return cachedTicketTypes;
-    const ticketTypesResponse = await axios.get(`${API_BASE_URL}/api/ticket-types`, { headers: { Authorization: `Bearer ${token}` } });
-    setCachedTicketTypes(ticketTypesResponse.data);
-    return ticketTypesResponse.data;
+    const ticketTypesResponse = await ticketTypeAPI.getTicketTypes();
+    setCachedTicketTypes(ticketTypesResponse);
+    return ticketTypesResponse;
   };
 
   // Add new function to handle feedback
@@ -239,33 +274,37 @@ const Chatbot = () => {
   // Modify sendMessage function to show feedback after bot response
   const sendMessage = async () => {
     if (!message.trim()) return;
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('You must be logged in to use the chatbot.');
-      return;
-    }
+    
     try {
-      let sessionId = activeSessionId;
-      // If no session, create one with the first message as the title
-      if (!chatStarted) {
-        try {
-          const sessionResponse = await axios.post(
-            'http://localhost:8082/api/sessions',
-            { title: message },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          sessionId = sessionResponse.data.id;
-          setActiveSessionId(sessionId);
-          setActiveChat(sessionResponse.data.title);
-          setChatStarted(true);
-          setChatList((prev) => [sessionResponse.data, ...prev]);
-          await fetchChatList();
-        } catch (err) {
-          console.error('Error creating session:', err);
-          alert('Failed to create session. Please check your login and try again.');
+      // Create a new session if needed
+      if (!activeSessionId) {
+        setCheckingForActiveSessions(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to send messages.');
+          setCheckingForActiveSessions(false);
           return;
         }
-      }
+        
+        try {
+          const response = await sessionAPI.createSession({
+            title: message.length > 30 ? message.substring(0, 30) + '...' : message,
+            ticketSession: false
+          });
+          
+          setActiveSessionId(response.data.id);
+          setActiveChat(response.data.title);
+          setChatStarted(true);
+          await fetchChatList();
+        } catch (sessionError) {
+          console.error('Error creating session:', sessionError);
+          alert('Failed to create session. Please check your login and try again.');
+          setCheckingForActiveSessions(false);
+          return;
+        }
+        setCheckingForActiveSessions(false); // Always set to false after session creation
+      } 
+      
       // Optimistically update chat history with user message and loading bot message
       const userMessage = {
         text: message,
@@ -279,19 +318,10 @@ const Chatbot = () => {
       ]);
       setMessage('');
       try {
-        const response = await axios.post(
-          'http://localhost:5000/query',
-          { query: message },
-          { 
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            }
-          }
-        );
+        const response = await chatbotAPI.sendQuery(message);
+        
         // Use the full updated history from backend
-        const messages = response.data.history || [];
+        const messages = response.history || [];
         const formattedMessages = messages.map(msg => ({
           text: msg.content,
           sender: msg.role === 'assistant' ? 'support' : 'user',
@@ -328,14 +358,13 @@ const Chatbot = () => {
         const token = localStorage.getItem('token');
         if (!token) {
           alert('You must be logged in to view chat history.');
+          setCheckingForActiveSessions(false);
           return;
         }
         console.log('Fetching history for session:', session.id);
-        const response = await axios.get(`http://localhost:8082/api/sessions/${session.id}/history`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log('History response:', response.data);
-        const messages = response.data.messages || [];
+        const response = await sessionAPI.getSessionHistory(session.id);
+        console.log('History response:', response);
+        const messages = response.messages || [];
         console.log('Parsed messages:', messages);
         
         // Convert the messages to the format expected by the chat display
@@ -351,6 +380,8 @@ const Chatbot = () => {
         console.error('Error fetching chat history:', error);
         console.error('Error details:', error.response?.data);
         alert('Failed to fetch chat history.');
+      } finally {
+        setCheckingForActiveSessions(false); // Always set to false after fetching chat history
       }
     };
     fetchChatHistory();
@@ -364,19 +395,12 @@ const Chatbot = () => {
       const confirmEnd = window.confirm('You can only have one active session. The current session will be ended and a new chat will start. Continue?');
       if (!confirmEnd) return;
       // End the current session before starting a new one
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          await axios.put(
-            `http://localhost:8082/api/sessions/${activeSessionId}/end`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setChatList((prev) => prev.map((s) => s.id === activeSessionId ? { ...s, status: 'CLOSED' } : s));
-          await fetchChatList();
-        } catch (error) {
-          alert('Failed to end previous session.');
-        }
+      try {
+        await sessionAPI.endSession(activeSessionId);
+        setChatList((prev) => prev.map((s) => s.id === activeSessionId ? { ...s, status: 'CLOSED' } : s));
+        await fetchChatList();
+      } catch (error) {
+        alert('Failed to end previous session.');
       }
     }
     setChatStarted(false);
@@ -394,11 +418,7 @@ const Chatbot = () => {
       return;
     }
     try {
-      await axios.put(
-        `http://localhost:8082/api/sessions/${activeSessionId}/end`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await sessionAPI.endSession(activeSessionId);
       setChatList((prev) => prev.filter((s) => s.id !== activeSessionId));
       handleNewChat();
       alert('Session ended.');
@@ -449,6 +469,13 @@ const Chatbot = () => {
 
   return (
     <div className="chat-container">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className={`sidebar-toggle ${sidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(!sidebarOpen)}>
         <span></span>
         <span></span>
@@ -465,7 +492,7 @@ const Chatbot = () => {
             placeholder="Search chats..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
+            className="chat-search-input"
           />
         </div>
         <div className="chat-filters">
@@ -514,7 +541,7 @@ const Chatbot = () => {
                 <div className="chat-item-header">
                   <span className="session-title">{(chat.title && chat.title.length > 20) ? chat.title.slice(0, 20) + '...' : (chat.title || 'Untitled Chat')}</span>
                   <span className="session-meta">
-                    <span className={`status-badge ${chat.status}`}>{chat.status}</span>
+                    <span className={`chat-status-badge ${chat.status}`}>{chat.status}</span>
                     <span className="session-time">
                       {formatSessionTime(chat.lastActivity)}
                     </span>
@@ -534,13 +561,13 @@ const Chatbot = () => {
               {(() => {
                 const currentSession = chatList.find((s) => s.id === activeSessionId);
                 return currentSession ? (
-                  <span className={`status-badge ${currentSession.status}`}>{currentSession.status}</span>
+                  <span className={`chat-status-badge ${currentSession.status}`}>{currentSession.status}</span>
                 ) : null;
               })()}
             </div>
             <div className="chat-header-actions">
               <button className="quick-action-btn" onClick={handleNewChat}><b className="new-chat-icon">+</b> New Chat</button>
-              <button className="quick-action-btn" onClick={handleEndSession}><b className="end-chat-icon">✖</b> End Session</button>
+              <button className="quick-action-btn" onClick={handleEndSession} disabled={!activeSessionId}><b className="end-chat-icon">✖</b> End Session</button>
             </div>
           </div>
         )}
@@ -561,7 +588,7 @@ const Chatbot = () => {
                       <span className="message-timestamp">
                         {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && (
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && chatHistory.filter(m => m.sender === 'user').length >= 3 && (
                         <div className="feedback-container">
                           <p>Did I solve your problem?</p>
                           <div className="feedback-buttons">
@@ -572,7 +599,7 @@ const Chatbot = () => {
                               ✅ Yes
                             </button>
                             <button 
-                              className="feedback-btn error" 
+                              className="feedback-btn cancel" 
                               onClick={() => handleFeedback(false)}
                             >
                               ❌ No
@@ -592,7 +619,7 @@ const Chatbot = () => {
                               ✅ Yes
                             </button>
                             <button 
-                              className="feedback-btn error" 
+                              className="feedback-btn cancel" 
                               onClick={() => handleTicketPrompt(false)}
                             >
                               ❌ No
@@ -609,7 +636,7 @@ const Chatbot = () => {
           </div>
         )}
 
-        {!chatStarted && (
+        {!chatStarted && !checkingForActiveSessions && (
           <div className="welcome-container">
             <div className="logo-container">
               <div className="chat-logo">
@@ -617,6 +644,19 @@ const Chatbot = () => {
               </div>
               <h2>Welcome to TechCare Support</h2>
               <p>How can our virtual assistant help you today?</p>
+            </div>
+          </div>
+        )}
+
+        {checkingForActiveSessions && !chatStarted && (
+          <div className="welcome-container loading-container">
+            <div className="logo-container">
+              <div className="chat-logo">
+                <img src="/logo.png" alt="Company Logo" />
+              </div>
+              <h2>TechCare Support</h2>
+              <p>Loading your active session...</p>
+              <FaSpinner className="spinner" style={{ animation: 'spin 1s linear infinite', fontSize: '24px', marginTop: '10px' }} />
             </div>
           </div>
         )}
@@ -633,10 +673,18 @@ const Chatbot = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={isClosed ? 'This session is closed. You cannot send messages.' : 'Type your message...'}
-                    disabled={isClosed}
+                    placeholder={
+                      checkingForActiveSessions 
+                        ? 'Checking for active sessions...' 
+                        : isClosed 
+                          ? 'This session is closed. You cannot send messages.' 
+                          : 'Type your message...'
+                    }
+                    disabled={checkingForActiveSessions || isClosed}
                   />
-                  <button onClick={sendMessage} disabled={isClosed}><i className="send-icon">➤</i>Send</button>
+                  <button onClick={sendMessage} disabled={checkingForActiveSessions || isClosed}>
+                    <i className="send-icon">➤</i>Send
+                  </button>
                 </>
               );
             })()}
