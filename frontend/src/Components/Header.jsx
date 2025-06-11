@@ -184,7 +184,7 @@ const Header = (props) => {
             hasDropdown: true,
             dropdownItems: [
               { path: '/tickets/assigned', label: 'My Assigned Tickets' },
-              { path: '/tickets/create', label: 'Create Support Ticket' },
+              // { path: '/tickets/create', label: 'Create Support Ticket' },
               { path: '/knowledge-base', label: 'Knowledge Base' }
             ]
           });
