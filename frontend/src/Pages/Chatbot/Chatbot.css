@@ -853,3 +853,58 @@
     padding: 10px 18px;
   }
 }
+
+.emergency-toast {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 9999;
+  background: linear-gradient(90deg, #fffbe7 60%, #ffe0b2 100%);
+  color: #d84315;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(44,123,255,0.10);
+  padding: 18px 48px 18px 24px;
+  font-size: 1.08em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 1.5px solid #ffd180;
+  min-width: 280px;
+  max-width: 90vw;
+  animation: fadeIn 0.5s;
+}
+
+.emergency-toast b {
+  color: #b71c1c;
+  font-weight: 700;
+}
+
+.emergency-toast-close {
+  background: none;
+  border: none;
+  color: #d84315;
+  font-size: 1.5em;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 12px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.emergency-toast-close:hover {
+  color: #b71c1c;
+}
+
+@media (max-width: 600px) {
+  .emergency-toast {
+    right: 8px;
+    bottom: 8px;
+    padding: 12px 36px 12px 14px;
+    font-size: 0.98em;
+    min-width: 180px;
+  }
+  .emergency-toast-close {
+    font-size: 1.2em;
+  }
+}
