@@ -50,22 +50,35 @@ const ManagerDashboard = () => {
         const inProgressTickets = response.filter(t => t.status === 'IN_PROGRESS');
         const openTickets = response.filter(t => t.status === 'OPEN');
         
-        // Calculate average response and resolve times
-        const responseTimes = response
-          .filter(t => t.firstResponseTime)
-          .map(t => {
-            const created = new Date(t.createdAt);
-            const responseTime = new Date(t.firstResponseTime);
-            return (responseTime - created) / (1000 * 60 * 60); // hours
-          });
-        
+        // Calculate average resolve time (in minutes) only for resolved tickets
         const resolveTimes = resolvedTickets
-          .filter(t => t.resolvedAt)
+          .filter(t => t.resolvedAt && t.createdAt)
           .map(t => {
             const created = new Date(t.createdAt);
             const resolved = new Date(t.resolvedAt);
-            return (resolved - created) / (1000 * 60 * 60); // hours
+            return (resolved - created) / (1000 * 60); // Convert to minutes
           });
+
+        // Calculate average response time (in minutes) for tickets with both a customer and engineer message
+        const responseTimes = response.map(ticket => {
+          if (!ticket.history) return null;
+          let historyArr;
+          try {
+            historyArr = JSON.parse(ticket.history);
+          } catch {
+            return null;
+          }
+          if (!Array.isArray(historyArr)) return null;
+          // Find first customer message
+          const firstCustomerMsg = historyArr.find(msg => msg.role === 'customer');
+          if (!firstCustomerMsg) return null;
+          const firstCustomerTime = new Date(firstCustomerMsg.timestamp);
+          // Find first engineer reply after the first customer message
+          const firstEngineerMsg = historyArr.find(msg => msg.role === 'engineer' && new Date(msg.timestamp) > firstCustomerTime);
+          if (!firstEngineerMsg) return null;
+          const firstEngineerTime = new Date(firstEngineerMsg.timestamp);
+          return (firstEngineerTime - firstCustomerTime) / (1000 * 60); // minutes
+        }).filter(rt => rt !== null && !isNaN(rt) && rt >= 0);
 
         // Calculate weekly ticket counts
         const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -96,9 +109,9 @@ const ManagerDashboard = () => {
               };
             }
             acc[engineerId].total++;
-            if (ticket.status === 'RESOLVED' && (ticket.resolvedAt || ticket.updatedAt)) {
+            if (ticket.status === 'RESOLVED' && ticket.resolvedAt && ticket.createdAt) {
               acc[engineerId].resolved++;
-              const resolveTime = (new Date(ticket.resolvedAt || ticket.updatedAt) - new Date(ticket.createdAt)) / (1000 * 60 * 60);
+              const resolveTime = (new Date(ticket.resolvedAt) - new Date(ticket.createdAt)) / (1000 * 60); // Convert to minutes
               acc[engineerId].resolveTimes.push(resolveTime);
             }
           }

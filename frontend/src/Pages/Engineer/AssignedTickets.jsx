@@ -132,7 +132,7 @@ const AssignedTickets = () => {
       });
       if (!response.ok) throw new Error('Failed to send reply');
       const updated = await response.json();
-      setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, history: updated.history, updatedAt: updated.updatedAt } : t));
+      setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, history: updated.history, updatedAt: updated.updatedAt,last_response_time: updated.updatedAt } : t));
       setReply("");
     } catch (err) {
       setSendError("Failed to send reply. Please try again.");
