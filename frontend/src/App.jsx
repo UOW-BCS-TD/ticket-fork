@@ -16,7 +16,7 @@ import UserManagement from './Pages/Admin/UserManagement';
 import ViewLogs from './Pages/Admin/ViewLogs';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
 import AssignedTickets from './Pages/Engineer/AssignedTickets';
-import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
+// import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
 import KnowledgeBase from './Pages/Engineer/KnowledgeBase';
 import AllTickets from './Pages/Manager/AllTickets';
 import ManageEngineers from './Pages/Manager/ManageEngineers';
@@ -99,11 +99,11 @@ const App = () => {
               </EngineerRoute>
             } />
 
-            <Route path="/tickets/create" element={
+            {/* <Route path="/tickets/create" element={
               <EngineerRoute>
                 <CreateSupportTicket />
               </EngineerRoute>
-            } />
+            } /> */}
 
             <Route path="/knowledge-base" element={
               <EngineerRoute>

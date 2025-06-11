@@ -137,13 +137,24 @@ const AssignEngineer = () => {
   if (!ticket) return <div className="empty-state">Ticket not found.</div>;
 
   return (
-    <div className="assign-engineer-container">
-      <div className="assign-engineer-main">
-        <h2 className="assign-engineer-title">Assign Engineer to Ticket #{ticket.id}</h2>
-        <div className="assign-engineer-meta">
-          <p><b>Title:</b> {ticket.title}</p>
-          <p><b>Category:</b> {ticket.category || (ticket.type && ticket.type.name)}</p>
+    <div className="manager-page">
+      <div className="manager-header">
+        <div className="manager-header-content">
+          <div>
+            <h1>Assign Engineer to Ticket #{ticket.id}</h1>
+            <div className="assign-engineer-meta">
+              <p><b>Title:</b> {ticket.title}</p>
+              <p><b>Category:</b> {ticket.category || (ticket.type && ticket.type.name)}</p>
+            </div>
+          </div>
         </div>
+
+        {error && (
+          <div className="manager-error">
+            <i className="fas fa-exclamation-circle"></i> {error}
+          </div>
+        )}
+
         <hr className="assign-engineer-divider" />
         <h3 className="assign-engineer-subtitle">Available Engineers</h3>
         <div className="assign-engineer-table-controls">

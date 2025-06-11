@@ -143,6 +143,9 @@ const AssignedTickets = () => {
 
   const handleEscalate = async () => {
     if (!currentTicket?.id) return;
+    if (!window.confirm('Are you sure you want to escalate this ticket to a higher-level engineer?')) {
+      return;
+    }
     setEscalating(true);
     setEscalateError(null);
     setEscalateSuccess(null);
@@ -157,8 +160,10 @@ const AssignedTickets = () => {
       const updated = await response.json();
       setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, ...updated } : t));
       setEscalateSuccess('Ticket escalated successfully!');
+      setTimeout(() => setEscalateSuccess(null), 3000);
     } catch (err) {
       setEscalateError('Failed to escalate ticket.');
+      setTimeout(() => setEscalateError(null), 5000);
     } finally {
       setEscalating(false);
     }
@@ -166,6 +171,9 @@ const AssignedTickets = () => {
 
   const handleResolve = async () => {
     if (!currentTicket?.id) return;
+    if (!window.confirm('Are you sure you want to mark this ticket as resolved?')) {
+      return;
+    }
     setResolving(true);
     setResolveError(null);
     setResolveSuccess(null);
@@ -182,8 +190,10 @@ const AssignedTickets = () => {
       const updated = await response.json();
       setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, ...updated } : t));
       setResolveSuccess('Ticket marked as resolved!');
+      setTimeout(() => setResolveSuccess(null), 3000);
     } catch (err) {
       setResolveError('Failed to resolve ticket.');
+      setTimeout(() => setResolveError(null), 5000);
     } finally {
       setResolving(false);
     }
