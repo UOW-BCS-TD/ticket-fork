@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Elvificent/ticket)
+
 # ticket
 
 Test spring and react on git
