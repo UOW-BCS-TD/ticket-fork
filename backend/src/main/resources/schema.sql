@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS ticket_types;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS ticket_attachments;
+DROP TABLE IF EXISTS password_reset_tokens;
 
 -- Create users table
 CREATE TABLE users (
@@ -128,6 +129,16 @@ CREATE TABLE ticket_attachments (
     file_path VARCHAR(255) NOT NULL,
     uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id) ON DELETE CASCADE
+);
+
+-- Create password reset tokens table
+CREATE TABLE password_reset_tokens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 -- Insert sample users
