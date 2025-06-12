@@ -23,6 +23,8 @@ import ManageEngineers from './Pages/Manager/ManageEngineers';
 import ManagerDashboard from './Pages/Manager/ManagerDashboard';
 import ManagerTicketDetails from './Pages/Manager/ManagerTicketDetails';
 import AssignEngineer from './Pages/Manager/AssignEngineer';
+import ForgotPassword from './Pages/ForgotPassword';
+import ResetPassword from './Pages/ResetPassword';
 
 import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute, CustomerOnlyRoute } from './Pages/Tickets/Auth';
 import './App.css';
@@ -140,6 +142,8 @@ const App = () => {
               </>
             } />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={
               <div className="not-found">
                 <h2>Page Not Found</h2>

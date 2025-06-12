@@ -6,6 +6,11 @@ import com.Elvis.ticket.dto.PasswordChangeRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.Elvis.ticket.model.PasswordResetToken;
+import com.Elvis.ticket.repository.PasswordResetTokenRepository;
+import com.Elvis.ticket.service.EmailService;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +21,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -139,5 +150,44 @@ public class UserService {
     @Transactional(readOnly = true)
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
+    }
+
+    @Transactional
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            // Don't reveal that the email doesn't exist
+            return;
+        }
+
+        // Delete any existing tokens for this user
+        tokenRepository.deleteByUser_Id(user.getId());
+
+        // Create new token
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(token, user);
+        tokenRepository.save(resetToken);
+
+        // Send email
+        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        if (resetToken.isExpired() || resetToken.isUsed()) {
+            throw new RuntimeException("Token has expired or has already been used");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Mark token as used
+        resetToken.setUsed(true);
+        tokenRepository.save(resetToken);
     }
 } 
