@@ -15,6 +15,7 @@ import Profile from './Pages/Profile/Profile';
 import UserManagement from './Pages/Admin/UserManagement';
 import ViewLogs from './Pages/Admin/ViewLogs';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
+import RAGFileManagement from './Pages/Admin/RAGFileManagement';
 import AssignedTickets from './Pages/Engineer/AssignedTickets';
 // import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
 import KnowledgeBase from './Pages/Engineer/KnowledgeBase';
@@ -89,6 +90,12 @@ const App = () => {
             <Route path="/admin/logs" element={
               <AdminRoute>
                 <ViewLogs />
+              </AdminRoute>
+            } />
+            
+            <Route path="/admin/rag-files" element={
+              <AdminRoute>
+                <RAGFileManagement />
               </AdminRoute>
             } />
             

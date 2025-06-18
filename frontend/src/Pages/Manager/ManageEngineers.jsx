@@ -438,7 +438,7 @@ const ManageEngineers = () => {
                     </span>
                   </td>
                   <td>
-                    <button className="action-button edit-button" onClick={() => openEditModal(engineer)}>Edit</button>
+                    <button className="action-button edit-priority-button" onClick={() => openEditModal(engineer)}>Edit</button>
                     <button 
                       className="action-button delete-button"
                       onClick={() => handleDeleteEngineer(engineer.id)}
