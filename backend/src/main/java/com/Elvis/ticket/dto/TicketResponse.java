@@ -19,6 +19,7 @@ public class TicketResponse {
     private UserInfo engineer;
     private Long session_id;
     private String history;
+    private ServilityLevel servilityLevel;
 
     @Data
     public static class UserInfo {
@@ -58,6 +59,7 @@ public class TicketResponse {
         }
         response.setHistory(ticket.getHistory());
         response.setCategory(ticket.getCategory());
+        response.setServilityLevel(ticket.getServilityLevel());
         return response;
     }
 } 
