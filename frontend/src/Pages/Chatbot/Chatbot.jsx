@@ -3,6 +3,7 @@ import axios from 'axios';
 import './Chatbot.css';
 import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
+import { chatbotAPI, sessionAPI, userService, productAPI, ticketTypeAPI } from '../../Services/api';
 
 const API_BASE_URL = 'http://localhost:8082';
 
@@ -33,6 +34,13 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [botLoading, setBotLoading] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [cachedUserProfile, setCachedUserProfile] = useState(null);
+  const [cachedProducts, setCachedProducts] = useState(null);
+  const [cachedTicketTypes, setCachedTicketTypes] = useState(null);
+  const [showTicketPrompt, setShowTicketPrompt] = useState(false);
+  const [checkingForActiveSessions, setCheckingForActiveSessions] = useState(true);
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -45,24 +53,21 @@ const Chatbot = () => {
       const token = localStorage.getItem('token');
       if (!token) {
         navigate('/login');
-        return;
+        return [];
       }
 
-      const response = await axios.get(`${API_BASE_URL}/api/sessions/list`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      setChatList(response.data);
+      const response = await sessionAPI.getSessionsList();
+      setChatList(response);
+      return response;
     } catch (error) {
       console.error('Error fetching chat list:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         navigate('/login');
-        return;
+        return [];
       }
       setError('Failed to load chat list. Please try again later.');
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +75,45 @@ const Chatbot = () => {
 
   // Fetch chat sessions on mount
   useEffect(() => {
-    fetchChatList();
+    const fetchAndSetActiveSession = async () => {
+      setCheckingForActiveSessions(true);
+      const fetchedChatList = await fetchChatList();
+      // Find and set the first active session if it exists
+      const activeSession = fetchedChatList.find(session => 
+        session.status === 'ACTIVE' && 
+        session.ticketSession !== true && 
+        session.ticketSession !== 1
+      );
+      if (activeSession) {
+        setActiveChat(activeSession.title);
+        setActiveSessionId(activeSession.id);
+        setChatStarted(true);
+        // Fetch the chat history for this active session
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            setCheckingForActiveSessions(false);
+            return;
+          }
+          const response = await sessionAPI.getSessionHistory(activeSession.id);
+          const messages = response.messages || [];
+          const formattedMessages = messages.map(msg => ({
+            text: msg.content,
+            sender: msg.role === 'assistant' ? 'support' : 'user',
+            timestamp: msg.timestamp
+          }));
+          setChatHistory(formattedMessages);
+        } catch (error) {
+          console.error('Error fetching chat history for active session:', error);
+        }
+        // Always set to false after try/catch
+        setCheckingForActiveSessions(false);
+      } else {
+        // No active session found, allow user to start a new chat
+        setCheckingForActiveSessions(false);
+      }
+    };
+    fetchAndSetActiveSession();
   }, [navigate]);
 
   const scrollToBottom = () => {
@@ -81,36 +124,187 @@ const Chatbot = () => {
     scrollToBottom();
   }, [chatHistory]);
 
-  // Send message (and create session if needed)
-  const sendMessage = async () => {
-    if (!message.trim()) return;
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('You must be logged in to use the chatbot.');
-      return;
+  const getUserProfile = async (token) => {
+    if (cachedUserProfile) return cachedUserProfile;
+    const userResponse = await userService.getCurrentUserProfile();
+    setCachedUserProfile(userResponse);
+    return userResponse;
+  };
+
+  const getProducts = async (token) => {
+    if (cachedProducts) return cachedProducts;
+    const productsResponse = await productAPI.getProducts();
+    setCachedProducts(productsResponse);
+    return productsResponse;
+  };
+
+  const getTicketTypes = async (token) => {
+    if (cachedTicketTypes) return cachedTicketTypes;
+    const ticketTypesResponse = await ticketTypeAPI.getTicketTypes();
+    setCachedTicketTypes(ticketTypesResponse);
+    return ticketTypesResponse;
+  };
+
+  // Add new function to handle feedback
+  const handleFeedback = async (isSolved) => {
+    if (isSolved) {
+      await handleEndSession();
+      setShowFeedback(false);
+      setShowTicketPrompt(false);
+    } else {
+      // Show ticket prompt instead of creating ticket immediately
+      setShowTicketPrompt(true);
+      setShowFeedback(false);
     }
-    try {
-      let sessionId = activeSessionId;
-      // If no session, create one with the first message as the title
-      if (!chatStarted) {
-        try {
+  };
+
+  // New handler for ticket prompt
+  const handleTicketPrompt = async (submitTicket) => {
+    if (submitTicket) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to create a ticket.');
+          return;
+        }
+        // 1. Get user profile to determine role and customerId
+        const user = await getUserProfile(token);
+        const customerId = user.customerId;
+        if (!customerId) {
+          alert('Customer profile not found. Cannot create ticket.');
+          return;
+        }
+        // 2. Determine urgency based on customer role
+        let urgency = 'MEDIUM';
+        if (user.role === 'VIP') urgency = 'HIGH';
+        else if (user.role === 'PREMIUM') urgency = 'MEDIUM';
+        else if (user.role === 'STANDARD') urgency = 'LOW';
+        // 3. Create a new session for the ticket
+        let sessionId = activeSessionId;
+        if (!sessionId) {
+          // No active session, create a new one
           const sessionResponse = await axios.post(
-            'http://localhost:8082/api/sessions',
-            { title: message },
+            `${API_BASE_URL}/api/sessions`,
+            { title: 'New Support Ticket', ticketSession: false },
             { headers: { Authorization: `Bearer ${token}` } }
           );
           sessionId = sessionResponse.data.id;
-          setActiveSessionId(sessionId);
-          setActiveChat(sessionResponse.data.title);
-          setChatStarted(true);
-          setChatList((prev) => [sessionResponse.data, ...prev]);
-          await fetchChatList();
-        } catch (err) {
-          console.error('Error creating session:', err);
-          alert('Failed to create session. Please check your login and try again.');
+          if (!sessionId) {
+            alert('Failed to create session. Please try again.');
+            return;
+          }
+          await axios.put(
+            `${API_BASE_URL}/api/sessions/${sessionId}/end`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+        // 4. Fetch products and ticket types (cached)
+        const products = await getProducts(token);
+        const ticketTypes = await getTicketTypes(token);
+        // 5. Detect product category from chat
+        const chatText = chatHistory.map(msg => msg.text).join(' ').toLowerCase();
+        const modelPatterns = [
+          { key: 'MODEL_3', patterns: [/\bmodel[\s\-]?3\b/i, /\btesla[\s\-]?model[\s\-]?3\b/i] },
+          { key: 'MODEL_Y', patterns: [/\bmodel[\s\-]?y\b/i, /\btesla[\s\-]?model[\s\-]?y\b/i] },
+          { key: 'MODEL_S', patterns: [/\bmodel[\s\-]?s\b/i, /\btesla[\s\-]?model[\s\-]?s\b/i] },
+          { key: 'MODEL_X', patterns: [/\bmodel[\s\-]?x\b/i, /\btesla[\s\-]?model[\s\-]?x\b/i] },
+          { key: 'CYBERTRUCK', patterns: [/\bcybertruck\b/i, /\btesla[\s\-]?cybertruck\b/i] }
+        ];
+        let productCategory = null;
+        for (const model of modelPatterns) {
+          for (const pattern of model.patterns) {
+            if (pattern.test(chatText)) {
+              productCategory = model.key;
+              break;
+            }
+          }
+          if (productCategory) break;
+        }
+        // 6. Find product and type IDs
+        let selectedCategory = productCategory || 'MODEL_S'; // fallback to MODEL_S if not detected
+        const selectedType = ticketTypes.length > 0 ? ticketTypes[0] : null;
+        if (!selectedType) {
+          alert('No ticket type found.');
           return;
         }
+        const typeId = selectedType.id;
+        // 7. Build the request body (no description, no engineer)
+        const currentSession = chatList.find(s => s.id === sessionId);
+        const sessionTitle = currentSession ? currentSession.title : 'Support Request from Chat';
+        const ticketBody = {
+          title: sessionTitle,
+          category: selectedCategory,
+          type: { id: typeId },
+          session: { id: sessionId },
+          urgency: urgency,
+          status: 'OPEN',
+          customer: { id: customerId }
+        };
+        // 8. Create the ticket
+        const ticketResponse = await axios.post(
+          `${API_BASE_URL}/api/tickets`,
+          ticketBody,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        const ticketId = ticketResponse.data.id || ticketResponse.data.data?.id;
+        if (!ticketId) {
+          alert('Failed to create ticket. Please try again.');
+          return;
+        }
+        // No need to call /api/tickets/{id}/assign; backend handles assignment
+        await handleEndSession();
+        navigate(`/view-tickets`);
+      } catch (error) {
+        console.error('Error creating ticket:', error);
+        alert('Failed to create ticket. Please try again later.');
       }
+    } else {
+      // User chose not to submit a ticket, just continue conversation
+      setShowTicketPrompt(false);
+      setShowFeedback(false);
+    }
+  };
+
+  // Modify sendMessage function to show feedback after bot response
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    
+    try {
+      // Create a new session if needed
+      if (!activeSessionId) {
+        setCheckingForActiveSessions(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to send messages.');
+          setCheckingForActiveSessions(false);
+          return;
+        }
+        
+        try {
+          const response = await sessionAPI.createSession({
+            title: message.length > 30 ? message.substring(0, 30) + '...' : message,
+            ticketSession: false
+          });
+          
+          setActiveSessionId(response.data.id);
+          setActiveChat(response.data.title);
+          setChatStarted(true);
+          await fetchChatList();
+        } catch (sessionError) {
+          console.error('Error creating session:', sessionError);
+          alert('Failed to create session. Please check your login and try again.');
+          setCheckingForActiveSessions(false);
+          return;
+        }
+        setCheckingForActiveSessions(false); // Always set to false after session creation
+      } 
+      
       // Optimistically update chat history with user message and loading bot message
       const userMessage = {
         text: message,
@@ -124,25 +318,17 @@ const Chatbot = () => {
       ]);
       setMessage('');
       try {
-        const response = await axios.post(
-          'http://localhost:5000/query',
-          { query: message },
-          { 
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            }
-          }
-        );
+        const response = await chatbotAPI.sendQuery(message);
+        
         // Use the full updated history from backend
-        const messages = response.data.history || [];
+        const messages = response.history || [];
         const formattedMessages = messages.map(msg => ({
           text: msg.content,
           sender: msg.role === 'assistant' ? 'support' : 'user',
           timestamp: msg.timestamp
         }));
         setChatHistory(formattedMessages);
+        setShowFeedback(true); // Show feedback after bot response
       } catch (chatbotError) {
         // Remove the loading message if error
         setChatHistory((prev) => prev.filter((msg, idx) => !(msg.loading && idx === prev.length - 1)));
@@ -172,14 +358,13 @@ const Chatbot = () => {
         const token = localStorage.getItem('token');
         if (!token) {
           alert('You must be logged in to view chat history.');
+          setCheckingForActiveSessions(false);
           return;
         }
         console.log('Fetching history for session:', session.id);
-        const response = await axios.get(`http://localhost:8082/api/sessions/${session.id}/history`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log('History response:', response.data);
-        const messages = response.data.messages || [];
+        const response = await sessionAPI.getSessionHistory(session.id);
+        console.log('History response:', response);
+        const messages = response.messages || [];
         console.log('Parsed messages:', messages);
         
         // Convert the messages to the format expected by the chat display
@@ -195,6 +380,8 @@ const Chatbot = () => {
         console.error('Error fetching chat history:', error);
         console.error('Error details:', error.response?.data);
         alert('Failed to fetch chat history.');
+      } finally {
+        setCheckingForActiveSessions(false); // Always set to false after fetching chat history
       }
     };
     fetchChatHistory();
@@ -208,19 +395,12 @@ const Chatbot = () => {
       const confirmEnd = window.confirm('You can only have one active session. The current session will be ended and a new chat will start. Continue?');
       if (!confirmEnd) return;
       // End the current session before starting a new one
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          await axios.put(
-            `http://localhost:8082/api/sessions/${activeSessionId}/end`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setChatList((prev) => prev.map((s) => s.id === activeSessionId ? { ...s, status: 'CLOSED' } : s));
-          await fetchChatList();
-        } catch (error) {
-          alert('Failed to end previous session.');
-        }
+      try {
+        await sessionAPI.endSession(activeSessionId);
+        setChatList((prev) => prev.map((s) => s.id === activeSessionId ? { ...s, status: 'CLOSED' } : s));
+        await fetchChatList();
+      } catch (error) {
+        alert('Failed to end previous session.');
       }
     }
     setChatStarted(false);
@@ -238,11 +418,7 @@ const Chatbot = () => {
       return;
     }
     try {
-      await axios.put(
-        `http://localhost:8082/api/sessions/${activeSessionId}/end`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await sessionAPI.endSession(activeSessionId);
       setChatList((prev) => prev.filter((s) => s.id !== activeSessionId));
       handleNewChat();
       alert('Session ended.');
@@ -272,15 +448,17 @@ const Chatbot = () => {
   }, []);
 
   // Filter chats based on search query and status
-  let filteredChats = chatList.filter((chat) => {
-    const searchLower = searchQuery.toLowerCase().trim();
-    const titleLower = (chat.title || 'Untitled Chat').toLowerCase();
-    const matchesSearch = searchLower === '' || titleLower.includes(searchLower);
-    const matchesStatus = statusFilter === 'ALL' || 
-                         (statusFilter === 'ACTIVE' && chat.status === 'ACTIVE') ||
-                         (statusFilter === 'CLOSED' && chat.status === 'CLOSED');
-    return matchesSearch && matchesStatus;
-  });
+  let filteredChats = chatList
+    .filter(chat => chat.ticketSession !== true && chat.ticketSession !== 1) // Exclude ticket sessions (true or 1)
+    .filter((chat) => {
+      const searchLower = searchQuery.toLowerCase().trim();
+      const titleLower = (chat.title || 'Untitled Chat').toLowerCase();
+      const matchesSearch = searchLower === '' || titleLower.includes(searchLower);
+      const matchesStatus = statusFilter === 'ALL' || 
+                           (statusFilter === 'ACTIVE' && chat.status === 'ACTIVE') ||
+                           (statusFilter === 'CLOSED' && chat.status === 'CLOSED');
+      return matchesSearch && matchesStatus;
+    });
 
   // Sort by lastActivity descending (latest first)
   filteredChats = filteredChats.sort((a, b) => {
@@ -291,6 +469,13 @@ const Chatbot = () => {
 
   return (
     <div className="chat-container">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className={`sidebar-toggle ${sidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(!sidebarOpen)}>
         <span></span>
         <span></span>
@@ -307,7 +492,7 @@ const Chatbot = () => {
             placeholder="Search chats..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
+            className="chat-search-input"
           />
         </div>
         <div className="chat-filters">
@@ -356,7 +541,7 @@ const Chatbot = () => {
                 <div className="chat-item-header">
                   <span className="session-title">{(chat.title && chat.title.length > 20) ? chat.title.slice(0, 20) + '...' : (chat.title || 'Untitled Chat')}</span>
                   <span className="session-meta">
-                    <span className={`status-badge ${chat.status}`}>{chat.status}</span>
+                    <span className={`chat-status-badge ${chat.status}`}>{chat.status}</span>
                     <span className="session-time">
                       {formatSessionTime(chat.lastActivity)}
                     </span>
@@ -376,13 +561,13 @@ const Chatbot = () => {
               {(() => {
                 const currentSession = chatList.find((s) => s.id === activeSessionId);
                 return currentSession ? (
-                  <span className={`status-badge ${currentSession.status}`}>{currentSession.status}</span>
+                  <span className={`chat-status-badge ${currentSession.status}`}>{currentSession.status}</span>
                 ) : null;
               })()}
             </div>
             <div className="chat-header-actions">
               <button className="quick-action-btn" onClick={handleNewChat}><b className="new-chat-icon">+</b> New Chat</button>
-              <button className="quick-action-btn" onClick={handleEndSession}><b className="end-chat-icon">✖</b> End Session</button>
+              <button className="quick-action-btn" onClick={handleEndSession} disabled={!activeSessionId}><b className="end-chat-icon">✖</b> End Session</button>
             </div>
           </div>
         )}
@@ -403,6 +588,45 @@ const Chatbot = () => {
                       <span className="message-timestamp">
                         {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && chatHistory.filter(m => m.sender === 'user').length >= 3 && (
+                        <div className="feedback-container">
+                          <p>Did I solve your problem?</p>
+                          <div className="feedback-buttons">
+                            <button 
+                              className="feedback-btn success" 
+                              onClick={() => handleFeedback(true)}
+                            >
+                              ✅ Yes
+                            </button>
+                            <button 
+                              className="feedback-btn cancel" 
+                              onClick={() => handleFeedback(false)}
+                            >
+                              ❌ No
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {/* Ticket prompt after feedback 'No' */}
+                      {chat.sender === 'support' && index === chatHistory.length - 1 && showTicketPrompt && (
+                        <div className="feedback-container">
+                          <p>Do you want to submit a ticket?</p>
+                          <div className="feedback-buttons">
+                            <button 
+                              className="feedback-btn success" 
+                              onClick={() => handleTicketPrompt(true)}
+                            >
+                              ✅ Yes
+                            </button>
+                            <button 
+                              className="feedback-btn cancel" 
+                              onClick={() => handleTicketPrompt(false)}
+                            >
+                              ❌ No
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -412,7 +636,7 @@ const Chatbot = () => {
           </div>
         )}
 
-        {!chatStarted && (
+        {!chatStarted && !checkingForActiveSessions && (
           <div className="welcome-container">
             <div className="logo-container">
               <div className="chat-logo">
@@ -420,6 +644,19 @@ const Chatbot = () => {
               </div>
               <h2>Welcome to TechCare Support</h2>
               <p>How can our virtual assistant help you today?</p>
+            </div>
+          </div>
+        )}
+
+        {checkingForActiveSessions && !chatStarted && (
+          <div className="welcome-container loading-container">
+            <div className="logo-container">
+              <div className="chat-logo">
+                <img src="/logo.png" alt="Company Logo" />
+              </div>
+              <h2>TechCare Support</h2>
+              <p>Loading your active session...</p>
+              <FaSpinner className="spinner" style={{ animation: 'spin 1s linear infinite', fontSize: '24px', marginTop: '10px' }} />
             </div>
           </div>
         )}
@@ -436,10 +673,18 @@ const Chatbot = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={isClosed ? 'This session is closed. You cannot send messages.' : 'Type your message...'}
-                    disabled={isClosed}
+                    placeholder={
+                      checkingForActiveSessions 
+                        ? 'Checking for active sessions...' 
+                        : isClosed 
+                          ? 'This session is closed. You cannot send messages.' 
+                          : 'Type your message...'
+                    }
+                    disabled={checkingForActiveSessions || isClosed}
                   />
-                  <button onClick={sendMessage} disabled={isClosed}><i className="send-icon">➤</i>Send</button>
+                  <button onClick={sendMessage} disabled={checkingForActiveSessions || isClosed}>
+                    <i className="send-icon">➤</i>Send
+                  </button>
                 </>
               );
             })()}

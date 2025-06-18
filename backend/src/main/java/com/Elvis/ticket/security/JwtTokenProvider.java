@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -38,8 +39,11 @@ public class JwtTokenProvider {
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Map<String, Object> claims = new HashMap<>();
+        claims.put("authorities", userDetails.getAuthorities().stream()
+            .map(auth -> auth.getAuthority())
+            .collect(Collectors.toList()));
         String token = createToken(claims, userDetails.getUsername());
-        logger.info("Generated token for user: {}", userDetails.getUsername());
+        logger.info("Generated token for user: {} with authorities: {}", userDetails.getUsername(), claims.get("authorities"));
         return token;
     }
 
@@ -100,5 +104,9 @@ public class JwtTokenProvider {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public Key getKey() {
+        return this.key;
     }
 } 

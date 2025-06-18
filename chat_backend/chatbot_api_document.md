@@ -83,7 +83,7 @@ python -m venv venv
 ## Step 3: Activate the Virtual Environment
 On Windows, activate the virtual environment:
 ```bash
-venv\Scripts\activate
+.\venv\Scripts\activate
 ```
 
 You should see `(venv)` at the beginning of your command prompt, indicating the virtual environment is active.
@@ -96,7 +96,7 @@ pip install -r requirements.txt
 ## Step 5: Run the Application
 Now you can run your Python application:
 ```bash
-python app.py
+python backend.py
 ```
 Your application should now be running.
 

@@ -1,55 +1,154 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CreateTicket.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { ticketAPI, productAPI, ticketTypeAPI, sessionAPI, userService, engineerAPI } from '../../Services/api';
 
 const CreateTicket = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: 'John Anderson',
-    email: 'john.anderson@company.com',
-    phone: '',
-    company: 'Anderson Enterprises',
-    subject: '',
-    category: '',
-    product: '',
-    description: '',
-    priority: 'medium',
-    attachments: []
+    title: '',
+    product: { id: '' },
+    type: { id: '' },
+    session: { id: '' },
+    urgency: 'MEDIUM',
+    status: 'IN_PROGRESS'
   });
 
+  const [products, setProducts] = useState([]);
+  const [ticketTypes, setTicketTypes] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState('contact');
+  const [showEmergencyToast, setShowEmergencyToast] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get current user
+        const userResponse = await userService.getCurrentUserProfile();
+        const user = userResponse.data || userResponse;
+        setCurrentUser(user);
+
+        // Set default urgency based on customer role
+        let defaultUrgency = 'LOW';
+        if (user.role === 'VIP') defaultUrgency = 'HIGH';
+        else if (user.role === 'PREMIUM') defaultUrgency = 'MEDIUM';
+        else if (user.role === 'STANDARD') defaultUrgency = 'LOW';
+        setFormData(prev => ({ ...prev, urgency: defaultUrgency }));
+        setUserLoading(false);
+
+        // Get products
+        const productsResponse = await productAPI.getProducts();
+        const productsData = productsResponse?.data ?? productsResponse;
+        setProducts(productsData);
+
+        // Get ticket types
+        const ticketTypesResponse = await ticketTypeAPI.getTicketTypes();
+        const ticketTypesData = ticketTypesResponse?.data ?? ticketTypesResponse;
+        setTicketTypes(ticketTypesData);
+      } catch (err) {
+        setError('Failed to load initial data. Please try again.');
+        setCurrentUser(null);
+        setUserLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
-  const handleAttachmentAdd = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setFormData({
-        ...formData,
-        attachments: [...formData.attachments, ...files]
-      });
-    }
+  const handleSelectChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: { id: value || '' }
+    }));
   };
 
-  const removeAttachment = (index) => {
-    const updatedAttachments = [...formData.attachments];
-    updatedAttachments.splice(index, 1);
-    setFormData({
-      ...formData,
-      attachments: updatedAttachments
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log('Form submitted:', formData);
-    // You can add API call to submit the ticket
+    setLoading(true);
+    setError('');
+
+    try {
+      // Create a new session first
+      const sessionResponse = await sessionAPI.createSession({ title: 'New Support Ticket', ticketSession: true });
+      const sessionId = sessionResponse?.data?.id || sessionResponse?.data?.data?.id;
+      if (!sessionId) {
+        setError('Failed to create session. Please try again.');
+        setLoading(false);
+        return;
+      }
+      await sessionAPI.endSession(sessionId);
+      const product = formData.product ?? { id: '' };
+      const type = formData.type ?? { id: '' };
+      if (!currentUser?.customerId) {
+        setError('Customer profile not found. Cannot create ticket.');
+        setLoading(false);
+        return;
+      }
+      // Find the selected product object
+      const selectedProduct = products.find(p => p.id == product.id);
+      if (!selectedProduct || !selectedProduct.category) {
+        setError('Selected product does not have a valid category.');
+        setLoading(false);
+        return;
+      }
+      // Use the product category (e.g., MODEL_X, MODEL_3, etc.)
+      const category = selectedProduct.category;
+      // Fetch the available engineer for the category
+      let engineer = null;
+      try {
+        engineer = await engineerAPI.getAvailableLevel1Engineer(category);
+      } catch (engErr) {
+        setError('Failed to assign engineer. Please try again.');
+        setLoading(false);
+        return;
+      }
+      if (!engineer || !engineer.id) {
+        setError('No available engineer found for this category.');
+        setLoading(false);
+        return;
+      }
+      // Build the request body (with engineer)
+      const ticketBody = {
+        title: formData.title,
+        product: { id: product.id || '' },
+        type: { id: type.id || '' },
+        session: { id: sessionId },
+        urgency: formData.urgency,
+        status: formData.status,
+        customer: { id: currentUser.customerId },
+        engineer: { id: engineer.id },
+        category: category,
+        description: formData.description || ''
+      };
+      const response = await ticketAPI.createTicket(ticketBody);
+      const ticketId = response?.id || response?.data?.id;
+      if (!ticketId) {
+        setError('Failed to create ticket. Please try again.');
+        console.error('Ticket creation response:', response);
+        setLoading(false);
+        return;
+      }
+      alert('Ticket created successfully!');
+      navigate('/view-tickets');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create ticket. Please try again.');
+      console.error('Error creating ticket:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const nextSection = () => {
@@ -64,8 +163,19 @@ const CreateTicket = () => {
     else if (activeSection === 'ticket') setActiveSection('contact');
   };
 
+  if (userLoading) {
+    return <div>Loading user info...</div>;
+  }
+
   return (
     <div className="support-ticket-page">
+      {/* Emergency Toast */}
+      {showEmergencyToast && (
+        <div className="emergency-toast">
+          <span>For Emergency, Please call <b>+852-91234567</b></span>
+          <button className="emergency-toast-close" onClick={() => setShowEmergencyToast(false)}>&times;</button>
+        </div>
+      )}
       <div className="support-ticket-container">
         <div className="support-panels-container">
           <div className="support-left-panel">
@@ -101,6 +211,8 @@ const CreateTicket = () => {
               <h2>Submit a Support Ticket</h2>
               <p className="support-form-subtitle">Please provide the details below to help us assist you better</p>
               
+              {error && <div className="error-message">{error}</div>}
+              
               <form className="support-ticket-form" onSubmit={handleSubmit}>
                 {/* Contact Information Section */}
                 <div className={`support-form-section ${activeSection === 'contact' ? 'active' : ''}`}>
@@ -111,11 +223,9 @@ const CreateTicket = () => {
                       <i className="fas fa-user"></i>
                       <input 
                         type="text" 
-                        name="fullName"
-                        value={formData.fullName} 
-                        onChange={handleInputChange}
+                        value={currentUser?.name || ''}
+                        disabled
                         placeholder="Full Name"
-                        required 
                       />
                     </div>
                   </div>
@@ -125,37 +235,9 @@ const CreateTicket = () => {
                       <i className="fas fa-envelope"></i>
                       <input 
                         type="email" 
-                        name="email"
-                        value={formData.email} 
-                        onChange={handleInputChange}
+                        value={currentUser?.email || ''}
+                        disabled
                         placeholder="Email Address"
-                        required 
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="support-form-group">
-                    <div className="support-input-field">
-                      <i className="fas fa-phone"></i>
-                      <input 
-                        type="tel" 
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="Phone Number (optional)" 
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="support-form-group">
-                    <div className="support-input-field">
-                      <i className="fas fa-building"></i>
-                      <input 
-                        type="text" 
-                        name="company"
-                        value={formData.company}
-                        onChange={handleInputChange}
-                        placeholder="Company/Organization"
                       />
                     </div>
                   </div>
@@ -174,8 +256,8 @@ const CreateTicket = () => {
                       <i className="fas fa-tag"></i>
                       <input 
                         type="text" 
-                        name="subject"
-                        value={formData.subject}
+                        name="title"
+                        value={formData.title || ''}
                         onChange={handleInputChange}
                         placeholder="Subject" 
                         required 
@@ -187,17 +269,15 @@ const CreateTicket = () => {
                     <div className="support-select-field">
                       <i className="fas fa-folder"></i>
                       <select 
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
+                        name="type"
+                        value={formData.type?.id || ''}
+                        onChange={handleSelectChange}
                         required
                       >
-                        <option value="">Select a category</option>
-                        <option value="technical">Technical Support</option>
-                        <option value="billing">Billing & Payments</option>
-                        <option value="account">Account Management</option>
-                        <option value="feature">Feature Request</option>
-                        <option value="general">General Inquiry</option>
+                        <option value="">Select a ticket type</option>
+                        {Array.isArray(ticketTypes) && ticketTypes.map(type => (
+                          <option key={type.id} value={type.id}>{type.name}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -207,57 +287,70 @@ const CreateTicket = () => {
                       <i className="fas fa-cube"></i>
                       <select
                         name="product"
-                        value={formData.product}
-                        onChange={handleInputChange}
+                        value={formData.product?.id || ''}
+                        onChange={handleSelectChange}
+                        required
                       >
-                        <option value="">Select a product/service</option>
-                        <option value="payment_gateway">Payment Gateway</option>
-                        <option value="crm">CRM Software</option>
-                        <option value="ecommerce">E-commerce Platform</option>
-                        <option value="api">API Integration</option>
-                        <option value="other">Other</option>
+                        <option value="">Select a product</option>
+                        {Array.isArray(products) && products.map(product => (
+                          <option key={product.id} value={product.id}>{product.name}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
                   
-                  <div className="support-form-group">
-                    <label>Priority Level</label>
-                    <div className="support-priority-options">
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="low" 
-                          name="priority" 
-                          value="low"
-                          checked={formData.priority === 'low'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="low">Low</label>
-                      </div>
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="medium" 
-                          name="priority" 
-                          value="medium"
-                          checked={formData.priority === 'medium'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="medium">Medium</label>
-                      </div>
-                      <div className="support-priority-option">
-                        <input 
-                          type="radio" 
-                          id="high" 
-                          name="priority" 
-                          value="high"
-                          checked={formData.priority === 'high'}
-                          onChange={handleInputChange}
-                        />
-                        <label htmlFor="high">High</label>
+                  {/* Priority Level Section */}
+                  {currentUser?.role !== 'CUSTOMER' && (
+                    <div className="support-form-group">
+                      <label>Priority Level</label>
+                      <div className="support-priority-options">
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="low" 
+                            name="urgency" 
+                            value="LOW"
+                            checked={formData.urgency === 'LOW'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="low">Low</label>
+                        </div>
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="medium" 
+                            name="urgency" 
+                            value="MEDIUM"
+                            checked={formData.urgency === 'MEDIUM'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="medium">Medium</label>
+                        </div>
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="high" 
+                            name="urgency" 
+                            value="HIGH"
+                            checked={formData.urgency === 'HIGH'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="high">High</label>
+                        </div>
+                        <div className="support-priority-option">
+                          <input 
+                            type="radio" 
+                            id="critical" 
+                            name="urgency" 
+                            value="CRITICAL"
+                            checked={formData.urgency === 'CRITICAL'}
+                            onChange={handleInputChange}
+                          />
+                          <label htmlFor="critical">Critical</label>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="support-form-actions">
                     <button type="button" className="support-btn support-back-btn" onClick={prevSection}><i className="fas fa-arrow-left"></i> Back</button>
@@ -272,16 +365,9 @@ const CreateTicket = () => {
                   <div className="support-form-group">
                     <label>Describe Your Issue</label>
                     <div className="support-rich-text-editor">
-                      <div className="support-editor-toolbar">
-                        <button type="button"><i className="fas fa-bold"></i></button>
-                        <button type="button"><i className="fas fa-italic"></i></button>
-                        <button type="button"><i className="fas fa-list-ul"></i></button>
-                        <button type="button"><i className="fas fa-list-ol"></i></button>
-                        <button type="button"><i className="fas fa-link"></i></button>
-                      </div>
                       <textarea 
                         name="description"
-                        value={formData.description}
+                        value={formData.description || ''}
                         onChange={handleInputChange}
                         placeholder="Please provide as much detail as possible about your issue..." 
                         required
@@ -295,45 +381,28 @@ const CreateTicket = () => {
                   </div>
                 </div>
                 
-                {/* Attachments Section */}
+                {/* Submit Section */}
                 <div className={`support-form-section ${activeSection === 'attachments' ? 'active' : ''}`}>
-                  <h3>Attachments</h3>
+                  <h3>Review and Submit</h3>
                   
                   <div className="support-form-group">
-                    <div className="support-attachment-dropzone">
-                      <i className="fas fa-cloud-upload-alt"></i>
-                      <p>Drag files here or click to browse</p>
-                      <input 
-                        type="file" 
-                        id="file-upload"
-                        onChange={handleAttachmentAdd}
-                        multiple
-                        style={{ display: 'none' }}
-                      />
-                      <label htmlFor="file-upload" className="support-upload-btn">Choose Files</label>
+                    <div className="ticket-summary">
+                      <h4>Ticket Summary</h4>
+                      <p><strong>Title:</strong> {formData.title}</p>
+                      <p><strong>Type:</strong> {Array.isArray(ticketTypes) && ticketTypes.find(t => t.id == formData.type?.id)?.name || 'Not selected'}</p>
+                      <p><strong>Product:</strong> {Array.isArray(products) && products.find(p => p.id == formData.product?.id)?.name || 'Not selected'}</p>
                     </div>
-                    <p className="support-form-note">Accepted file types: JPG, PNG, PDF, TXT, DOC, DOCX (Max 5MB per file)</p>
-                  </div>
-                  
-                  <div className="support-attachment-list">
-                    {formData.attachments.map((file, index) => (
-                      <div className="support-attachment-item" key={index}>
-                        <i className="fas fa-file"></i>
-                        <span className="support-file-name">{file.name}</span>
-                        <button 
-                          type="button" 
-                          className="support-remove-btn"
-                          onClick={() => removeAttachment(index)}
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
-                      </div>
-                    ))}
                   </div>
                   
                   <div className="support-form-actions">
                     <button type="button" className="support-btn support-back-btn" onClick={prevSection}><i className="fas fa-arrow-left"></i> Back</button>
-                    <button type="submit" className="support-btn support-submit-btn">Submit Ticket</button>
+                    <button 
+                      type="submit" 
+                      className="support-btn support-submit-btn"
+                      disabled={loading}
+                    >
+                      {loading ? 'Creating Ticket...' : 'Submit Ticket'}
+                    </button>
                   </div>
                 </div>
               </form>

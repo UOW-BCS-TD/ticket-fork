@@ -15,6 +15,10 @@ public class Manager {
     @Column(nullable = false)
     private String department;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TeslaModel category;
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -42,6 +46,14 @@ public class Manager {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public TeslaModel getCategory() {
+        return category;
+    }
+
+    public void setCategory(TeslaModel category) {
+        this.category = category;
     }
 
     public User getUser() {

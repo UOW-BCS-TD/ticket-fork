@@ -1,42 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
-import auth, { userManagement } from '../../Services/auth';
+import { userService } from '../../Services/api';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: '',
     email: '',
     role: '',
-    active: true
+    phoneNumber: ''
   });
+
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addFormData, setAddFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'CUSTOMER',
+    phoneNumber: ''
+  });
+  const [addUserError, setAddUserError] = useState('');
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    if (users.length > 0) {
-      filterUsers();
-    }
-  }, [searchTerm, users]);
-
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await userManagement.getAllUsers();
+      const data = await userService.getAllUsers();
       setUsers(data);
       setFilteredUsers(data);
       setError(null);
@@ -47,6 +56,12 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (users.length > 0) {
+      filterUsers();
+    }
+  }, [searchTerm, users]);
 
   const filterUsers = () => {
     if (!searchTerm.trim()) {
@@ -68,8 +83,19 @@ const UserManagement = () => {
     setSelectedUser(user);
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+  const handleSearchInputChange = (e) => {
+    setSearchInput(e.target.value);
+  };
+
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
   };
 
   const handleEditUser = () => {
@@ -78,17 +104,17 @@ const UserManagement = () => {
         name: selectedUser.name || '',
         email: selectedUser.email || '',
         role: selectedUser.role || 'CUSTOMER',
-        active: selectedUser.active !== false
+        phoneNumber: selectedUser.phoneNumber || ''
       });
       setShowEditModal(true);
     }
   };
 
   const handleEditInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setEditFormData({
       ...editFormData,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     });
   };
 
@@ -96,7 +122,7 @@ const UserManagement = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const updatedUser = await userManagement.updateUser(selectedUser.id, editFormData);
+      const updatedUser = await userService.updateUser(selectedUser.id, editFormData);
       
       // Update the user in the local state
       setUsers(users.map(user => 
@@ -136,9 +162,7 @@ const UserManagement = () => {
     
     try {
       setLoading(true);
-      await userManagement.updateUserPassword(selectedUser.id, { 
-        password: newPassword 
-      });
+      await userService.updatePassword(selectedUser.id, { newPassword: newPassword });
       
       setShowResetPasswordModal(false);
       showSuccessMessage('Password reset successfully');
@@ -150,26 +174,58 @@ const UserManagement = () => {
     }
   };
 
-  const handleToggleUserStatus = async (userId, currentStatus) => {
+  const handleAddUser = () => {
+    setAddFormData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      role: 'CUSTOMER',
+      phoneNumber: ''
+    });
+    setAddUserError('');
+    setShowAddModal(true);
+  };
+
+  const handleAddInputChange = (e) => {
+    const { name, value } = e.target;
+    setAddFormData({
+      ...addFormData,
+      [name]: value
+    });
+  };
+
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate passwords match
+    if (addFormData.password !== addFormData.confirmPassword) {
+      setAddUserError('Passwords do not match');
+      return;
+    }
+    
+    // Validate password length
+    if (addFormData.password.length < 8) {
+      setAddUserError('Password must be at least 8 characters long');
+      return;
+    }
+    
     try {
       setLoading(true);
-      const updatedUser = await userManagement.updateUser(userId, { 
-        active: !currentStatus 
-      });
+      setAddUserError('');
       
-      // Update the user in the local state
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, active: !currentStatus } : user
-      ));
+      // Use userService directly instead of userManagement
+      const { confirmPassword, ...userData } = addFormData;
+      const newUser = await userService.createUser(userData);
       
-      if (selectedUser && selectedUser.id === userId) {
-        setSelectedUser({ ...selectedUser, active: !currentStatus });
-      }
+      // Add the new user to the local state
+      setUsers([...users, newUser]);
       
-      showSuccessMessage(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      setShowAddModal(false);
+      showSuccessMessage('User created successfully');
     } catch (err) {
-      console.error('Error toggling user status:', err);
-      setError(`Failed to ${!currentStatus ? 'activate' : 'deactivate'} user. Please try again.`);
+      console.error('Error creating user:', err);
+      setAddUserError(err.message || 'Failed to create user. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -182,7 +238,7 @@ const UserManagement = () => {
   const confirmDeleteUser = async () => {
     try {
       setLoading(true);
-      await userManagement.deleteUser(selectedUser.id);
+      await userService.deleteUser(selectedUser.id);
       
       // Remove the user from the local state
       setUsers(users.filter(user => user.id !== selectedUser.id));
@@ -239,17 +295,18 @@ const UserManagement = () => {
             <input 
               type="text" 
               placeholder="Search users..." 
-              value={searchTerm}
-              onChange={handleSearchChange}
+              value={searchInput}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleSearchKeyPress}
             />
-            <button className="search-btn">
+            <button className="admin-search-btn" onClick={handleSearch}>
               <i className="fas fa-search"></i>
             </button>
           </div>
           <div className="admin-list">
             <div className="admin-list-header">
               <h3>Users ({filteredUsers.length})</h3>
-              <button className="add-user-btn" onClick={() => {/* Implement add user */}}>
+              <button className="add-user-btn" onClick={handleAddUser}>
                 <i className="fas fa-plus"></i> Add User
               </button>
             </div>
@@ -271,9 +328,6 @@ const UserManagement = () => {
                       <span className="user-email">{user.email}</span>
                       <div className="user-meta">
                         <span className={`user-role ${user.role?.toLowerCase()}`}>{user.role}</span>
-                        <span className={`user-status ${user.active ? 'active' : 'inactive'}`}>
-                          {user.active ? 'Active' : 'Inactive'}
-                        </span>
                       </div>
                     </div>
                   </li>
@@ -292,13 +346,9 @@ const UserManagement = () => {
                 </div>
                 <div className="user-detail-title">
                   <h2>{selectedUser.name}</h2>
-                  <p>{selectedUser.email}</p>
                   <div className="user-badges">
                     <span className={`role-badge ${selectedUser.role?.toLowerCase()}`}>
                       {selectedUser.role}
-                    </span>
-                    <span className={`status-badge ${selectedUser.active ? 'active' : 'inactive'}`}>
-                      {selectedUser.active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
@@ -318,19 +368,21 @@ const UserManagement = () => {
                       <p>{selectedUser.id}</p>
                     </div>
                     <div className="detail-item">
-                      <label>Status</label>
-                      <p className={`status ${selectedUser.active ? 'active' : 'inactive'}`}>
-                        {selectedUser.active ? 'Active' : 'Inactive'}
-                      </p>
+                      <label>Email</label>
+                      <p>{selectedUser.email}</p>
+                    </div>
+                    <div className="detail-item">
+                      <label>Phone</label>
+                      <p>{selectedUser.phoneNumber || 'Not set'}</p>
                     </div>
                     <div className="detail-item">
                       <label>Created</label>
                       <p>{formatDate(selectedUser.createdAt)}</p>
                     </div>
-                    <div className="detail-item">
+                    {/* <div className="detail-item">
                       <label>Last Login</label>
                       <p>{formatDate(selectedUser.lastLogin)}</p>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -343,23 +395,6 @@ const UserManagement = () => {
                     >
                       <i className="fas fa-key"></i> Reset Password
                     </button>
-                    {selectedUser.active ? (
-                      <button 
-                        className="action-btn deactivate"
-                        onClick={() => handleToggleUserStatus(selectedUser.id, selectedUser.active)}
-                        disabled={loading}
-                      >
-                        <i className="fas fa-user-slash"></i> Deactivate Account
-                      </button>
-                    ) : (
-                      <button 
-                        className="action-btn activate"
-                        onClick={() => handleToggleUserStatus(selectedUser.id, selectedUser.active)}
-                        disabled={loading}
-                      >
-                        <i className="fas fa-user-check"></i> Activate Account
-                      </button>
-                    )}
                     <button 
                       className="action-btn delete"
                       onClick={() => handleDeleteUser(selectedUser.id)}
@@ -418,6 +453,16 @@ const UserManagement = () => {
                   />
                 </div>
                 <div className="form-group">
+                  <label htmlFor="phoneNumber">Phone Number</label>
+                  <input
+                    type="text"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={editFormData.phoneNumber}
+                    onChange={handleEditInputChange}
+                  />
+                                </div>
+                <div className="form-group">
                   <label htmlFor="role">Role</label>
                   <select
                     id="role"
@@ -432,23 +477,12 @@ const UserManagement = () => {
                     <option value="CUSTOMER">Customer</option>
                   </select>
                 </div>
-                                <div className="form-group">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="active"
-                      checked={editFormData.active}
-                      onChange={handleEditInputChange}
-                    />
-                    <span>Active Account</span>
-                  </label>
-                </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>
+                <button type="button" className="admin-btn-secondary" onClick={() => setShowEditModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
+                <button type="submit" className="admin-btn-primary" disabled={loading}>
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
@@ -494,11 +528,109 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowResetPasswordModal(false)}>
+                <button type="button" className="admin-btn-secondary" onClick={() => setShowResetPasswordModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
+                <button type="submit" className="admin-btn-primary" disabled={loading}>
                   {loading ? 'Resetting...' : 'Reset Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add New User</h2>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <form onSubmit={handleAddSubmit}>
+              <div className="modal-body">
+                {addUserError && <div className="form-error">{addUserError}</div>}
+                <div className="form-group">
+                  <label htmlFor="name">Name *</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={addFormData.name}
+                    onChange={handleAddInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="email">Email *</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={addFormData.email}
+                    onChange={handleAddInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="password">Password *</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={addFormData.password}
+                    onChange={handleAddInputChange}
+                    required
+                    minLength="8"
+                  />
+                  <div className="form-hint">Password must be at least 8 characters long</div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm Password *</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={addFormData.confirmPassword}
+                    onChange={handleAddInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="phoneNumber">Phone Number</label>
+                  <input
+                    type="text"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={addFormData.phoneNumber}
+                    onChange={handleAddInputChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="role">Role *</label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={addFormData.role}
+                    onChange={handleAddInputChange}
+                    required
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="ENGINEER">Engineer</option>
+                    <option value="CUSTOMER">Customer</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="admin-btn-secondary" onClick={() => setShowAddModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="admin-btn-primary" disabled={loading}>
+                  {loading ? 'Creating...' : 'Create User'}
                 </button>
               </div>
             </form>
@@ -524,12 +656,12 @@ const UserManagement = () => {
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>
+              <button type="button" className="admin-btn-secondary" onClick={() => setShowDeleteModal(false)}>
                 Cancel
               </button>
               <button 
                 type="button" 
-                className="btn btn-danger" 
+                className="admin-btn-danger" 
                 onClick={confirmDeleteUser}
                 disabled={loading}
               >
@@ -544,4 +676,3 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
-

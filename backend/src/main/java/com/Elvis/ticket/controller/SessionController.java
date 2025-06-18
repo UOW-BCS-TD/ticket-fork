@@ -6,6 +6,7 @@ import com.Elvis.ticket.dto.SessionListResponse;
 import com.Elvis.ticket.model.Session;
 import com.Elvis.ticket.service.SessionService;
 import com.Elvis.ticket.service.UserService;
+import com.Elvis.ticket.service.TicketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,20 +20,24 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import com.Elvis.ticket.model.User;
+import com.Elvis.ticket.model.Ticket;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sessions")
 public class SessionController {
     private final SessionService sessionService;
     private final UserService userService;
+    private final TicketService ticketService;
     private static final Logger logger = LoggerFactory.getLogger(SessionController.class);
 
     @Autowired
-    public SessionController(SessionService sessionService, UserService userService) {
+    public SessionController(SessionService sessionService, UserService userService, TicketService ticketService) {
         this.sessionService = sessionService;
         this.userService = userService;
+        this.ticketService = ticketService;
     }
 
     @GetMapping("/list")
@@ -51,6 +56,7 @@ public class SessionController {
                 sessions = sessionService.getSessionsByUserId(user.getId());
             }
 
+            // SessionListResponse now includes ticketSession
             List<SessionListResponse> sessionList = sessions.stream()
                 .map(SessionListResponse::fromSession)
                 .collect(Collectors.toList());
@@ -103,6 +109,10 @@ public class SessionController {
         session.setUser(user);
         if (sessionRequest != null && sessionRequest.getTitle() != null) {
             session.setTitle(sessionRequest.getTitle());
+        }
+        // Set ticketSession if provided
+        if (sessionRequest != null) {
+            session.setTicketSession(sessionRequest.isTicketSession());
         }
         // Timestamps are set in the service
         Session created = sessionService.createSession(session);
@@ -181,10 +191,13 @@ public class SessionController {
                 return ResponseEntity.notFound().build();
             }
             
-            // Allow if admin/manager or session owner
             boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
             boolean isSessionOwner = session.getUser().getId().equals(user.getId());
-            if (!isAdminOrManager && !isSessionOwner) {
+            boolean isAssignedEngineer = false;
+            if ("ENGINEER".equals(user.getRole())) {
+                isAssignedEngineer = ticketService.isEngineerAssignedToSession(user.getId(), id);
+            }
+            if (!isAdminOrManager && !isSessionOwner && !isAssignedEngineer) {
                 logger.error("User {} not authorized to access session {}", email, id);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -271,5 +284,56 @@ public class SessionController {
         }
         Session updated = sessionService.updateSessionTitleOnly(id, newTitle);
         return ResponseEntity.ok(SessionResponse.fromSession(updated));
+    }
+
+    @GetMapping("/{sessionId}/history/ticket/{ticketId}")
+    public ResponseEntity<SessionHistoryResponse> getSessionHistoryForTicket(
+        @PathVariable Long sessionId,
+        @PathVariable Long ticketId,
+        Authentication authentication) {
+        try {
+            String email = authentication.getName();
+            User user = userService.getUserByEmail(email).orElse(null);
+            if (user == null) {
+                logger.error("User not found for email: {}", email);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            Session session = sessionService.getSessionById(sessionId).orElse(null);
+            if (session == null) {
+                logger.error("Session not found for ID: {}", sessionId);
+                return ResponseEntity.notFound().build();
+            }
+
+            boolean isAdminOrManager = "ADMIN".equals(user.getRole()) || "MANAGER".equals(user.getRole());
+            boolean isSessionOwner = session.getUser().getId().equals(user.getId());
+            boolean isAssignedEngineer = false;
+            if ("ENGINEER".equals(user.getRole())) {
+                Optional<Ticket> ticketOpt = ticketService.getTicketById(ticketId);
+                if (ticketOpt.isPresent()) {
+                    Ticket ticket = ticketOpt.get();
+                    isAssignedEngineer = ticket.getEngineer() != null
+                        && ticket.getEngineer().getUser().getId().equals(user.getId())
+                        && ticket.getSession().getId().equals(sessionId);
+                }
+            }
+            if (!isAdminOrManager && !isSessionOwner && !isAssignedEngineer) {
+                logger.error("User {} not authorized to access session {} for ticket {}", email, sessionId, ticketId);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            try {
+                logger.info("Getting history for session {}: {}", sessionId, session.getHistory());
+                SessionHistoryResponse response = SessionHistoryResponse.fromSession(session);
+                logger.info("Parsed history response: {}", response);
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                logger.error("Error parsing session history for session {}: {}", sessionId, e.getMessage(), e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (RuntimeException e) {
+            logger.error("Error getting session history for session {}: {}", sessionId, e.getMessage(), e);
+            return ResponseEntity.notFound().build();
+        }
     }
 } 

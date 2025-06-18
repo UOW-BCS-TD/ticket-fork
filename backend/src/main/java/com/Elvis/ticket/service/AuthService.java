@@ -85,7 +85,7 @@ public class AuthService {
                 Engineer engineer = new Engineer();
                 engineer.setUser(savedUser);
                 engineer.setEmail(savedUser.getEmail());
-                engineer.setCategory("GENERAL"); // Default category
+                engineer.setCategory(TeslaModel.MODEL_S); // Default category
                 engineer.setLevel(1); // Default level
                 engineer.setMaxTickets(5); // Default max tickets
                 engineer.setCurrentTickets(0);

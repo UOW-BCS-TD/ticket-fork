@@ -6,7 +6,6 @@ const authFunctions = {
   login: async (email, password) => {
     try {
       const response = await authService.login({ email, password });
-      console.log('Login response:', response); // Debug log
       
       // Store token in localStorage
       if (response.token) {
@@ -31,7 +30,7 @@ const authFunctions = {
       console.error('Login error:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed. Please check your credentials.'
+        message: error.response?.data?.message || 'Invalid email or password.'
       };
     }
   },
@@ -127,41 +126,48 @@ const authFunctions = {
   },
 
   // Update current user profile from API
-  updateUserProfile: async (userData) => {
+  updateCurrentUserProfile: async (userData) => {
     try {
-      // Only send name and phoneNumber to match backend expectations
-      const profileUpdateData = {
-        name: userData.name,
-        phoneNumber: userData.phoneNumber
-      };
+      // Update the user profile using the API
+      const updatedProfile = await userService.updateCurrentUserProfile(userData);
       
-      const response = await userService.updateUserProfile(profileUpdateData);
-      
-      if (response) {
-        // Get current user from localStorage
+      // Update the user in localStorage with the latest data
+      if (updatedProfile) {
         const currentUser = authFunctions.getCurrentUser();
-        
-        if (currentUser) {
-          // Update only the name and phoneNumber fields
-          const updatedUser = { 
-            ...currentUser,
-            name: response.name || currentUser.name,
-            phoneNumber: response.phoneNumber || currentUser.phoneNumber
-          };
-          
-          // Save updated user to localStorage
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          
-          return updatedUser;
-        }
-        
-        return response;
+        const updatedUser = { ...currentUser, ...updatedProfile };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       
-      return null;
+      return updatedProfile;
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
+    }
+  },
+
+  // Change current user's password
+  updateCurrentUserPassword: async (oldPassword, newPassword) => {
+    try {
+      // Create password change request object as expected by the backend
+      const passwordChangeRequest = {
+        oldPassword: oldPassword,
+        newPassword: newPassword
+      };
+
+      // Call the API to update password
+      const response = await userService.updateCurrentUserPassword(passwordChangeRequest);
+      
+      return {
+        success: true,
+        message: 'Password changed successfully',
+        user: response
+      };
+    } catch (error) {
+      console.error('Password change error:', error);
+      return {
+        success: false,
+        message: error.message || 'Current password is incorrect.'
+      };
     }
   },
 
@@ -248,11 +254,11 @@ export const userManagement = {
   },
 
   // Update user password (admin only)
-  updateUserPassword: async (id, passwordData) => {
+  updatePassword: async (id, passwordData) => {
     try {
-      return await userService.updateUserPassword(id, passwordData);
+      return await userService.updatePassword(id, passwordData);
     } catch (error) {
-      console.error(`Error updating password for user with ID ${id}:`, error);
+      console.error(`Error updating password with ID ${id}:`, error);
       throw error;
     }
   },

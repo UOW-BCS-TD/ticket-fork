@@ -8,36 +8,32 @@ const resourcesData = [
     title: 'Tesla Model 3 Troubleshooting Guide', 
     description: 'Common issues and solutions for Tesla Model 3 owners',
     content: 'This comprehensive guide covers the most frequent technical issues reported by Tesla Model 3 owners, including touchscreen responsiveness, battery optimization, regenerative braking adjustments, and software update troubleshooting. Learn step-by-step solutions that can resolve many problems without requiring service center visits.',
-    imageSrc: '/tesla-eg1.png',
     icon: 'fas fa-car',
-    category: 'troubleshooting'
+    category: 'beginner'
   },
   { 
     id: 2,
     title: 'Maximizing Tesla Battery Life', 
     description: 'Best practices for extending your Tesla battery longevity',
     content: 'Discover proven techniques to maximize your Tesla battery lifespan, including optimal charging habits (20-80% daily charging), temperature management during extreme weather, and how to properly prepare your vehicle for long-term storage. This guide includes real data from long-term Tesla owners who have maintained over 90% battery capacity after 100,000 miles.',
-    imageSrc: '/tesla-eg2.png',
     icon: 'fas fa-battery-full',
-    category: 'maintenance'
+    category: 'intermediate'
   },
   { 
     id: 3,
     title: 'Tesla Autopilot & FSD Features Explained', 
     description: 'Understanding Tesla\'s driver assistance technologies',
     content: 'Navigate the differences between Tesla\'s Autopilot, Enhanced Autopilot, and Full Self-Driving capabilities with this detailed breakdown. Learn how to properly use each feature, understand their limitations, troubleshoot common issues, and stay updated with the latest software improvements. Includes safety tips and regulatory information that every Tesla owner should know.',
-    imageSrc: '/tesla-eg3.jpg',
     icon: 'fas fa-robot',
-    category: 'features'
+    category: 'advanced'
   },
   { 
     id: 4,
     title: 'Tesla Home Charging Setup Guide', 
     description: 'Everything you need to know about setting up home charging',
     content: 'This complete guide walks you through selecting the right home charging solution for your Tesla, from standard outlet adapters to Wall Connectors. Learn about electrical requirements, installation considerations, cost comparisons, and troubleshooting common charging issues. Includes information on optimizing charging schedules to take advantage of time-of-use electricity rates and solar integration.',
-    imageSrc: '/tesla-eg4.jpg',
     icon: 'fas fa-plug',
-    category: 'installation'
+    category: 'advanced'
   },
 ];
 
@@ -98,9 +94,6 @@ const ResourcesAndGuides = () => {
             <div className="resource-card" key={resource.id}>
               <div className="resource-icon">
                 <i className={resource.icon}></i>
-              </div>
-              <div className="resource-photo">
-                <img src={resource.imageSrc} alt={resource.title} />
               </div>
               <h3>{resource.title}</h3>
               <div className="resource-description">{resource.description}</div>

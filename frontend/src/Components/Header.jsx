@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 import auth from '../Services/auth';
 
@@ -9,12 +9,43 @@ const Header = (props) => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Function to update current user state from localStorage only
-  const updateCurrentUser = () => {
-    // Get user data from auth service
-    const user = auth.getCurrentUser();
-    setCurrentUser(user);
+  // Function to update current user state from localStorage and API if possible
+  const updateCurrentUser = async () => {
+    try {
+      // First try to get the current user profile from API
+      const token = auth.getToken();
+      
+      if (token) {
+        try {
+          // Try to get fresh user data from API
+          const userData = await auth.getCurrentUserProfile();
+          
+          // Normalize the API response if needed
+          const normalizedUserData = {
+            ...userData,
+            // Ensure role is in the expected format
+            role: userData.role || (userData.roles && userData.roles.length > 0 
+              ? userData.roles[0].replace('ROLE_', '') 
+              : 'CUSTOMER'),
+          };
+          
+          setCurrentUser(normalizedUserData);
+          return;
+        } catch (apiError) {
+          console.error('API error in Header:', apiError);
+          // Fall back to localStorage if API call fails
+        }
+      }
+      
+      // Fallback to localStorage
+      const user = auth.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error updating user in Header:', error);
+      setCurrentUser(null);
+    }
   };
 
   // Check if user is logged in when component mounts
@@ -33,6 +64,41 @@ const Header = (props) => {
     };
   }, []);
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      const header = document.querySelector('.header');
+      
+      if (header && !header.contains(event.target)) {
+        // Close mobile menu if open
+        if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
+        
+        // Close service dropdown if open
+        if (isServiceDropdownOpen) {
+          setIsServiceDropdownOpen(false);
+        }
+        
+        // Close user dropdown if open
+        if (isUserDropdownOpen) {
+          setIsUserDropdownOpen(false);
+        }
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobileMenuOpen, isServiceDropdownOpen, isUserDropdownOpen]);
+
   // Handle localStorage changes (for when user logs in/out in another tab)
   const handleStorageChange = (e) => {
     if (e.key === 'role' || e.key === 'token' || e.key === 'name' || e.key === 'user' || e.key === null) {
@@ -50,19 +116,13 @@ const Header = (props) => {
   };
 
   const toggleServiceDropdown = () => {
-    setIsServiceDropdownOpen(!isServiceDropdownOpen);
-    // Close user dropdown if open
-    if (isUserDropdownOpen) {
-      setIsUserDropdownOpen(false);
-    }
+    setIsServiceDropdownOpen((prev) => !prev);
+    setIsUserDropdownOpen(false);
   };
 
   const toggleUserDropdown = () => {
-    setIsUserDropdownOpen(!isUserDropdownOpen);
-    // Close service dropdown if open
-    if (isServiceDropdownOpen) {
-      setIsServiceDropdownOpen(false);
-    }
+    setIsUserDropdownOpen((prev) => !prev);
+    setIsServiceDropdownOpen(false);
   };
 
   const handleLogout = () => {
@@ -97,8 +157,8 @@ const Header = (props) => {
             label: 'Admin Panel', 
             hasDropdown: true,
             dropdownItems: [
+              { path: '/admin/dashboard', label: 'Dashboard' },
               { path: '/admin/users', label: 'User Management' },
-              { path: '/admin/settings', label: 'System Settings' },
               { path: '/admin/logs', label: 'View Logs' }
             ]
           });
@@ -110,10 +170,9 @@ const Header = (props) => {
             label: 'Management', 
             hasDropdown: true,
             dropdownItems: [
+              { path: '/manager/dashboard', label: 'Dashboard' },
               { path: '/tickets', label: 'All Tickets' },
-              { path: '/engineers', label: 'Manage Engineers' },
-              { path: '/customers', label: 'View Customers' },
-              { path: '/sessions', label: 'Active Sessions' }
+              { path: '/engineers', label: 'Manage Engineers' }
             ]
           });
           break;
@@ -125,7 +184,7 @@ const Header = (props) => {
             hasDropdown: true,
             dropdownItems: [
               { path: '/tickets/assigned', label: 'My Assigned Tickets' },
-              { path: '/tickets/create', label: 'Create Support Ticket' },
+              // { path: '/tickets/create', label: 'Create Support Ticket' },
               { path: '/knowledge-base', label: 'Knowledge Base' }
             ]
           });
@@ -181,8 +240,22 @@ const Header = (props) => {
     }
   };
 
-  // Force re-render when currentUser changes
+  // Force re-render when currentUser changes by directly calling getNavLinks()
   const navLinks = props.navLinks || getNavLinks();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const nav = document.querySelector('.header-nav');
+      if (nav && !nav.contains(event.target)) {
+        setIsServiceDropdownOpen(false);
+        setIsUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="header">
@@ -239,11 +312,13 @@ const Header = (props) => {
                           <a href="#" onClick={(e) => {
                             e.preventDefault();
                             item.onClick();
+                            setIsServiceDropdownOpen(false);
+                            setIsUserDropdownOpen(false);
                           }}>
                             {item.label}
                           </a>
                         ) : (
-                          <Link to={item.path}>{item.label}</Link>
+                          <Link to={item.path} onClick={() => { setIsServiceDropdownOpen(false); setIsUserDropdownOpen(false); }}>{item.label}</Link>
                         )}
                       </li>
                     ))}

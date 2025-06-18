@@ -1,144 +1,37 @@
-.manager-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Base Styles */
+.manager-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: #333;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 1.5rem;
 }
 
 .manager-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.manager-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+.manager-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
 }
 
-.manager-actions {
-  display: flex;
-  gap: 10px;
+.manager-header p {
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0;
 }
 
-.manager-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.manager-table th {
-  background-color: #f5f5f5;
-  padding: 12px 15px;
-  text-align: left;
-  font-weight: bold;
-  color: #333;
-  border-bottom: 2px solid #ddd;
-}
-
-.manager-table td {
-  padding: 10px 15px;
-  border-bottom: 1px solid #ddd;
-}
-
-.manager-table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.status-badge {
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  display: inline-block;
-}
-
-.status-active {
-  background-color: #e6f7e6;
-  color: #2e7d32;
-}
-
-.status-inactive {
+.manager-error {
   background-color: #ffebee;
   color: #c62828;
-}
-
-.status-pending {
-  background-color: #fff8e1;
-  color: #f57f17;
-}
-
-.action-button {
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  margin-right: 5px;
-}
-
-.view-button {
-  background-color: #e3f2fd;
-  color: #1565c0;
-}
-
-.edit-button {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
-
-.delete-button {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-.search-filter {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.filter-select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-}
-
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-  gap: 5px;
-}
-
-.pagination-button {
-  padding: 5px 10px;
-  border: 1px solid #ddd;
-  background-color: white;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.pagination-button.active {
-  background-color: #1976d2;
-  color: white;
-  border-color: #1976d2;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #757575;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #c62828;
 }

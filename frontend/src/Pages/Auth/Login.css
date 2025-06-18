@@ -93,6 +93,20 @@ form.sign-up-form {
   font-size: 0.9rem;
 }
 
+.success-message {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #388e3c;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
 .input-field {
   max-width: 380px;
   width: 100%;
@@ -146,6 +160,7 @@ form.sign-up-form {
 .remember-me {
   display: flex;
   align-items: center;
+  color: black;
 }
 
 .remember-me input {
@@ -164,7 +179,7 @@ form.sign-up-form {
   text-decoration: underline;
 }
 
-.btn {
+.login-btn {
   width: 150px;
   height: 49px;
   border: none;
@@ -179,7 +194,7 @@ form.sign-up-form {
   transition: 0.5s;
 }
 
-.btn.transparent {
+.login-btn.transparent {
   margin: 0;
   background: none;
   border: 2px solid #fff;
@@ -244,6 +259,10 @@ form.sign-up-form {
 
 .right-panel .content, .right-panel .image {
   transform: translateX(800px);
+}
+
+.password-requirements {
+  color:#000;
 }
 
 /* ANIMATION */
@@ -429,7 +448,7 @@ form.sign-up-form {
     padding: 0.5rem 0;
   }
   
-  .btn.transparent {
+  .login-btn.transparent {
     width: 110px;
     height: 35px;
     font-size: 0.7rem;
@@ -509,7 +528,7 @@ form.sign-up-form {
   }
 }
 
-.btn:hover {
+.login-btn:hover {
   background-color: #2570c5;
 }
 

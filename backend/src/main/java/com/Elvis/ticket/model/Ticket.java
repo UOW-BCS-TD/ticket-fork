@@ -13,9 +13,6 @@ public class Ticket {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
-    private String description;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TicketStatus status;
@@ -44,16 +41,19 @@ public class Ticket {
     private Engineer engineer;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
-
-    @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
     private TicketType type;
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
     private Session session;
+
+    @Column(name = "history", columnDefinition = "LONGTEXT")
+    private String history;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private TeslaModel category;
 
     // Getters and Setters
     public Long getId() {
@@ -70,14 +70,6 @@ public class Ticket {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public TicketStatus getStatus() {
@@ -144,14 +136,6 @@ public class Ticket {
         this.engineer = engineer;
     }
 
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
     public TicketType getType() {
         return type;
     }
@@ -166,5 +150,21 @@ public class Ticket {
 
     public void setSession(Session session) {
         this.session = session;
+    }
+
+    public String getHistory() {
+        return history;
+    }
+
+    public void setHistory(String history) {
+        this.history = history;
+    }
+
+    public TeslaModel getCategory() {
+        return category;
+    }
+
+    public void setCategory(TeslaModel category) {
+        this.category = category;
     }
 } 

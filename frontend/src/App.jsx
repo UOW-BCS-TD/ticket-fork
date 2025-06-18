@@ -13,17 +13,20 @@ import ResourcesAndGuides from './Pages/Resources/ResourcesAndGuides';
 import Login from './Pages/Auth/Login';
 import Profile from './Pages/Profile/Profile';
 import UserManagement from './Pages/Admin/UserManagement';
-import SystemSettings from './Pages/Admin/SystemSettings';
 import ViewLogs from './Pages/Admin/ViewLogs';
+import AdminDashboard from './Pages/Admin/AdminDashboard';
 import AssignedTickets from './Pages/Engineer/AssignedTickets';
-import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
+// import CreateSupportTicket from './Pages/Engineer/CreateSupportTicket';
 import KnowledgeBase from './Pages/Engineer/KnowledgeBase';
 import AllTickets from './Pages/Manager/AllTickets';
 import ManageEngineers from './Pages/Manager/ManageEngineers';
-import ViewCustomers from './Pages/Manager/ViewCustomers';
-import ActiveSessions from './Pages/Manager/ActiveSessions';
+import ManagerDashboard from './Pages/Manager/ManagerDashboard';
+import ManagerTicketDetails from './Pages/Manager/ManagerTicketDetails';
+import AssignEngineer from './Pages/Manager/AssignEngineer';
+import ForgotPassword from './Pages/ForgotPassword';
+import ResetPassword from './Pages/ResetPassword';
 
-import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute } from './Pages/Tickets/Auth';
+import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute, CustomerOnlyRoute } from './Pages/Tickets/Auth';
 import './App.css';
 
 const App = () => {
@@ -46,19 +49,24 @@ const App = () => {
                 <Footer />
               </>
             } />
-            <Route path="/chatbot" element={<Chatbot />} />
             
             {/* Protected routes that require authentication */}
+            <Route path="/chatbot" element={
+              <CustomerOnlyRoute>
+                <Chatbot />
+              </CustomerOnlyRoute>
+            } />
+
             <Route path="/view-tickets" element={
-              <ProtectedRoute>
+              <CustomerOnlyRoute>
                 <TicketInformation />
-              </ProtectedRoute>
+              </CustomerOnlyRoute>
             } />
             
             <Route path="/create-ticket" element={
-              <ProtectedRoute>
+              <CustomerOnlyRoute>
                 <CreateTicket />
-              </ProtectedRoute>
+              </CustomerOnlyRoute>
             } />
             
             <Route path="/profile" element={
@@ -68,15 +76,15 @@ const App = () => {
             } />
             
             {/* Admin routes */}
-            <Route path="/admin/users" element={
+            <Route path="/admin/dashboard" element={
               <AdminRoute>
-                <UserManagement />
+                <AdminDashboard />
               </AdminRoute>
             } />
             
-            <Route path="/admin/settings" element={
+            <Route path="/admin/users" element={
               <AdminRoute>
-                <SystemSettings />
+                <UserManagement />
               </AdminRoute>
             } />
             
@@ -93,11 +101,11 @@ const App = () => {
               </EngineerRoute>
             } />
 
-            <Route path="/tickets/create" element={
+            {/* <Route path="/tickets/create" element={
               <EngineerRoute>
                 <CreateSupportTicket />
               </EngineerRoute>
-            } />
+            } /> */}
 
             <Route path="/knowledge-base" element={
               <EngineerRoute>
@@ -106,6 +114,12 @@ const App = () => {
             } />
             
             {/* Manager routes (if you have any) */}
+            <Route path="/manager/dashboard" element={
+              <ManagerRoute>
+                <ManagerDashboard />
+              </ManagerRoute>
+            } />
+
             <Route path="/tickets" element={
               <ManagerRoute>
                 <AllTickets />
@@ -118,17 +132,8 @@ const App = () => {
               </ManagerRoute>
             } />
 
-            <Route path="/customers" element={
-              <ManagerRoute>
-                <ViewCustomers />
-              </ManagerRoute>
-            } />
-
-            <Route path="/sessions" element={
-              <ManagerRoute>
-                <ActiveSessions />
-              </ManagerRoute>
-            } />
+            <Route path="/manager/tickets/:id" element={<ManagerTicketDetails />} />
+            <Route path="/manager/tickets/:id/assign" element={<AssignEngineer />} />
             
             <Route path="/resources" element={
               <>
@@ -137,6 +142,8 @@ const App = () => {
               </>
             } />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={
               <div className="not-found">
                 <h2>Page Not Found</h2>

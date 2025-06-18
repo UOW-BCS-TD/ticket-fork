@@ -1,0 +1,75 @@
+/* Return Button Styling */
+.manager-return-btn {
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  align-items: center;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.manager-return-btn:hover {
+  background: #e9ecef;
+  color: #343a40;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.manager-return-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.manager-return-btn i {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.manager-return-btn:hover i {
+  transform: translateX(-2px);
+}
+
+/* Ensure the title section has proper flex layout */
+.engineer-ticket-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .manager-return-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .engineer-ticket-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .manager-return-btn {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .manager-return-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .manager-return-btn span {
+    display: none;
+  }
+}

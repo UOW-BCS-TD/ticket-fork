@@ -38,49 +38,71 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/").permitAll()
+                // Allow anyone to send a message to a ticket
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/message").permitAll()
                 
-                // User profile endpoint
+                // User profile endpoints
                 .requestMatchers("/api/users/profile").authenticated()
+                .requestMatchers("/api/users/profile/password").authenticated()
                 
                 // User management endpoints (admin only)
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/**").hasAuthority("ROLE_ADMIN")
+
+                // Log endpoints (admin only)
+                .requestMatchers("/api/logs/**").hasAuthority("ROLE_ADMIN")
                 
                 // Ticket endpoints
-                .requestMatchers("/api/tickets").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/tickets/{id}").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/tickets/customer/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/tickets/engineer/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
-                .requestMatchers("/api/tickets/status/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
-                .requestMatchers("/api/tickets/urgency/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
-                .requestMatchers("/api/tickets/product/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
-                .requestMatchers("/api/tickets/type/**").hasAnyRole("ADMIN", "ENGINEER", "MANAGER")
-                .requestMatchers("/api/tickets/{id}/escalate").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(HttpMethod.POST, "/api/tickets").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/tickets/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/tickets/customer/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/tickets/urgency/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER")
+                .requestMatchers("/api/tickets/product/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER")
+                .requestMatchers("/api/tickets/type/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER")
+                .requestMatchers("/api/tickets/{id}/escalate").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_ENGINEER")
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/attachments").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets/*/attachments").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets/*/attachments/*").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/tickets/manager/category").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                 
                 // Customer management endpoints
-                .requestMatchers("/api/customers").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/customers/{id}").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/customers/email/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/customers/{id}/role").hasRole("ADMIN")
+                .requestMatchers("/api/customers").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/customers/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/customers/email/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/customers/{id}/role").hasAuthority("ROLE_ADMIN")
                 
                 // Engineer management endpoints
-                .requestMatchers("/api/engineers").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/engineers/{id}").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/engineers/email/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/engineers/category/**").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/engineers/available").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/engineers/create").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(HttpMethod.GET, "/api/engineers/available/category/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ENGINEER", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/engineers/available").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.POST, "/api/engineers").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/engineers/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/engineers/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/engineers/email/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/engineers/category/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/engineers/create").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                 
                 // Session management endpoints
-                .requestMatchers(HttpMethod.POST, "/api/sessions").hasRole("CUSTOMER")
-                .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyRole("ADMIN", "MANAGER")
-                .requestMatchers("/api/sessions/{id}").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/session/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/user/**").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/inactive").hasRole("ADMIN")
-                .requestMatchers("/api/sessions/{id}/end").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/{id}/activity").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/{id}/history").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
-                .requestMatchers("/api/sessions/list").hasAnyRole("ADMIN", "MANAGER", "CUSTOMER")
+                .requestMatchers(HttpMethod.POST, "/api/sessions").hasAuthority("ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/sessions").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_ENGINEER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/session/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/user/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/inactive").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/api/sessions/{id}/end").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/{id}/activity").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_ENGINEER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/*/history").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_ENGINEER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/sessions/list").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_ENGINEER", "ROLE_CUSTOMER")
+                
+                // Product endpoints
+                .requestMatchers(HttpMethod.GET, "/api/products").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/products/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/products").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/products/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                // Ticket type endpoints
+                .requestMatchers(HttpMethod.GET, "/api/ticket-types").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/ticket-types/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CUSTOMER")
+                .requestMatchers("/api/ticket-types").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                .requestMatchers("/api/ticket-types/{id}").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                 
                 // Any other request needs to be authenticated
                 .anyRequest().authenticated()
@@ -106,7 +128,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Your frontend URL
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "http://10.14.0.2:5173",
+            "http://192.168.56.1:5173",
+            "http://10.2.67.76:5173",
+            "http://172.24.80.1:5173"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
