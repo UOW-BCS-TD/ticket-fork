@@ -55,6 +55,10 @@ public class Ticket {
     @Column(name = "category", nullable = false)
     private TeslaModel category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "servility_level", nullable = false)
+    private ServilityLevel servilityLevel = ServilityLevel.LOW;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -166,5 +170,13 @@ public class Ticket {
 
     public void setCategory(TeslaModel category) {
         this.category = category;
+    }
+
+    public ServilityLevel getServilityLevel() {
+        return servilityLevel;
+    }
+
+    public void setServilityLevel(ServilityLevel servilityLevel) {
+        this.servilityLevel = servilityLevel;
     }
 } 

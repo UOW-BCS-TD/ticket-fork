@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 import auth from '../Services/auth';
+import { ticketAPI } from '../Services/api';
 
 const Header = (props) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+  const [activeServiceDropdown, setActiveServiceDropdown] = useState('');
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [severityCounts, setSeverityCounts] = useState(null);
+  const [severityAlert, setSeverityAlert] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -115,9 +119,29 @@ const Header = (props) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const toggleServiceDropdown = () => {
-    setIsServiceDropdownOpen((prev) => !prev);
+  const toggleServiceDropdown = (label) => {
     setIsUserDropdownOpen(false);
+    setIsServiceDropdownOpen((prev) => {
+      if (!prev) {
+        setActiveServiceDropdown(label);
+        return true;
+      }
+      if (activeServiceDropdown === label) {
+        // close same dropdown
+        setActiveServiceDropdown('');
+        return false;
+      }
+      // open new dropdown replacing previous
+      setActiveServiceDropdown(label);
+      return true;
+    });
+
+    // if manager opens severity stats dropdown, clear alert and store current count
+    if (label === 'Severity Stats' && severityCounts) {
+      const highCritical = severityCounts.HIGH + severityCounts.CRITICAL;
+      localStorage.setItem('highCriticalCount', String(highCritical));
+      setSeverityAlert(false);
+    }
   };
 
   const toggleUserDropdown = () => {
@@ -135,6 +159,35 @@ const Header = (props) => {
     // Redirect to login page after logout
     navigate('/login');
   };
+
+  // Fetch severity counts for manager
+  useEffect(() => {
+    const fetchSeverity = async () => {
+      if (currentUser && currentUser.role === 'MANAGER') {
+        try {
+          const tickets = await ticketAPI.getTicketsByManagerCategory();
+          const counts = { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 };
+          tickets.forEach(t => {
+            if (t.servilityLevel && counts.hasOwnProperty(t.servilityLevel)) {
+              counts[t.servilityLevel] += 1;
+            }
+          });
+          setSeverityCounts(counts);
+          const highCritical = counts.HIGH + counts.CRITICAL;
+          const prev = parseInt(localStorage.getItem('highCriticalCount') || '0',10);
+          if (highCritical > prev) {
+            setSeverityAlert(true);
+          }
+        } catch (err) {
+          console.error('Failed to fetch severity counts', err);
+        }
+      } else {
+        setSeverityCounts(null);
+        setSeverityAlert(false);
+      }
+    };
+    fetchSeverity();
+  }, [currentUser]);
 
   // Create navigation links based on authentication status
   const getNavLinks = () => {
@@ -159,7 +212,8 @@ const Header = (props) => {
             dropdownItems: [
               { path: '/admin/dashboard', label: 'Dashboard' },
               { path: '/admin/users', label: 'User Management' },
-              { path: '/admin/logs', label: 'View Logs' }
+              { path: '/admin/logs', label: 'View Logs' },
+              { path: '/admin/rag-files', label: 'RAG Files' }
             ]
           });
           break;
@@ -175,6 +229,13 @@ const Header = (props) => {
               { path: '/engineers', label: 'Manage Engineers' }
             ]
           });
+          if (severityCounts) {
+            baseLinks.push({
+              label: 'Severity Stats',
+              hasDropdown: true,
+              dropdownItems: Object.entries(severityCounts).map(([lvl, cnt]) => ({ path: '#', label: lvl, count: cnt }))
+            });
+          }
           break;
           
         case 'ENGINEER':
@@ -288,9 +349,10 @@ const Header = (props) => {
                     onClick={(e) => {
                       e.preventDefault();
                       if (link.label === 'Our Service' || link.label === 'Admin Panel' ||
-                          link.label === 'Management' || link.label === 'Support Tasks'
+                          link.label === 'Management' || link.label === 'Support Tasks' ||
+                          link.label === 'Severity Stats'
                       ) {
-                        toggleServiceDropdown();
+                        toggleServiceDropdown(link.label);
                       } else {
                         toggleUserDropdown();
                       }
@@ -298,27 +360,31 @@ const Header = (props) => {
                     className="dropdown-toggle"
                   >
                     {link.label}
+                    {link.label === 'Severity Stats' && severityAlert && (
+                      <span className="severity-alert-dot"></span>
+                    )}
                     <span className="dropdown-arrow">▼</span>
                   </a>
                   <ul className={`dropdown-menu ${
                     link.label === 'Our Service' || link.label === 'Admin Panel' ||
-                    link.label === 'Management' || link.label === 'Support Tasks'
-                      ? (isServiceDropdownOpen ? 'active' : '') 
+                    link.label === 'Management' || link.label === 'Support Tasks' ||
+                    link.label === 'Severity Stats'
+                      ? ((isServiceDropdownOpen && activeServiceDropdown === link.label) ? 'active' : '') 
                       : (isUserDropdownOpen ? 'active' : '')
                   }`}>
                     {link.dropdownItems.map((item, idx) => (
                       <li key={idx}>
-                        {item.onClick ? (
-                          <a href="#" onClick={(e) => {
-                            e.preventDefault();
-                            item.onClick();
-                            setIsServiceDropdownOpen(false);
-                            setIsUserDropdownOpen(false);
-                          }}>
-                            {item.label}
-                          </a>
+                        {link.label === 'Severity Stats' ? (
+                          <div className="severity-stats-item">
+                            <span className={`severity-level-${item.label.toLowerCase()}`}>{item.label}</span>
+                            <span className="severity-count-badge">{item.count}</span>
+                          </div>
                         ) : (
-                          <Link to={item.path} onClick={() => { setIsServiceDropdownOpen(false); setIsUserDropdownOpen(false); }}>{item.label}</Link>
+                          item.onClick ? (
+                            <a href="#" onClick={(e)=>{e.preventDefault();item.onClick();setIsServiceDropdownOpen(false);setIsUserDropdownOpen(false);}}>{item.label}</a>
+                          ) : (
+                            <Link to={item.path} onClick={()=>{setIsServiceDropdownOpen(false);setIsUserDropdownOpen(false);}}>{item.label}</Link>
+                          )
                         )}
                       </li>
                     ))}
