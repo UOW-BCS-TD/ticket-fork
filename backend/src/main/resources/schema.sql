@@ -97,6 +97,7 @@ CREATE TABLE tickets (
     title VARCHAR(255) NOT NULL,
     status VARCHAR(20) NOT NULL,
     urgency VARCHAR(20) NOT NULL,
+    servility_level VARCHAR(20) NOT NULL DEFAULT 'LOW',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP,
@@ -113,6 +114,7 @@ CREATE TABLE tickets (
     FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
     CONSTRAINT chk_ticket_status CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'ESCALATED')),
     CONSTRAINT chk_ticket_urgency CHECK (urgency IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    CONSTRAINT chk_ticket_servility CHECK (servility_level IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
     CONSTRAINT chk_ticket_category CHECK (category IN ('MODEL_S', 'MODEL_3', 'MODEL_X', 'MODEL_Y', 'CYBERTRUCK')),
     CONSTRAINT chk_ticket_times CHECK (
         (resolved_at IS NULL) OR 
@@ -229,7 +231,7 @@ INSERT INTO sessions (title, status, user_id, last_activity) VALUES
 ('Cybertruck Delivery Question', 'CLOSED', 10, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- Insert demo tickets
-INSERT INTO tickets (title, status, urgency, customer_id, engineer_id, category, type_id, history, session_id) VALUES
-('Model S Battery Drain Issue', 'OPEN', 'HIGH', 1, 1, 'MODEL_S', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
-('Model 3 Software Update Request', 'IN_PROGRESS', 'MEDIUM', 2, 2, 'MODEL_3', 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
-('Cybertruck Delivery Timeline', 'RESOLVED', 'LOW', 3, 5, 'CYBERTRUCK', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 
+INSERT INTO tickets (title, status, urgency, servility_level, customer_id, engineer_id, category, type_id, history, session_id) VALUES
+('Model S Battery Drain Issue', 'OPEN', 'HIGH', 'LOW', 1, 1, 'MODEL_S', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
+('Model 3 Software Update Request', 'IN_PROGRESS', 'MEDIUM', 'LOW', 2, 2, 'MODEL_3', 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
+('Cybertruck Delivery Timeline', 'RESOLVED', 'LOW', 'LOW', 3, 5, 'CYBERTRUCK', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 

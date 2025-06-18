@@ -252,3 +252,39 @@
     font-size: 1rem;
   }
 }
+
+/* Severity stats inside dropdown */
+.severity-stats-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+.severity-stats-item:hover { background-color: rgba(255,255,255,0.1); }
+
+.severity-level-low { color: #2ecc71; font-weight: 600; }
+.severity-level-medium { color: #f1c40f; font-weight: 600; }
+.severity-level-high { color: #e67e22; font-weight: 600; }
+.severity-level-critical { color: #e74c3c; font-weight: 600; }
+
+.severity-count-badge {
+  background: rgba(255,255,255,0.9);
+  color: #2980b9;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.severity-alert-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #e74c3c;
+  border-radius: 50%;
+  margin-left: 4px;
+  position: relative;
+  top: -4px;
+}

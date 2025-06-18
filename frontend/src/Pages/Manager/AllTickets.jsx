@@ -93,6 +93,10 @@ const AllTickets = () => {
         aValue = new Date(a.createdAt).getTime();
         bValue = new Date(b.createdAt).getTime();
       }
+      if (sortConfig.key === 'servilityLevel') {
+        aValue = a.servilityLevel || '';
+        bValue = b.servilityLevel || '';
+      }
       if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
@@ -204,6 +208,7 @@ const AllTickets = () => {
                 <th onClick={() => handleSort('engineer')} style={{ cursor: 'pointer' }}>Assigned To{getSortIndicator('engineer')}</th>
                 <th onClick={() => handleSort('urgency')} style={{ cursor: 'pointer' }}>Priority{getSortIndicator('urgency')}</th>
                 <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>Status{getSortIndicator('status')}</th>
+                <th onClick={() => handleSort('servilityLevel')} style={{ cursor: 'pointer' }}>Severity{getSortIndicator('servilityLevel')}</th>
                 <th onClick={() => handleSort('createdAt')} style={{ cursor: 'pointer' }}>Created{getSortIndicator('createdAt')}</th>
                 <th>Actions</th>
               </tr>
@@ -237,6 +242,9 @@ const AllTickets = () => {
                     <span className={`manager-status-badge status-${(ticket.status || '').toLowerCase() === 'open' ? 'active' : 
                       (ticket.status || '').toLowerCase() === 'resolved' ? 'inactive' : 'pending'}`}> {ticket.status || 'N/A'}
                     </span>
+                  </td>
+                  <td>
+                    <span className={`manager-status-badge severity-${(ticket.servilityLevel || '').toLowerCase().trim()}`}>{ticket.servilityLevel ? ticket.servilityLevel.toUpperCase() : 'N/A'}</span>
                   </td>
                   <td>{new Date(ticket.createdAt).toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
                   <td>
