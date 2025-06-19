@@ -335,123 +335,125 @@ const ManageEngineers = () => {
         </div>
       )}
 
-      <div className="search-filter">
-        <div className="search-input-wrapper">
-          <svg className="search-icon" viewBox="0 0 24 24">
-            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by name, email, category, or level..."
-            className="allengineers-search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button
-              className="delete-button search-clear-btn"
-              onClick={() => setSearchTerm('')}
-              aria-label="Clear search"
-            >
-              ×
-            </button>
-          )}
+      <div className='flex-container'>
+        <div className="search-filter">
+          <div className="search-input-wrapper">
+            <svg className="search-icon" viewBox="0 0 24 24">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by name, email, category, or level..."
+              className="allengineers-search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                className="delete-button search-clear-btn"
+                onClick={() => setSearchTerm('')}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <select
+            className="filter-dropdown category"
+            value={filterCategory}
+            onChange={e => setFilterCategory(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+          <select
+            className="filter-dropdown level"
+            value={filterLevel}
+            onChange={e => setFilterLevel(e.target.value)}
+          >
+            <option value="">All Levels</option>
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+          </select>
+          <select
+            className="filter-dropdown status"
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <button 
+            className="action-button edit-button"
+            style={{ minWidth: 80 }}
+            onClick={openAddModal}
+          >
+            Add New Engineer
+          </button>
+          <button
+            type="button"
+            className="action-button view-button"
+            style={{ minWidth: 80 }}
+            onClick={() => {
+              setSearchTerm('');
+              setFilterCategory('');
+              setFilterLevel('');
+              setFilterStatus('');
+            }}
+          >
+            Reset
+          </button>
         </div>
-        <select
-          className="filter-dropdown category"
-          value={filterCategory}
-          onChange={e => setFilterCategory(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          {categoryOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-        <select
-          className="filter-dropdown level"
-          value={filterLevel}
-          onChange={e => setFilterLevel(e.target.value)}
-        >
-          <option value="">All Levels</option>
-          <option value="1">Level 1</option>
-          <option value="2">Level 2</option>
-          <option value="3">Level 3</option>
-        </select>
-        <select
-          className="filter-dropdown status"
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-        >
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        <button 
-          className="action-button edit-button"
-          style={{ minWidth: 80 }}
-          onClick={openAddModal}
-        >
-          Add New Engineer
-        </button>
-        <button
-          type="button"
-          className="action-button view-button"
-          style={{ minWidth: 80 }}
-          onClick={() => {
-            setSearchTerm('');
-            setFilterCategory('');
-            setFilterLevel('');
-            setFilterStatus('');
-          }}
-        >
-          Reset
-        </button>
-      </div>
 
-      <div className="engineer-table-wrapper">
-        {filteredEngineers.length === 0 ? (
-          <div className="allengineers-empty-state">No engineers found</div>
-        ) : (
-          <table className="manager-table engineer-table-desktop">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Category</th>
-                <th>Level</th>
-                <th>Max Tickets</th>
-                <th>Current Tickets</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEngineers.map((engineer) => (
-                <tr key={engineer.id}>
-                  <td>{engineer.user?.name || engineer.email}</td>
-                  <td>{engineer.email}</td>
-                  <td>{engineer.category}</td>
-                  <td>{engineer.level}</td>
-                  <td>{engineer.maxTickets}</td>
-                  <td>{engineer.currentTickets}</td>
-                  <td>
-                    <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>
-                      {engineer.user?.enabled ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>
-                    <button className="action-button edit-priority-button" onClick={() => openEditModal(engineer)}>Edit</button>
-                    <button 
-                      className="action-button delete-button"
-                      onClick={() => handleDeleteEngineer(engineer.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+        <div className="engineer-table-wrapper">
+          {filteredEngineers.length === 0 ? (
+            <div className="allengineers-empty-state">No engineers found</div>
+          ) : (
+            <table className="manager-table engineer-table-desktop">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Category</th>
+                  <th>Level</th>
+                  <th>Max Tickets</th>
+                  <th>Current Tickets</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>      
+              </thead>
+              <tbody>
+                {filteredEngineers.map((engineer) => (
+                  <tr key={engineer.id}>
+                    <td>{engineer.user?.name || engineer.email}</td>
+                    <td>{engineer.email}</td>
+                    <td>{engineer.category}</td>
+                    <td>{engineer.level}</td>
+                    <td>{engineer.maxTickets}</td>
+                    <td>{engineer.currentTickets}</td>
+                    <td>
+                      <span className={`status-badge status-${engineer.user?.enabled ? 'active' : 'inactive'}`}>
+                        {engineer.user?.enabled ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="action-button edit-priority-button" onClick={() => openEditModal(engineer)}>Edit</button>
+                      <button 
+                        className="action-button delete-button"
+                        onClick={() => handleDeleteEngineer(engineer.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>      
+      </div>
     </div>
   );
 };

@@ -212,6 +212,7 @@ const Header = (props) => {
             dropdownItems: [
               { path: '/admin/dashboard', label: 'Dashboard' },
               { path: '/admin/users', label: 'User Management' },
+              { path: '/engineers', label: 'Manage Engineers' },
               { path: '/admin/logs', label: 'View Logs' },
               { path: '/admin/rag-files', label: 'RAG Files' }
             ]
@@ -226,7 +227,7 @@ const Header = (props) => {
             dropdownItems: [
               { path: '/manager/dashboard', label: 'Dashboard' },
               { path: '/tickets', label: 'All Tickets' },
-              { path: '/engineers', label: 'Manage Engineers' }
+              // { path: '/engineers', label: 'Manage Engineers' }
             ]
           });
           if (severityCounts) {
@@ -257,7 +258,7 @@ const Header = (props) => {
             label: 'Our Service', 
             hasDropdown: true,
             dropdownItems: [
-              { path: '/chatbot', label: 'Virtual Support Assistant' },
+              { path: '/chatbot', label: 'AI Customer Support' },
               { path: '/view-tickets', label: 'My Support Tickets' },
               { path: '/create-ticket', label: 'Request Technical Support' }
             ]
@@ -326,7 +327,7 @@ const Header = (props) => {
           src={props.logoSrc || "/logo.png"} 
           alt={props.logoAlt || "Techcare Logo"} 
         />
-        <h2>{props.company || "Techcare Consulting Services Limited"}</h2>
+        <h2>{props.company || "Techcare Customer Support Service"}</h2>
       </div>
 
       <div 

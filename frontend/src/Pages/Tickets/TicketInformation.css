@@ -155,7 +155,7 @@ body{overflow-y: scroll;}
   font-weight: 500;
 }
 
-.customer-ticket-items:hover .customer-ticket-time {
+.customer-ticket-items:hover {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border-color: rgba(255, 255, 255, 0.2);
@@ -1046,17 +1046,11 @@ body{overflow-y: scroll;}
   display: flex;
   align-items: center;
   margin-bottom: 22px;
-  background: #f7fafd;
-  border-radius: 14px;
-  padding: 14px 18px 10px 18px;
-  box-shadow: 0 2px 12px rgba(44, 123, 255, 0.06);
-  gap: 18px;
 }
 
 .ticket-filter-group {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .ticket-filter-group:first-child {
@@ -1076,9 +1070,9 @@ body{overflow-y: scroll;}
 .ticket-filter-select {
   padding: 8px 18px;
   border-radius: 22px;
-  border: 1.5px solid #3090FF;
-  background: #fff;
-  color: #1976d2;
+  border: 1.5px solid #3498db;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
   font-weight: 600;
   font-size: 1em;
   outline: none;
@@ -1088,17 +1082,52 @@ body{overflow-y: scroll;}
   width: 100%;
 }
 
-.ticket-filter-select:focus, .ticket-filter-select:hover {
-  border: 1.5px solid #5436DA;
-  box-shadow: 0 2px 8px rgba(44, 123, 255, 0.10);
+.ticket-filter-select:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ticket-filter-select:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Option styling to match the select */
+.ticket-filter-select option {
+  background: #3498db;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1em;
+  padding: 8px 18px;
+  border: none;
+  outline: none;
+}
+
+.ticket-filter-select option:hover {
+  background: #2980b9;
+  color: #fff;
+}
+
+.ticket-filter-select option:checked {
+  background: #2c3e50;
+  color: #fff;
+  font-weight: 700;
+}
+
+.ticket-filter-select option:disabled {
+  background: #bdc3c7;
+  color: #7f8c8d;
+  cursor: not-allowed;
 }
 
 .ticket-sort-btn {
   padding: 8px 18px;
   border-radius: 22px;
-  border: 1.5px solid #3090FF;
-  background: #fff;
-  color: #1976d2;
+  border: 1.5px solid #3498db;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
   font-weight: 600;
   font-size: 1.1em;
   outline: none;
@@ -1110,10 +1139,16 @@ body{overflow-y: scroll;}
   justify-content: center;
 }
 
-.ticket-sort-btn:focus, .ticket-sort-btn:hover {
-  border: 1.5px solid #5436DA;
-  box-shadow: 0 2px 8px rgba(44, 123, 255, 0.10);
-  background: #f0f4fa;
+.ticket-sort-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ticket-sort-btn:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .ticket-sort-btn i {
