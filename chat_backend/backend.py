@@ -5,10 +5,8 @@ import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import RetrievalQA
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.language_models.llms import LLM
 import mysql.connector
 import json
 from datetime import datetime, timedelta
@@ -25,6 +23,8 @@ import traceback
 import sys
 from pathlib import Path
 from urllib.parse import unquote
+import openai
+from typing import Optional, List
 
 # Configuration
 warnings.filterwarnings('ignore')
@@ -54,7 +54,36 @@ MAX_BATCH_SIZE = 5000  # Safe value below Chroma's limit of 5461
 # Global State
 vectorstore = None
 qa_chain = None
-embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+# Set OpenRouter API base for DeepSeek
+openai.api_key = "sk-0150beb86fb14635bbb93db545402548"  # Or set your key directly
+openai.api_base = "https://api.deepseek.com/v1"
+
+# Function to call DeepSeek via OpenRouter
+
+def ask_deepseek(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="deepseek-chat",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        return response.choices[0].message["content"]
+    except Exception as e:
+        print(f"API Error: {e}")
+        return "Sorry, I'm having trouble connecting to the AI service."
+
+class OpenRouterDeepSeekLLM(LLM):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def _llm_type(self) -> str:
+        return "openrouter-deepseek"
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+        return ask_deepseek(prompt)
 
 # --------------------------
 # Core Utility Functions
@@ -334,11 +363,7 @@ def initialize_qa_chain():
     """Initialize QA chain with proper prompt and configuration"""
     from langchain.prompts import PromptTemplate
     
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.2,
-        convert_system_message_to_human=True
-    )
+    llm = OpenRouterDeepSeekLLM()
 
     retriever = vectorstore.as_retriever(
         search_type="mmr",

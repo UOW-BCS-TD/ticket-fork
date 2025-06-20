@@ -17,7 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
                     "http://192.168.56.1:5173",
                     "http://10.2.67.76:5173",
                     "http://172.24.80.1:5173",
-                    "http://43.228.124.29"
+                    "http://43.228.124.29",
+                    "https://chat.elvificent.com"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
