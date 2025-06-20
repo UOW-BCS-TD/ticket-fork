@@ -58,7 +58,7 @@ public class SessionService {
             List<Map<String, String>> initialHistory = new ArrayList<>();
             Map<String, String> welcomeMessage = new HashMap<>();
             welcomeMessage.put("role", "assistant");
-            welcomeMessage.put("content", "Welcome to TechCare Support! How can I help you today?");
+            welcomeMessage.put("content", "Welcome to TechCare AI Support! How can I help you today?");
             welcomeMessage.put("timestamp", LocalDateTime.now().toString());
             initialHistory.add(welcomeMessage);
             

@@ -172,7 +172,6 @@
 .session-meta {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: 6px;
   flex-shrink: 0;
 }
@@ -192,19 +191,17 @@
 .chat-status-badge.CLOSED {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
-  border-color: #ef4444;
 }
 
 .chat-status-badge.ACTIVE {
   background: linear-gradient(135deg, #10b981, #059669);
   color: white;
-  border-color: #10b981;
   animation: pulse-green 2s infinite;
 }
 
 .session-time {
-  font-size: 0.65rem;
-  color: #222;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
   background: rgba(100, 116, 139, 0.1);
   padding: 4px 10px;
   border-radius: 12px;
@@ -212,6 +209,8 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(100, 116, 139, 0.1);
   transition: all 0.3s ease;
+  display: block;
+  margin-top: 5px;
 }
 
 .chat-item:hover .session-time {
@@ -293,12 +292,68 @@
 
 .message {
   display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
   transition: margin 0.2s;
 }
 
 .message + .message {
   margin-top: -10px;
+}
+
+.message-header {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start; /* Align to start for both user and support messages */
+}
+
+.sender-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e3eafc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-message .sender-avatar {
+  border-color: #6e8efb;
+}
+
+.support-message .sender-avatar {
+  border-color: #28a745;
+}
+
+.message-sender {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Align message header based on message type */
+.user-message .message-header {
+  align-self: flex-end; /* Align to right for user messages */
+}
+
+.user-message .message-sender {
+  background-color: rgba(110, 142, 251, 0.1);
+  color: #6e8efb;
+}
+
+.support-message .message-header {
+  align-self: flex-start; /* Align to left for support messages */
+}
+
+.support-message .message-sender {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #28a745;
 }
 
 .message-content {
@@ -773,6 +828,11 @@
     font-size: 14px;
   }
 
+  .sender-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
   .centered-input {
     top: 65%;
     margin: 0 20px;
@@ -836,6 +896,15 @@
   .logo-container p {
     font-size: 14px;
     margin-bottom: 20px;
+  }
+
+  .sender-avatar {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .message-sender-info {
+    gap: 6px;
   }
 
   .centered-input {

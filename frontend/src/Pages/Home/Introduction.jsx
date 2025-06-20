@@ -53,7 +53,7 @@ const Introduction = () => {
           <p className="animate-item">Your trusted partner in technical solutions</p>
           <div className="button-container animate-item">
             <Link to="/create-ticket"><button className="support-button">Get Support</button></Link>
-            <Link to="/chatbot"><button className="chat-button">Chat with Us</button></Link>
+            <Link to="/chatbot"><button className="chat-button">Chat with AI</button></Link>
           </div>
         </main>
       </section>
