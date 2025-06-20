@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../Tickets/TicketInformation.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { sessionAPI } from '../../Services/api';
+import { sessionAPI, ticketAPI } from '../../Services/api';
 import ChatbotHistory from '../Tickets/ChatbotHistory';
 
 const AssignedTickets = () => {
@@ -29,6 +29,8 @@ const AssignedTickets = () => {
   const [sessionLoading, setSessionLoading] = useState(false);
   const [sessionError, setSessionError] = useState(null);
   const [chatbotHistory, setChatbotHistory] = useState([]);
+  const [showSeverityModal, setShowSeverityModal] = useState(false);
+  const [selectedSeverity, setSelectedSeverity] = useState('LOW');
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -263,6 +265,25 @@ const AssignedTickets = () => {
     }
   }, [currentTicket]);
 
+  const openSeverityModal = () => {
+    setSelectedSeverity(currentTicket.servilityLevel || 'LOW');
+    setShowSeverityModal(true);
+  };
+
+  const closeSeverityModal = () => {
+    setShowSeverityModal(false);
+  };
+
+  const confirmSeverityChange = async () => {
+    try {
+      await ticketAPI.updateTicketServility(currentTicket.id, selectedSeverity);
+      setTicketList((prev) => prev.map(t => t.id === currentTicket.id ? { ...t, servilityLevel: selectedSeverity } : t));
+      closeSeverityModal();
+    } catch (err) {
+      alert('Failed to update severity level');
+    }
+  };
+
   return (
     <div className="engineer-ticket-view-container">
       <div className="engineer-sidebar-toggle" onClick={() => {
@@ -346,6 +367,11 @@ const AssignedTickets = () => {
                   <i className="fas fa-envelope"></i>
                   <span>Email: {currentTicket.customer && currentTicket.customer.email ? currentTicket.customer.email : '-'}</span>
                 </div>
+                <div className="engineer-meta-item">
+                  <i className="fas fa-exclamation-triangle"></i>
+                  <span style={{ marginRight: 6 }}>Severity: </span>
+                  <span>{currentTicket.servilityLevel}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -408,6 +434,16 @@ const AssignedTickets = () => {
                       title="Escalate this ticket to a higher-level engineer"
                     >
                       {escalating ? 'Escalating...' : <><i className="fas fa-arrow-up"></i> Escalate Ticket</>}
+                    </button>
+                  )}
+                  {/* Change severity button */}
+                  {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' && (
+                    <button
+                      className="engineer-escalate-btn"
+                      style={{ background: 'linear-gradient(90deg, #f39c12 60%, #d35400 100%)' }}
+                      onClick={openSeverityModal}
+                    >
+                      <i className="fas fa-exclamation-triangle"></i> Change Severity
                     </button>
                   )}
                   {/* Mark as Resolved button for engineers */}
@@ -540,6 +576,23 @@ const AssignedTickets = () => {
           </div>
         </div>
       </div>
+      {showSeverityModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right:0, bottom:0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', padding: 24, borderRadius: 8, width: '90%', maxWidth: 400 }}>
+            <h3 style={{ marginTop: 0 }}>Change Severity Level</h3>
+            <select value={selectedSeverity} onChange={(e)=>setSelectedSeverity(e.target.value)} style={{ width: '100%', padding: 8 }}>
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button className="engineer-escalate-btn" onClick={confirmSeverityChange}>Confirm</button>
+              <button className="engineer-escalate-btn" style={{ background: '#777' }} onClick={closeSeverityModal}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

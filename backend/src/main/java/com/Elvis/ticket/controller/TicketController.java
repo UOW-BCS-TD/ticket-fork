@@ -298,4 +298,17 @@ public class TicketController {
                 .map(TicketResponse::fromTicket)
                 .collect(Collectors.toList());
     }
+
+    @PutMapping("/{id}/servility")
+    public ResponseEntity<TicketResponse> updateTicketServility(@PathVariable Long id, @RequestBody String level) {
+        try {
+            com.Elvis.ticket.model.ServilityLevel servLevel = com.Elvis.ticket.model.ServilityLevel.valueOf(level.trim().toUpperCase());
+            Ticket updatedTicket = ticketService.updateTicketServility(id, servLevel);
+            return ResponseEntity.ok(TicketResponse.fromTicket(updatedTicket));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 } 

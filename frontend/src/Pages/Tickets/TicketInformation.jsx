@@ -391,7 +391,7 @@ const TicketInformation = () => {
                         className={`customer-ticket-tab ${activeTab === 'chatbot' ? 'active' : ''}`}
                         onClick={() => setActiveTab('chatbot')}
                       >
-                        <i className="fas fa-robot"></i> Chatbot History
+                        <i className="fas fa-robot"></i> Chat History
                       </div>
                     )}
                   </div>
