@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
 import { chatbotAPI, sessionAPI, userService, productAPI, ticketTypeAPI } from '../../Services/api';
 
-const API_BASE_URL = 'http://localhost:8082';
+const API_BASE_URL = '/api';
 
 function formatSessionTime(dateString) {
   if (!dateString) return '';
@@ -41,6 +41,7 @@ const Chatbot = () => {
   const [showTicketPrompt, setShowTicketPrompt] = useState(false);
   const [checkingForActiveSessions, setCheckingForActiveSessions] = useState(true);
   const [showEmergencyToast, setShowEmergencyToast] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -184,7 +185,7 @@ const Chatbot = () => {
         if (!sessionId) {
           // No active session, create a new one
           const sessionResponse = await axios.post(
-            `${API_BASE_URL}/api/sessions`,
+            `${API_BASE_URL}/sessions`,
             { title: 'New Support Ticket', ticketSession: false },
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -194,7 +195,7 @@ const Chatbot = () => {
             return;
           }
           await axios.put(
-            `${API_BASE_URL}/api/sessions/${sessionId}/end`,
+            `${API_BASE_URL}/sessions/${sessionId}/end`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -243,7 +244,7 @@ const Chatbot = () => {
         };
         // 8. Create the ticket
         const ticketResponse = await axios.post(
-          `${API_BASE_URL}/api/tickets`,
+          `${API_BASE_URL}/tickets`,
           ticketBody,
           {
             headers: {

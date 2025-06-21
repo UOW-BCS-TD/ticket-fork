@@ -35,7 +35,7 @@ os.environ["GOOGLE_API_KEY"] = "AIzaSyAllDb85-EYZSDQjd8tVyF_Kg5WG8HPOjc"
 app = Flask(__name__)
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:5173", "http://43.228.124.29"],
+        "origins": ["http://localhost:5173", "http://43.228.124.29", "https://chat.elvificent.com"],
         "methods": ["GET", "POST", "OPTIONS", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization", "Accept"],
         "supports_credentials": True

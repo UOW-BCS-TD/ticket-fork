@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://localhost:8082/api',  // Update to point to your backend server
+  baseURL: '/api',  // Use relative path for production (Nginx will proxy to backend)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -265,18 +265,6 @@ export const ticketAPI = {
       throw error.response ? error.response.data : error;
     }
   },
-
-  // Update ticket servility level
-  updateTicketServility: async (id, level) => {
-    try {
-      const response = await api.put(`/tickets/${id}/servility`, level, {
-        headers: { 'Content-Type': 'text/plain' }
-      });
-      return response.data;
-    } catch (error) {
-      throw error.response ? error.response.data : error;
-    }
-  },
 };
 
 // Product management services
@@ -511,8 +499,8 @@ export const chatbotAPI = {
   // Send a query to the chatbot
   sendQuery: async (query) => {
     try {
-      // Use the Python backend on port 5000
-      const response = await axios.post('http://localhost:5000/query', { query }, {
+      // Use the Python backend via Nginx proxy
+      const response = await axios.post('/chatapi/query', { query }, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -532,41 +520,6 @@ export const chatbotAPI = {
     } catch (error) {
       throw error.response ? error.response.data : error;
     }
-  }
-};
-
-// RAG backend (Flask)
-const ragApi = axios.create({
-  baseURL: 'http://localhost:5000',
-  headers: { 'Content-Type': 'application/json' }
-});
-
-ragApi.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export const ragService = {
-  listFiles: async () => {
-    const res = await ragApi.get('/rag/files');
-    return res.data;
-  },
-  uploadFile: async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await ragApi.post('/rag/files', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-    return res.data;
-  },
-  deleteFile: async (filename) => {
-    const res = await ragApi.delete(`/rag/files/${encodeURIComponent(filename)}`);
-    return res.data;
-  },
-  restartRAG: async () => {
-    const res = await ragApi.post('/rag/restart');
-    return res.data;
   }
 };
 
