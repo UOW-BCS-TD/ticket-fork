@@ -17,6 +17,8 @@ const AssignedTickets = () => {
   const [escalating, setEscalating] = useState(false);
   const [escalateError, setEscalateError] = useState(null);
   const [escalateSuccess, setEscalateSuccess] = useState(null);
+  const [submittingBug, setSubmittingBug] = useState(false);
+  const [bugSubmitSuccess, setBugSubmitSuccess] = useState(null);
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState(null);
   const [resolveSuccess, setResolveSuccess] = useState(null);
@@ -168,6 +170,25 @@ const AssignedTickets = () => {
       setTimeout(() => setEscalateError(null), 5000);
     } finally {
       setEscalating(false);
+    }
+  };
+
+  const handleSubmitBugPackage = async () => {
+    if (!currentTicket?.id) return;
+    if (!window.confirm('Are you sure you want to submit this ticket as a bug package to the development team?')) {
+      return;
+    }
+    setSubmittingBug(true);
+    setBugSubmitSuccess(null);
+    try {
+      // Simulate API call - you can implement actual API endpoint later
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setBugSubmitSuccess('Development Team Received');
+      setTimeout(() => setBugSubmitSuccess(null), 3000);
+    } catch (err) {
+      // Handle error if needed
+    } finally {
+      setSubmittingBug(false);
     }
   };
 
@@ -425,8 +446,8 @@ const AssignedTickets = () => {
                   </div>
                 </div>
                 <div className="engineer-estimated-time" style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
-                  {/* Escalate button for engineers */}
-                  {engineerLevel !== 3 && currentTicket.status !== 'ESCALATED' && currentTicket.status !== 'CLOSED' && (
+                  {/* Escalate button for Level 1 engineers, Submit Bug Package for Level 2 engineers */}
+                  {engineerLevel === 1 && currentTicket.status !== 'ESCALATED' && currentTicket.status !== 'CLOSED' && (
                     <button
                       className="engineer-escalate-btn"
                       onClick={handleEscalate}
@@ -434,6 +455,16 @@ const AssignedTickets = () => {
                       title="Escalate this ticket to a higher-level engineer"
                     >
                       {escalating ? 'Escalating...' : <><i className="fas fa-arrow-up"></i> Escalate Ticket</>}
+                    </button>
+                  )}
+                  {engineerLevel === 2 && currentTicket.status !== 'ESCALATED' && currentTicket.status !== 'CLOSED' && (
+                    <button
+                      className="engineer-escalate-btn"
+                      onClick={handleSubmitBugPackage}
+                      disabled={submittingBug}
+                      title="Submit this ticket as a bug package to the development team"
+                    >
+                      {submittingBug ? 'Submitting...' : <><i className="fas fa-bug"></i> Submit Bug Package</>}
                     </button>
                   )}
                   {/* Change severity button */}
@@ -577,6 +608,7 @@ const AssignedTickets = () => {
                 {/* Escalate success/error messages */}
                 {escalateSuccess && <div className="engineer-success-message" style={{ color: 'green', marginBottom: 8 }}>{escalateSuccess}</div>}
                 {escalateError && <div className="engineer-error-message" style={{ color: 'red', marginBottom: 8 }}>{escalateError}</div>}
+                {bugSubmitSuccess && <div className="engineer-success-message" style={{ color: 'green', marginBottom: 8 }}>{bugSubmitSuccess}</div>}
                 {resolveSuccess && <div className="engineer-success-message" style={{ color: 'green', marginBottom: 8 }}>{resolveSuccess}</div>}
                 {resolveError && <div className="engineer-error-message" style={{ color: 'red', marginBottom: 8 }}>{resolveError}</div>}
               </div>
