@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './Chatbot.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
 import { chatbotAPI, sessionAPI, userService, productAPI, ticketTypeAPI } from '../../Services/api';
@@ -42,10 +43,64 @@ const Chatbot = () => {
   const [checkingForActiveSessions, setCheckingForActiveSessions] = useState(true);
   const [showEmergencyToast, setShowEmergencyToast] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechRecognition, setSpeechRecognition] = useState(null);
+  const [speechError, setSpeechError] = useState('');
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpeechError('');
+      };
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setMessage(prev => prev + (prev ? ' ' : '') + transcript);
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setSpeechError(`Speech recognition error: ${event.error}`);
+        setIsListening(false);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      setSpeechRecognition(recognition);
+    }
+  }, []);
+
+  const startListening = () => {
+    if (speechRecognition && !isListening) {
+      try {
+        speechRecognition.start();
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+        setSpeechError('Failed to start speech recognition');
+      }
+    }
+  };
+
+  const stopListening = () => {
+    if (speechRecognition && isListening) {
+      speechRecognition.stop();
+    }
+  };
 
   const fetchChatList = async () => {
     try {
@@ -677,6 +732,7 @@ const Chatbot = () => {
             {(() => {
               const currentSession = chatList.find((s) => s.id === activeSessionId);
               const isClosed = currentSession && currentSession.status === 'CLOSED';
+              const speechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
               return (
                 <>
                   <input
@@ -689,10 +745,22 @@ const Chatbot = () => {
                         ? 'Checking for active sessions...' 
                         : isClosed 
                           ? 'This session is closed. You cannot send messages.' 
-                          : 'Type your message...'
+                          : isListening 
+                            ? 'Listening... Speak now'
+                            : 'Type your message or click the microphone to speak...'
                     }
                     disabled={checkingForActiveSessions || isClosed}
                   />
+                  {speechSupported && (
+                    <button 
+                      className={`mic-button ${isListening ? 'listening' : ''}`}
+                      onClick={isListening ? stopListening : startListening}
+                      disabled={checkingForActiveSessions || isClosed}
+                      title={isListening ? 'Stop listening' : 'Start voice input'}
+                    >
+                      <i className={`mic-icon ${isListening ? 'fas fa-stop' : 'fas fa-microphone'}`}></i>
+                    </button>
+                  )}
                   <button onClick={sendMessage} disabled={checkingForActiveSessions || isClosed}>
                     <i className="send-icon">➤</i>Send
                   </button>
@@ -700,6 +768,11 @@ const Chatbot = () => {
               );
             })()}
           </div>
+          {speechError && (
+            <div className="speech-error">
+              {speechError}
+            </div>
+          )}
         </div>
       </div>
     </div>

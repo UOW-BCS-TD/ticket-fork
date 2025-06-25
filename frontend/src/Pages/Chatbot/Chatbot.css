@@ -475,6 +475,69 @@
   transform: translateY(-2px);
 }
 
+/* Microphone Button */
+.mic-button {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  border: none;
+  color: white;
+  padding: 12px !important;
+  border-radius: 50% !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px !important;
+  height: 48px !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  margin-right: 8px;
+}
+
+.mic-button:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+  transform: translateY(-2px);
+}
+
+.mic-button.listening {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  animation: pulse-red 1.5s infinite;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+}
+
+.mic-button.listening:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+}
+
+.mic-icon {
+  font-size: 18px;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Speech Error Display */
+.speech-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+}
+
 .send-icon {
   font-size: 14px;
 }
@@ -850,6 +913,16 @@
   .chat-input button {
     padding: 10px 15px;
   }
+
+  .mic-button {
+    width: 44px !important;
+    height: 44px !important;
+    margin-right: 6px;
+  }
+
+  .mic-icon {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 480px) {  
@@ -878,6 +951,18 @@
   .chat-input button {
     width: 100%;
     justify-content: center;
+  }
+
+  .mic-button {
+    width: 100% !important;
+    height: 48px !important;
+    border-radius: 10px !important;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+
+  .mic-icon {
+    font-size: 18px;
   }
 
   .welcome-container {
