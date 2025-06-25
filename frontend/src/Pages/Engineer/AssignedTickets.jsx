@@ -440,7 +440,7 @@ const AssignedTickets = () => {
                   {currentTicket.status !== 'RESOLVED' && currentTicket.status !== 'CLOSED' && (
                     <button
                       className="engineer-escalate-btn"
-                      style={{ background: 'linear-gradient(90deg, #f39c12 60%, #d35400 100%)' }}
+                      style={{ background: 'linear-gradient(90deg,rgb(243, 18, 18) 60%, #d35400 100%)' }}
                       onClick={openSeverityModal}
                     >
                       <i className="fas fa-exclamation-triangle"></i> Change Severity
