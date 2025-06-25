@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import com.Elvis.ticket.model.ServilityLevel;
 
 @Service
 public class TicketService {
@@ -276,6 +277,9 @@ public class TicketService {
 
                     existingTicket.setTitle(ticketDetails.getTitle());
                     existingTicket.setUrgency(ticketDetails.getUrgency());
+                    if (ticketDetails.getServilityLevel() != null) {
+                        existingTicket.setServilityLevel(ticketDetails.getServilityLevel());
+                    }
                     existingTicket.setUpdatedAt(LocalDateTime.now());
                     return ticketRepository.save(existingTicket);
                 })
@@ -475,5 +479,14 @@ public class TicketService {
 
     public boolean isEngineerAssignedToSession(Long engineerId, Long sessionId) {
         return ticketRepository.existsByEngineerIdAndSessionId(engineerId, sessionId);
+    }
+
+    @Transactional
+    public Ticket updateTicketServility(Long ticketId, ServilityLevel level) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        ticket.setServilityLevel(level);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        return ticketRepository.save(ticket);
     }
 }

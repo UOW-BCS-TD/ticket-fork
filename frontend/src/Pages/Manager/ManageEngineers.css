@@ -1,20 +1,30 @@
+/* Create a flex container for the main layout */
+.flex-container {
+  display: flex;
+}
+
 /* Search and filter section - matching AllTickets */
 .search-filter {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+  margin-right: 20px;
   background: #ffffff;
   border-radius: 10px;
-  padding: 14px 18px;
-  flex-wrap: wrap;
+  padding: 20px;
   border: 1px solid #e3eaf3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  height: fit-content;
+  flex-shrink: 0; /* Prevent shrinking */
+  position: sticky;
+  top: 20px;
+  overflow-y: auto;
+  z-index: 100;
 }
 
 .search-input-wrapper {
   position: relative;
-  flex: 1 1 0%;
   display: flex;
   align-items: center;
   min-width: 200px;
@@ -118,7 +128,22 @@
 .action-button.edit-button:hover {
   background-color: #1e7e34;
 }
+.action-button.edit-priority-button {
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.18s, color 0.18s;
+}
 
+.action-button.edit-priority-button:hover {
+  background-color: #e55a00;
+}
 .action-button.delete-button {
   background-color: #dc3545;
   color: white;
@@ -136,6 +161,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e1e5e9;
   text-align: center;
+  flex: 1;
 }
 
 /* Add this to your existing CSS */

@@ -576,6 +576,16 @@ const Chatbot = () => {
           <div className="chat-messages">
             {chatHistory.map((chat, index) => (
               <div key={index} className={`message ${chat.sender}-message`}>
+                <div className="message-header">
+                  <img 
+                    src={chat.sender === 'support' ? '/AI_Assistant.png' : '/User.png'} 
+                    alt={chat.sender === 'support' ? 'AI Assistant' : 'User'} 
+                    className="sender-avatar"
+                  />
+                  <span className="message-sender">
+                    {chat.sender === 'support' ? 'Virtual Assistant' : 'You'}
+                  </span>
+                </div>
                 <div className="message-content">
                   {chat.loading ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -642,7 +652,7 @@ const Chatbot = () => {
               <div className="chat-logo">
                 <img src="/logo.png" alt="Company Logo" />
               </div>
-              <h2>Welcome to TechCare Support</h2>
+              <h2>Techcare Customer Support Service</h2>
               <p>How can our virtual assistant help you today?</p>
             </div>
           </div>
