@@ -121,6 +121,31 @@
   border-color: #ffcdd2;
 }
 
+/* Severity level badges */
+.manager-status-badge.severity-low {
+  background-color: #e8f5e9 !important;
+  color: #2e7d32 !important;
+  border-color: #c8e6c9;
+}
+
+.manager-status-badge.severity-medium {
+  background-color: #fff3e0 !important;
+  color: #f57c00 !important;
+  border-color: #ffcc02;
+}
+
+.manager-status-badge.severity-high {
+  background-color: #fff3e0 !important;
+  color: #e65100 !important;
+  border-color: #ffab40;
+}
+
+.manager-status-badge.severity-critical {
+  background-color: #ffebee !important;
+  color: #c62828 !important;
+  border-color: #ffcdd2;
+}
+
 /* Search/filter bar */
 .alltickets-search-filter {
   display: flex;
