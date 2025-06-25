@@ -18,7 +18,7 @@ fi
 
 # Step 2: Navigate to project and activate virtualenv
 echo "🔧 Activating virtualenv..."
-cd ~/chat_backend || { echo "❌ Project directory not found"; exit 1; }
+cd ~/ticket-prod/chat_backend || { echo "❌ Project directory not found"; exit 1; }
 source venv/bin/activate || { echo "❌ Virtualenv activation failed"; exit 1; }
 
 # Step 3: Install dependencies (optional)
