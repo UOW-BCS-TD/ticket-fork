@@ -49,6 +49,9 @@ const Chatbot = () => {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState(null);
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const [selectedVoice, setSelectedVoice] = useState(null);
+  const [showVoiceSelector, setShowVoiceSelector] = useState(false);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -92,20 +95,105 @@ const Chatbot = () => {
   useEffect(() => {
     if ('speechSynthesis' in window) {
       setSpeechSynthesis(window.speechSynthesis);
+      
+      // Load voices when they're ready
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Filter and prioritize more natural voices
+        const naturalVoices = voices.filter(voice => {
+          const name = voice.name.toLowerCase();
+          const lang = voice.lang.toLowerCase();
+          
+          // Prioritize English voices
+          if (!lang.includes('en')) return false;
+          
+          // Prefer neural, natural, premium, or high-quality voices
+          const isNatural = name.includes('neural') || 
+                           name.includes('natural') || 
+                           name.includes('premium') || 
+                           name.includes('enhanced') ||
+                           name.includes('high quality') ||
+                           name.includes('wavenet') ||
+                           voice.localService === false; // Cloud voices are usually better
+          
+          return isNatural || voice.default;
+        });
+        
+        // Sort voices by quality preference
+        const sortedVoices = naturalVoices.sort((a, b) => {
+          const aName = a.name.toLowerCase();
+          const bName = b.name.toLowerCase();
+          
+          // Prioritize specific high-quality voice types
+          const aScore = (aName.includes('neural') ? 10 : 0) +
+                        (aName.includes('natural') ? 8 : 0) +
+                        (aName.includes('premium') ? 6 : 0) +
+                        (aName.includes('enhanced') ? 4 : 0) +
+                        (a.localService === false ? 5 : 0) +
+                        (a.default ? 2 : 0);
+          
+          const bScore = (bName.includes('neural') ? 10 : 0) +
+                        (bName.includes('natural') ? 8 : 0) +
+                        (bName.includes('premium') ? 6 : 0) +
+                        (bName.includes('enhanced') ? 4 : 0) +
+                        (b.localService === false ? 5 : 0) +
+                        (b.default ? 2 : 0);
+          
+          return bScore - aScore;
+        });
+        
+        setAvailableVoices(sortedVoices.length > 0 ? sortedVoices : voices.filter(v => v.lang.includes('en')));
+        
+        // Auto-select the best available voice
+        if (sortedVoices.length > 0) {
+          setSelectedVoice(sortedVoices[0]);
+        } else {
+          const englishVoices = voices.filter(v => v.lang.includes('en'));
+          if (englishVoices.length > 0) {
+            setSelectedVoice(englishVoices[0]);
+          }
+        }
+      };
+      
+      // Load voices immediately if available, or wait for voiceschanged event
+      if (window.speechSynthesis.getVoices().length > 0) {
+        loadVoices();
+      } else {
+        window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+      }
     }
   }, []);
 
   // Text-to-Speech functions
   const speakText = (text) => {
-    if (!speechSynthesis || !ttsEnabled || !text.trim()) return;
+    if (!speechSynthesis || !text.trim()) return;
     
     // Stop any ongoing speech
     speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 0.8;
+    
+    // Use selected voice for more natural speech
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    
+    // Optimized settings for more human-like speech
+    utterance.rate = 0.85; // Slightly slower for better comprehension
+    utterance.pitch = 0.95; // Slightly lower pitch for more natural sound
+    utterance.volume = 0.9; // Higher volume for clarity
+    
+    // Add natural pauses for punctuation
+    const processedText = text
+      .replace(/\./g, '.') // Ensure period pauses
+      .replace(/,/g, ',') // Ensure comma pauses
+      .replace(/!/g, '!') // Ensure exclamation pauses
+      .replace(/\?/g, '?') // Ensure question pauses
+      .replace(/;/g, ';') // Ensure semicolon pauses
+      .replace(/:/g, ':'); // Ensure colon pauses
+    
+    utterance.text = processedText;
     
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -684,14 +772,46 @@ const Chatbot = () => {
               })()}
             </div>
             <div className="chat-header-actions">
-              <button 
-                className={`tts-toggle-btn ${ttsEnabled ? 'enabled' : ''}`}
-                onClick={toggleTTS}
-                title={ttsEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
-              >
-                <i className={`fas ${ttsEnabled ? 'fa-volume-up' : 'fa-volume-mute'}`}></i>
-                {ttsEnabled ? ' TTS On' : ' TTS Off'}
-              </button>
+              <div className="tts-controls">
+                <button 
+                  className={`tts-toggle-btn ${ttsEnabled ? 'enabled' : ''}`}
+                  onClick={toggleTTS}
+                  title={ttsEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
+                >
+                  <i className={`fas ${ttsEnabled ? 'fa-volume-up' : 'fa-volume-mute'}`}></i>
+                  {ttsEnabled ? ' TTS On' : ' TTS Off'}
+                </button>
+                {availableVoices.length > 1 && (
+                  <div className="voice-selector-container">
+                    <button 
+                      className="voice-selector-btn"
+                      onClick={() => setShowVoiceSelector(!showVoiceSelector)}
+                      title="Choose voice"
+                    >
+                      <i className="fas fa-user"></i>
+                    </button>
+                    {showVoiceSelector && (
+                      <div className="voice-dropdown">
+                        {availableVoices.slice(0, 8).map((voice, index) => (
+                          <button
+                            key={index}
+                            className={`voice-option ${selectedVoice === voice ? 'selected' : ''}`}
+                            onClick={() => {
+                              setSelectedVoice(voice);
+                              setShowVoiceSelector(false);
+                            }}
+                          >
+                            {voice.name.split(' ').slice(0, 2).join(' ')}
+                            {voice.name.toLowerCase().includes('neural') && <span className="voice-badge">Neural</span>}
+                            {voice.name.toLowerCase().includes('natural') && <span className="voice-badge">Natural</span>}
+                            {voice.name.toLowerCase().includes('premium') && <span className="voice-badge">Premium</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <button className="quick-action-btn" onClick={handleNewChat}><b className="new-chat-icon">+</b> New Chat</button>
               <button className="quick-action-btn" onClick={handleEndSession} disabled={!activeSessionId}><b className="end-chat-icon">✖</b> End Session</button>
             </div>
