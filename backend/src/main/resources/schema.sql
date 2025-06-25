@@ -165,12 +165,6 @@ INSERT INTO users (name, email, password, role, phone_number) VALUES
 ('Robert Martinez', 'l2mx@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567899'),
 ('Jennifer Garcia', 'l2my@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567900'),
 ('William Lee', 'l2ct@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567901'),
--- Level 3 Engineers
-('Elizabeth White', 'l3ms@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567902'),
-('Thomas Clark', 'l3m3@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567903'),
-('Patricia Lewis', 'l3mx@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567904'),
-('Daniel Walker', 'l3my@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567905'),
-('Margaret Hall', 'l3ct@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'ENGINEER', '+1234567906'),
 -- Customer users
 ('Alice Cooper', 'svip@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'CUSTOMER', '+1234567907'),
 ('Bob Wilson', 'vip@example.com', '$2a$10$RIB/MiJM2T2JeQgd.LBw/u.2.2C5svybend6/gwogpi.abw8UvmOu', 'CUSTOMER', '+1234567908'),
@@ -178,30 +172,24 @@ INSERT INTO users (name, email, password, role, phone_number) VALUES
 
 -- Insert sample customers
 INSERT INTO customers (email, user_id, role) VALUES
-('svip@example.com', 8, 'VIP'),
-('vip@example.com', 9, 'PREMIUM'),
-('cus@example.com', 10, 'STANDARD');
+('svip@example.com', 17, 'VIP'),
+('vip@example.com', 18, 'PREMIUM'),
+('cus@example.com', 19, 'STANDARD');
 
 -- Insert sample engineers
 INSERT INTO engineers (email, user_id, category, level, max_tickets, current_tickets) VALUES
 -- Level 1 Engineers
-('l1msj@example.com', 3, 'MODEL_S', 1, 3, 0),
-('l1m3s@example.com', 4, 'MODEL_3', 1, 3, 0),
-('l1mxm@example.com', 5, 'MODEL_X', 1, 3, 0),
-('l1mye@example.com', 6, 'MODEL_Y', 1, 3, 0),
-('l1ctd@example.com', 7, 'CYBERTRUCK', 1, 3, 0),
+('l1ms@example.com', 7, 'MODEL_S', 1, 3, 0),
+('l1m3@example.com', 8, 'MODEL_3', 1, 3, 0),
+('l1mx@example.com', 9, 'MODEL_X', 1, 3, 0),
+('l1my@example.com', 10, 'MODEL_Y', 1, 3, 0),
+('l1ct@example.com', 11, 'CYBERTRUCK', 1, 3, 0),
 -- Level 2 Engineers
-('l2msj@example.com', 8, 'MODEL_S', 2, 4, 0),
-('l2m3l@example.com', 9, 'MODEL_3', 2, 4, 0),
-('l2mxr@example.com', 10, 'MODEL_X', 2, 4, 0),
-('l2myj@example.com', 11, 'MODEL_Y', 2, 4, 0),
-('l2ctw@example.com', 12, 'CYBERTRUCK', 2, 4, 0),
--- Level 3 Engineers
-('l3mse@example.com', 13, 'MODEL_S', 3, 5, 0),
-('l3m3t@example.com', 14, 'MODEL_3', 3, 5, 0),
-('l3mxp@example.com', 15, 'MODEL_X', 3, 5, 0),
-('l3myd@example.com', 16, 'MODEL_Y', 3, 5, 0),
-('l3ctm@example.com', 17, 'CYBERTRUCK', 3, 5, 0);
+('l2ms@example.com', 12, 'MODEL_S', 2, 4, 0),
+('l2m3@example.com', 13, 'MODEL_3', 2, 4, 0),
+('l2mx@example.com', 14, 'MODEL_X', 2, 4, 0),
+('l2my@example.com', 15, 'MODEL_Y', 2, 4, 0),
+('l2ct@example.com', 16, 'CYBERTRUCK', 2, 4, 0);
 
 -- Insert sample managers
 INSERT INTO managers (email, user_id, department, category) VALUES
@@ -224,14 +212,4 @@ INSERT INTO ticket_types (name, description) VALUES
 ('Technical Support', 'Technical support and troubleshooting tickets'),
 ('General Inquiry', 'General questions and information requests');
 
--- Insert demo sessions
-INSERT INTO sessions (title, status, user_id, last_activity) VALUES
-('Model S Battery Issue', 'CLOSED', 8, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-('Model 3 Software Update', 'ACTIVE', 9, NOW()),
-('Cybertruck Delivery Question', 'CLOSED', 10, DATE_SUB(NOW(), INTERVAL 1 DAY));
-
--- Insert demo tickets
-INSERT INTO tickets (title, status, urgency, servility_level, customer_id, engineer_id, category, type_id, history, session_id) VALUES
-('Model S Battery Drain Issue', 'OPEN', 'HIGH', 'LOW', 1, 1, 'MODEL_S', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 1),
-('Model 3 Software Update Request', 'IN_PROGRESS', 'MEDIUM', 'LOW', 2, 2, 'MODEL_3', 2, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 2),
-('Cybertruck Delivery Timeline', 'RESOLVED', 'LOW', 'LOW', 3, 5, 'CYBERTRUCK', 1, '[{"role":"system","content":"Ticket created.","timestamp":"2024-06-01T12:00:00Z"}]', 3); 
+ 

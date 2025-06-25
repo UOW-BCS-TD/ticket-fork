@@ -58,13 +58,6 @@ public class DataInitializer {
             createEngineerUser("Jennifer Garcia", "l2my@example.com", TeslaModel.MODEL_Y, 2, userRepository, passwordEncoder, now);
             createEngineerUser("William Lee", "l2ct@example.com", TeslaModel.CYBERTRUCK, 2, userRepository, passwordEncoder, now);
 
-            // Create Level 3 Engineers
-            createEngineerUser("Elizabeth White", "l3ms@example.com", TeslaModel.MODEL_S, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Thomas Clark", "l3m3@example.com", TeslaModel.MODEL_3, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Patricia Lewis", "l3mx@example.com", TeslaModel.MODEL_X, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Daniel Walker", "l3my@example.com", TeslaModel.MODEL_Y, 3, userRepository, passwordEncoder, now);
-            createEngineerUser("Margaret Hall", "l3ct@example.com", TeslaModel.CYBERTRUCK, 3, userRepository, passwordEncoder, now);
-
             // Create sample customer users
             createCustomerUser("Alice Cooper", "svip@example.com", CustomerRole.VIP, userRepository, passwordEncoder, now);
             createCustomerUser("Bob Wilson", "vip@example.com", CustomerRole.PREMIUM, userRepository, passwordEncoder, now);
@@ -90,13 +83,6 @@ public class DataInitializer {
             createEngineer(engineerRepository, userRepository, "l2mx@example.com", TeslaModel.MODEL_X.name(), 2, 4);
             createEngineer(engineerRepository, userRepository, "l2my@example.com", TeslaModel.MODEL_Y.name(), 2, 4);
             createEngineer(engineerRepository, userRepository, "l2ct@example.com", TeslaModel.CYBERTRUCK.name(), 2, 4);
-
-            // Create Level 3 Engineers
-            createEngineer(engineerRepository, userRepository, "l3ms@example.com", TeslaModel.MODEL_S.name(), 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3m3@example.com", TeslaModel.MODEL_3.name(), 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3mx@example.com", TeslaModel.MODEL_X.name(), 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3my@example.com", TeslaModel.MODEL_Y.name(), 3, 5);
-            createEngineer(engineerRepository, userRepository, "l3ct@example.com", TeslaModel.CYBERTRUCK.name(), 3, 5);
 
             // Create sample customers
             createCustomer(customerRepository, userRepository, "svip@example.com", CustomerRole.VIP);
