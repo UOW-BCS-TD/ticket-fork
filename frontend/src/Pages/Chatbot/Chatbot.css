@@ -538,6 +538,111 @@
   box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
 }
 
+/* Text-to-Speech Toggle Button */
+.tts-toggle-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 12px rgba(139, 92, 246, 0.3);
+  margin-right: 8px;
+}
+
+.tts-toggle-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.tts-toggle-btn.enabled {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.3);
+}
+
+.tts-toggle-btn.enabled:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+/* TTS Status Indicator */
+.tts-status {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  animation: pulse-blue 1.5s infinite;
+}
+
+.stop-tts-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.stop-tts-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes pulse-blue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Message Footer and Speak Button */
+.message-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.speak-btn {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  opacity: 0.8;
+}
+
+.speak-btn:hover {
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  box-shadow: 0 3px 8px rgba(99, 102, 241, 0.4);
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
 .send-icon {
   font-size: 14px;
 }
@@ -865,6 +970,17 @@
     border-radius: 0;
   }
 
+  .tts-toggle-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-right: 6px;
+  }
+
+  .speak-btn {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
   .chat-messages {
     height: calc(100vh - 160px);
   }
@@ -1000,6 +1116,24 @@
 
   .chat-header {
     font-size: 15px;
+  }
+
+  .tts-toggle-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .message-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .speak-btn {
+    align-self: flex-end;
+    padding: 3px 6px;
+    font-size: 10px;
   }
 
   .feedback-btn {

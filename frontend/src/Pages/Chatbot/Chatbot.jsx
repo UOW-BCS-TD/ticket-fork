@@ -46,6 +46,9 @@ const Chatbot = () => {
   const [isListening, setIsListening] = useState(false);
   const [speechRecognition, setSpeechRecognition] = useState(null);
   const [speechError, setSpeechError] = useState('');
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechSynthesis, setSpeechSynthesis] = useState(null);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -84,6 +87,49 @@ const Chatbot = () => {
       setSpeechRecognition(recognition);
     }
   }, []);
+
+  // Initialize Text-to-Speech
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      setSpeechSynthesis(window.speechSynthesis);
+    }
+  }, []);
+
+  // Text-to-Speech functions
+  const speakText = (text) => {
+    if (!speechSynthesis || !ttsEnabled || !text.trim()) return;
+    
+    // Stop any ongoing speech
+    speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 0.8;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (speechSynthesis) {
+      speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const toggleTTS = () => {
+    setTtsEnabled(prev => {
+      const newState = !prev;
+      if (!newState && isSpeaking) {
+        stopSpeaking();
+      }
+      return newState;
+    });
+  };
 
   const startListening = () => {
     if (speechRecognition && !isListening) {
@@ -179,6 +225,15 @@ const Chatbot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory]);
+
+  // Cleanup: Stop speech when component unmounts
+  useEffect(() => {
+    return () => {
+      if (speechSynthesis) {
+        speechSynthesis.cancel();
+      }
+    };
+  }, [speechSynthesis]);
 
   const getUserProfile = async (token) => {
     if (cachedUserProfile) return cachedUserProfile;
@@ -384,6 +439,13 @@ const Chatbot = () => {
           timestamp: msg.timestamp
         }));
         setChatHistory(formattedMessages);
+        
+        // Speak the latest bot response if TTS is enabled
+        const latestBotMessage = formattedMessages.filter(msg => msg.sender === 'support').pop();
+        if (latestBotMessage && ttsEnabled) {
+          setTimeout(() => speakText(latestBotMessage.text), 500);
+        }
+        
         setShowFeedback(true); // Show feedback after bot response
       } catch (chatbotError) {
         // Remove the loading message if error
@@ -622,6 +684,14 @@ const Chatbot = () => {
               })()}
             </div>
             <div className="chat-header-actions">
+              <button 
+                className={`tts-toggle-btn ${ttsEnabled ? 'enabled' : ''}`}
+                onClick={toggleTTS}
+                title={ttsEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
+              >
+                <i className={`fas ${ttsEnabled ? 'fa-volume-up' : 'fa-volume-mute'}`}></i>
+                {ttsEnabled ? ' TTS On' : ' TTS Off'}
+              </button>
               <button className="quick-action-btn" onClick={handleNewChat}><b className="new-chat-icon">+</b> New Chat</button>
               <button className="quick-action-btn" onClick={handleEndSession} disabled={!activeSessionId}><b className="end-chat-icon">✖</b> End Session</button>
             </div>
@@ -651,9 +721,20 @@ const Chatbot = () => {
                   ) : (
                     <>
                       <p>{chat.text}</p>
-                      <span className="message-timestamp">
-                        {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className="message-footer">
+                        <span className="message-timestamp">
+                          {new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {chat.sender === 'support' && 'speechSynthesis' in window && (
+                          <button 
+                            className="speak-btn"
+                            onClick={() => speakText(chat.text)}
+                            title="Read this message aloud"
+                          >
+                            <i className="fas fa-volume-up"></i>
+                          </button>
+                        )}
+                      </div>
                       {chat.sender === 'support' && index === chatHistory.length - 1 && showFeedback && chatHistory.filter(m => m.sender === 'user').length >= 3 && (
                         <div className="feedback-container">
                           <p>Did I solve your problem?</p>
@@ -771,6 +852,15 @@ const Chatbot = () => {
           {speechError && (
             <div className="speech-error">
               {speechError}
+            </div>
+          )}
+          {isSpeaking && (
+            <div className="tts-status">
+              <i className="fas fa-volume-up"></i>
+              <span>Speaking...</span>
+              <button className="stop-tts-btn" onClick={stopSpeaking}>
+                <i className="fas fa-stop"></i>
+              </button>
             </div>
           )}
         </div>
