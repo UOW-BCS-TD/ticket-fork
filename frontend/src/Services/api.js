@@ -535,9 +535,9 @@ export const chatbotAPI = {
   }
 };
 
-// RAG backend (Flask)
+// RAG backend (Flask) - uses same proxy as chatbot
 const ragApi = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '/chatapi',  // Use the same proxy path as the chatbot
   headers: { 'Content-Type': 'application/json' }
 });
 
