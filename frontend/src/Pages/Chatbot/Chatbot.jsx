@@ -49,6 +49,7 @@ const Chatbot = () => {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState(null);
+  const [showAvatar, setShowAvatar] = useState(false);
 
   const chatListRef = useRef(null);
   const navigate = useNavigate();
@@ -107,9 +108,18 @@ const Chatbot = () => {
     utterance.pitch = 1;
     utterance.volume = 0.8;
     
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      setShowAvatar(true);
+    };
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setShowAvatar(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setShowAvatar(false);
+    };
     
     speechSynthesis.speak(utterance);
   };
@@ -118,6 +128,7 @@ const Chatbot = () => {
     if (speechSynthesis) {
       speechSynthesis.cancel();
       setIsSpeaking(false);
+      setShowAvatar(false);
     }
   };
 
@@ -670,6 +681,30 @@ const Chatbot = () => {
           )}
         </div>
       </div>
+
+      {/* Animated Speaking Avatar */}
+      {showAvatar && (
+        <div className="speaking-avatar-container">
+          <div className="speaking-avatar">
+            <div className="avatar-face">
+              <div className="avatar-eyes">
+                <div className="eye left-eye"></div>
+                <div className="eye right-eye"></div>
+              </div>
+              <div className="avatar-mouth">
+                <div className="mouth-shape"></div>
+              </div>
+            </div>
+            <div className="avatar-body"></div>
+            <div className="sound-waves">
+              <div className="wave wave-1"></div>
+              <div className="wave wave-2"></div>
+              <div className="wave wave-3"></div>
+            </div>
+          </div>
+          <div className="avatar-text">AI Assistant Speaking...</div>
+        </div>
+      )}
 
       <div className="chat-main">
         {chatStarted && (
