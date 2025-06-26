@@ -618,6 +618,18 @@
   transform: scale(1.05);
 }
 
+.speaking-avatar.thinking {
+  animation: thinking-sway 2s ease-in-out infinite;
+  box-shadow: 
+    0 14px 45px rgba(251, 191, 36, 0.35),
+    0 7px 22px rgba(217, 119, 6, 0.25),
+    inset 0 2px 4px rgba(255, 255, 255, 0.15);
+}
+
+.speaking-avatar.thinking .eye {
+  animation: thinking-blink 3s ease-in-out infinite;
+}
+
 .avatar-face {
   position: absolute;
   top: 15px;
@@ -812,6 +824,66 @@
   animation-delay: 0.4s;
 }
 
+/* Thinking Bubbles */
+.thinking-bubbles {
+  position: absolute;
+  top: -45px;
+  right: -20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 4;
+}
+
+.bubble {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 3px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(203, 213, 225, 0.6);
+  animation: bubble-float 1.5s ease-in-out infinite;
+}
+
+.bubble-1 {
+  width: 8px;
+  height: 8px;
+  animation-delay: 0s;
+  align-self: flex-end;
+}
+
+.bubble-2 {
+  width: 12px;
+  height: 12px;
+  animation-delay: 0.3s;
+  align-self: center;
+}
+
+.bubble-3 {
+  width: 16px;
+  height: 16px;
+  animation-delay: 0.6s;
+  align-self: flex-start;
+  position: relative;
+}
+
+/* Dots inside the largest bubble */
+.bubble-3::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 2px;
+  background: #64748b;
+  border-radius: 50%;
+  box-shadow: 
+    -4px 0 0 #64748b,
+    4px 0 0 #64748b;
+  animation: thinking-dots 1s ease-in-out infinite;
+}
+
 .avatar-text {
   margin-top: 18px;
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 50%, rgba(29, 78, 216, 0.95) 100%);
@@ -926,6 +998,62 @@
   50% {
     transform: scaleY(1.8);
     opacity: 1;
+  }
+}
+
+@keyframes thinking-sway {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-2px) rotate(1deg) scale(1.01);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0deg) scale(1.02);
+  }
+  75% {
+    transform: translateY(-2px) rotate(-1deg) scale(1.01);
+  }
+}
+
+@keyframes thinking-blink {
+  0%, 85%, 100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  88%, 92% {
+    transform: scaleY(0.1);
+    opacity: 0.7;
+  }
+  90% {
+    transform: scaleY(0.05);
+    opacity: 0.5;
+  }
+}
+
+@keyframes bubble-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes thinking-dots {
+  0%, 20% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.8);
   }
 }
 
@@ -1399,6 +1527,35 @@
     transform: scale(0.8);
   }
 
+  .thinking-bubbles {
+    top: -35px;
+    right: -15px;
+    gap: 6px;
+  }
+
+  .bubble-1 {
+    width: 6px;
+    height: 6px;
+  }
+
+  .bubble-2 {
+    width: 9px;
+    height: 9px;
+  }
+
+  .bubble-3 {
+    width: 12px;
+    height: 12px;
+  }
+
+  .bubble-3::before {
+    width: 1.5px;
+    height: 1.5px;
+    box-shadow: 
+      -3px 0 0 #64748b,
+      3px 0 0 #64748b;
+  }
+
   .avatar-text {
     font-size: 12px;
     padding: 6px 12px;
@@ -1563,6 +1720,35 @@
     bottom: 60px;
     right: 10px;
     transform: scale(0.7);
+  }
+
+  .thinking-bubbles {
+    top: -30px;
+    right: -12px;
+    gap: 4px;
+  }
+
+  .bubble-1 {
+    width: 5px;
+    height: 5px;
+  }
+
+  .bubble-2 {
+    width: 7px;
+    height: 7px;
+  }
+
+  .bubble-3 {
+    width: 9px;
+    height: 9px;
+  }
+
+  .bubble-3::before {
+    width: 1px;
+    height: 1px;
+    box-shadow: 
+      -2px 0 0 #64748b,
+      2px 0 0 #64748b;
   }
 
   .avatar-text {

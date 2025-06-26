@@ -428,6 +428,7 @@ const Chatbot = () => {
         { text: '', sender: 'support', loading: true, timestamp: new Date().toISOString() }
       ]);
       setMessage('');
+      setBotLoading(true); // Start thinking animation
       try {
         const response = await chatbotAPI.sendQuery(message);
         
@@ -439,6 +440,7 @@ const Chatbot = () => {
           timestamp: msg.timestamp
         }));
         setChatHistory(formattedMessages);
+        setBotLoading(false); // Stop thinking animation
         
         // Speak the latest bot response if TTS is enabled
         const latestBotMessage = formattedMessages.filter(msg => msg.sender === 'support').pop();
@@ -450,6 +452,7 @@ const Chatbot = () => {
       } catch (chatbotError) {
         // Remove the loading message if error
         setChatHistory((prev) => prev.filter((msg, idx) => !(msg.loading && idx === prev.length - 1)));
+        setBotLoading(false); // Stop thinking animation on error
         console.error('Error communicating with chatbot:', chatbotError);
         alert('Failed to get response from chatbot.');
       }
@@ -674,7 +677,7 @@ const Chatbot = () => {
       {/* Animated Speaking Avatar */}
       {ttsEnabled && (
         <div className="speaking-avatar-container">
-          <div className={`speaking-avatar ${isSpeaking ? 'talking' : ''}`}>
+          <div className={`speaking-avatar ${isSpeaking ? 'talking' : ''} ${botLoading ? 'thinking' : ''}`}>
             <div className="avatar-face">
               <div className="avatar-eyes">
                 <div className="eye left-eye"></div>
@@ -694,9 +697,16 @@ const Chatbot = () => {
                 <div className="wave wave-5"></div>
               </div>
             )}
+            {botLoading && (
+              <div className="thinking-bubbles">
+                <div className="bubble bubble-1"></div>
+                <div className="bubble bubble-2"></div>
+                <div className="bubble bubble-3"></div>
+              </div>
+            )}
           </div>
           <div className="avatar-text">
-            {isSpeaking ? 'AI Assistant Speaking...' : 'TTS Ready'}
+            {botLoading ? 'Thinking...' : isSpeaking ? 'AI Assistant Speaking...' : 'TTS Ready'}
           </div>
         </div>
       )}
