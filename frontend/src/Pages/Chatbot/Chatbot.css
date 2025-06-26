@@ -541,8 +541,8 @@
 /* Animated Speaking Avatar */
 .speaking-avatar-container {
   position: fixed;
-  bottom: 120px;
-  right: 30px;
+  bottom: 200px;
+  right: 130px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -562,7 +562,13 @@
   justify-content: center;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
   border: 3px solid #ffffff;
+  animation: gentle-idle 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.speaking-avatar.talking {
   animation: gentle-bounce 2s ease-in-out infinite;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
 }
 
 .avatar-face {
@@ -612,8 +618,12 @@
   height: 100%;
   background: #ffffff;
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  animation: mouth-talk 0.3s ease-in-out infinite alternate;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.speaking-avatar.talking .mouth-shape {
+  animation: mouth-talk 0.3s ease-in-out infinite alternate;
 }
 
 .avatar-body {
@@ -678,6 +688,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes gentle-idle {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02);
   }
 }
 
