@@ -675,7 +675,7 @@ const Chatbot = () => {
       </div>
 
       {/* Animated Speaking Avatar */}
-      {ttsEnabled && (
+      {(ttsEnabled || botLoading) && (
         <div className="speaking-avatar-container">
           <div className={`speaking-avatar ${isSpeaking ? 'talking' : ''} ${botLoading ? 'thinking' : ''}`}>
             <div className="avatar-face">
