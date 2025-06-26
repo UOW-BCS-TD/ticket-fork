@@ -2,9 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f4f7ff;
   padding: 2rem 100px;
-  background: linear-gradient(to bottom, #72b3f0, #54a2ec);
+  background: white;
   position: relative;
   height: 100vh;
 }
@@ -186,6 +185,7 @@
   border: 2px solid transparent;
   transition: all 0.3s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: center;
 }
 
 .chat-status-badge.CLOSED {
@@ -613,7 +613,7 @@
   top: 8px;
   right: 10px;
   z-index: 100;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: white;
   padding: 10px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(110, 142, 251, 0.10);
@@ -622,7 +622,7 @@
 .sidebar-toggle span {
   height: 3px;
   width: 100%;
-  background-color: #6e8efb;
+  background-color: black;
   border-radius: 3px;
   transition: all 0.3s ease;
 }
