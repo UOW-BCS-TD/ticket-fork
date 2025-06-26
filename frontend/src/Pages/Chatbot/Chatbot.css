@@ -553,16 +553,17 @@
 .speaking-avatar {
   position: relative;
   width: 140px;
-  height: 160px;
-  background: linear-gradient(145deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  height: 180px;
+  background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  border-radius: 70px 70px 70px 70px / 90px 90px 50px 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 20px;
   box-shadow: 
-    0 12px 40px rgba(79, 70, 229, 0.3),
-    0 6px 20px rgba(236, 72, 153, 0.2),
+    0 12px 40px rgba(251, 191, 36, 0.3),
+    0 6px 20px rgba(217, 119, 6, 0.2),
     inset 0 2px 4px rgba(255, 255, 255, 0.1);
   border: 4px solid #ffffff;
   animation: gentle-idle 3s ease-in-out infinite;
@@ -570,83 +571,112 @@
   overflow: hidden;
 }
 
+/* Avatar Head */
 .speaking-avatar::before {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(145deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 8px 25px rgba(251, 191, 36, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(217, 119, 6, 0.2);
+  border: 3px solid #ffffff;
+  z-index: 1;
+}
+
+/* Shimmer effect on head */
+.speaking-avatar::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
   background: linear-gradient(45deg, 
     transparent 30%, 
-    rgba(255, 255, 255, 0.1) 50%, 
+    rgba(255, 255, 255, 0.15) 50%, 
     transparent 70%);
   animation: shimmer 3s ease-in-out infinite;
   pointer-events: none;
+  z-index: 2;
 }
 
 .speaking-avatar.talking {
   animation: gentle-bounce 1.5s ease-in-out infinite;
   box-shadow: 
-    0 16px 50px rgba(79, 70, 229, 0.4),
-    0 8px 25px rgba(236, 72, 153, 0.3),
+    0 16px 50px rgba(251, 191, 36, 0.4),
+    0 8px 25px rgba(217, 119, 6, 0.3),
     inset 0 2px 4px rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
 }
 
 .avatar-face {
-  position: relative;
-  width: 90px;
-  height: 90px;
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Hair/Top decoration */
 .avatar-face::before {
   content: '';
   position: absolute;
-  top: -15px;
+  top: -25px;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 25px;
-  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-  border-radius: 50% 50% 30% 30%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  width: 90px;
+  height: 35px;
+  background: linear-gradient(135deg, #92400e 0%, #78350f 50%, #451a03 100%);
+  border-radius: 45px 45px 20px 20px;
+  box-shadow: 
+    0 3px 12px rgba(120, 53, 15, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  z-index: 2;
 }
 
 .avatar-eyes {
   display: flex;
-  gap: 18px;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 8px;
   position: relative;
 }
 
 .eye {
-  width: 16px;
-  height: 16px;
-  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f1f5f9 100%);
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f8fafc 100%);
   border-radius: 50%;
   position: relative;
   animation: blink 4s ease-in-out infinite;
   box-shadow: 
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 1px 3px rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+    inset 0 1px 3px rgba(0, 0, 0, 0.15),
+    0 1px 2px rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.6);
 }
 
 .eye::after {
   content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
   width: 10px;
   height: 10px;
-  background: radial-gradient(circle at 25% 25%, #1e293b 0%, #0f172a 100%);
+  background: radial-gradient(circle at 25% 25%, #374151 0%, #1f2937 100%);
   border-radius: 50%;
 }
 
@@ -654,31 +684,31 @@
 .eye::before {
   content: '';
   position: absolute;
-  top: 4px;
-  left: 5px;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.9);
+  top: 3px;
+  left: 4px;
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
   z-index: 1;
 }
 
 .avatar-mouth {
   position: relative;
-  width: 24px;
-  height: 16px;
+  width: 18px;
+  height: 12px;
 }
 
 .mouth-shape {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   box-shadow: 
-    inset 0 2px 4px rgba(0, 0, 0, 0.3),
-    0 1px 2px rgba(255, 255, 255, 0.2);
+    inset 0 1px 3px rgba(0, 0, 0, 0.25),
+    0 1px 2px rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
-  border: 1px solid rgba(220, 38, 38, 0.8);
+  border: 1px solid rgba(239, 68, 68, 0.6);
 }
 
 .speaking-avatar.talking .mouth-shape {
@@ -690,29 +720,51 @@
 
 .avatar-body {
   position: absolute;
-  bottom: -12px;
-  width: 80px;
-  height: 40px;
-  background: linear-gradient(135deg, #3730a3 0%, #581c87 50%, #be185d 100%);
-  border-radius: 20px;
+  bottom: 10px;
+  width: 120px;
+  height: 80px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+  border-radius: 20px 20px 40px 40px;
   box-shadow: 
-    0 4px 12px rgba(55, 48, 163, 0.3),
-    inset 0 1px 2px rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+    0 6px 20px rgba(59, 130, 246, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  z-index: 0;
 }
 
 /* Collar/neckline detail */
 .avatar-body::before {
   content: '';
   position: absolute;
-  top: 5px;
+  top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 30px;
-  height: 8px;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  width: 40px;
+  height: 12px;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  border-radius: 20px;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Shirt buttons */
+.avatar-body::after {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 0 #ffffff,
+    0 16px 0 #ffffff,
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 10px 4px rgba(0, 0, 0, 0.2),
+    0 18px 4px rgba(0, 0, 0, 0.2);
 }
 
 .sound-waves {
@@ -727,12 +779,12 @@
 
 .wave {
   width: 4px;
-  background: linear-gradient(to top, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+  background: linear-gradient(to top, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
   border-radius: 3px;
   animation: wave-animation 0.5s ease-in-out infinite;
   box-shadow: 
-    0 2px 8px rgba(79, 70, 229, 0.4),
-    0 0 15px rgba(236, 72, 153, 0.3);
+    0 2px 8px rgba(59, 130, 246, 0.4),
+    0 0 15px rgba(29, 78, 216, 0.3);
 }
 
 .wave-1 {
@@ -762,15 +814,15 @@
 
 .avatar-text {
   margin-top: 18px;
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.95) 0%, rgba(124, 58, 237, 0.95) 50%, rgba(236, 72, 153, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 50%, rgba(29, 78, 216, 0.95) 100%);
   color: white;
   padding: 10px 20px;
   border-radius: 25px;
   font-size: 14px;
   font-weight: 700;
   box-shadow: 
-    0 6px 20px rgba(79, 70, 229, 0.4),
-    0 3px 10px rgba(236, 72, 153, 0.2),
+    0 6px 20px rgba(59, 130, 246, 0.4),
+    0 3px 10px rgba(29, 78, 216, 0.2),
     inset 0 1px 2px rgba(255, 255, 255, 0.2);
   animation: text-pulse 2s ease-in-out infinite;
   backdrop-filter: blur(10px);
@@ -882,16 +934,16 @@
     opacity: 0.9;
     transform: scale(1);
     box-shadow: 
-      0 6px 20px rgba(79, 70, 229, 0.4),
-      0 3px 10px rgba(236, 72, 153, 0.2),
+      0 6px 20px rgba(59, 130, 246, 0.4),
+      0 3px 10px rgba(29, 78, 216, 0.2),
       inset 0 1px 2px rgba(255, 255, 255, 0.2);
   }
   50% {
     opacity: 1;
     transform: scale(1.05);
     box-shadow: 
-      0 8px 30px rgba(79, 70, 229, 0.6),
-      0 4px 15px rgba(236, 72, 153, 0.4),
+      0 8px 30px rgba(59, 130, 246, 0.6),
+      0 4px 15px rgba(29, 78, 216, 0.4),
       inset 0 1px 3px rgba(255, 255, 255, 0.3);
   }
 }
