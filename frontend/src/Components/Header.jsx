@@ -199,6 +199,7 @@ const Header = (props) => {
     const baseLinks = [
       { path: '/', label: 'Home' },
       { path: '/about', label: 'About Us' },
+      { path: '/solution', label: 'solution testing' }
     ];
     
     // Different service dropdown items based on user role

@@ -26,6 +26,8 @@ import AssignEngineer from './Pages/Manager/AssignEngineer';
 import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
 
+import Solution from './Pages/Solution/solution'; //solution testing sherine 
+
 import { AdminRoute, ProtectedRoute, EngineerRoute, ManagerRoute, CustomerOnlyRoute } from './Pages/Tickets/Auth';
 import './App.css';
 
@@ -41,6 +43,15 @@ const App = () => {
             <Footer />
           </>
         } />
+
+        <Route path="/solution" element={
+          <>
+            <Solution />
+            <Footer />
+          </>
+        } />
+
+
         <Route path="/about" element={
           <>
             <AboutUs />
