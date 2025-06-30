@@ -490,14 +490,22 @@ const TicketInformation = () => {
                       disabled={sending}
                     ></textarea>
                     <div className="customer-reply-actions">
-                      <div className="customer-attach-file">
+                      <label className="customer-attach-file" style={{ cursor: 'pointer' }}>
+                        <input 
+                          type="file" 
+                          onChange={handleFileUpload} 
+                          disabled={uploading}
+                          style={{ display: 'none' }}
+                        />
                         <i className="fas fa-paperclip"></i>
-                        <span>Attach File</span>
-                      </div>
+                        <span>{uploading ? "Uploading..." : "Attach File"}</span>
+                      </label>
                       <button className="customer-send-btn" onClick={handleSendReply} disabled={sending || !reply.trim()}>
                         <i className="fas fa-paper-plane"></i> {sending ? "Sending..." : "Send Reply"}
                       </button>
                     </div>
+                    {uploadError && <div className="customer-error-message" style={{ color: 'red', marginTop: 4 }}>{uploadError}</div>}
+                    {uploadSuccess && <div className="customer-success-message" style={{ color: 'green', marginTop: 4 }}>{uploadSuccess}</div>}
                     {sendError && <div className="customer-error-message" style={{ color: 'red', marginTop: 8 }}>{sendError}</div>}
                   </div>
                 )}
