@@ -13,18 +13,39 @@
 }
 
 /* Logo styles */
-.circular-logo {
+/* .circular-logo {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 15px;
-}
+} */
+
+/* .header-logo {
+  display: flex;
+  align-items: center;
+} */
 
 .header-logo {
   display: flex;
-  align-items: center;
+  flex-direction: column; /* ✅ Stack vertically */
+  align-items: center;     /* ✅ Center align horizontally */
 }
+
+.circular-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.header-logo h2 {
+  margin-top: 4px;
+  font-size: 16px;
+  color: #e60000; /* Optional: make red like your screenshot */
+  font-weight: bold;
+}
+
 
 .header-logo h2 {
   margin: 0;
