@@ -2,13 +2,14 @@
 import os
 import time
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from flask_cors import CORS
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import RetrievalQA
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.language_models.llms import LLM
 import mysql.connector
 import json
 from datetime import datetime, timedelta
@@ -25,6 +26,8 @@ import traceback
 import sys
 from pathlib import Path
 from urllib.parse import unquote
+import openai
+from typing import Optional, List
 
 # Configuration
 warnings.filterwarnings('ignore')
@@ -33,9 +36,10 @@ os.environ["GOOGLE_API_KEY"] = "AIzaSyAllDb85-EYZSDQjd8tVyF_Kg5WG8HPOjc"
 
 # Initialize Flask
 app = Flask(__name__)
+chatapi_bp = Blueprint('chatapi', __name__)
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:5173"],
+        "origins": ["http://localhost:5173", "http://43.228.124.29", "https://chat.elvificent.com", "https://elvificent.com"],
         "methods": ["GET", "POST", "OPTIONS", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization", "Accept"],
         "supports_credentials": True
@@ -54,7 +58,36 @@ MAX_BATCH_SIZE = 5000  # Safe value below Chroma's limit of 5461
 # Global State
 vectorstore = None
 qa_chain = None
-embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+# Set OpenRouter API base for DeepSeek
+openai.api_key = "sk-e6b172c68d2b4115aeeae1f886112461"  # Or set your key directly
+openai.api_base = "https://api.deepseek.com/v1"
+
+# Function to call DeepSeek via OpenRouter
+
+def ask_deepseek(prompt):
+    try:
+        response = openai.ChatCompletion.create(
+            model="deepseek-chat",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        return response.choices[0].message["content"]
+    except Exception as e:
+        print(f"API Error: {e}")
+        return "Sorry, I'm having trouble connecting to the AI service."
+
+class OpenRouterDeepSeekLLM(LLM):
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def _llm_type(self) -> str:
+        return "openrouter-deepseek"
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+        return ask_deepseek(prompt)
 
 # --------------------------
 # Core Utility Functions
@@ -334,11 +367,7 @@ def initialize_qa_chain():
     """Initialize QA chain with proper prompt and configuration"""
     from langchain.prompts import PromptTemplate
     
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.2,
-        convert_system_message_to_human=True
-    )
+    llm = OpenRouterDeepSeekLLM()
 
     retriever = vectorstore.as_retriever(
         search_type="mmr",
@@ -350,16 +379,20 @@ def initialize_qa_chain():
     )
 
     # Define the prompt template
-    template = """You are a friendly Techcare support bot. Guidelines:
-    - Be polite and professional
-    - Use the context below to answer
-    - If unsure, offer to connect to a human
+    template = """You are a TechCare support assistant. Answer questions directly and naturally.
 
-    Context: {context}
+Rules:
+- Give concise, helpful answers
+- Use plain language without markdown formatting
+- Don't add commentary in parentheses
+- Don't repeat instructions or guidelines in your response
+- If you don't know something, say "I don't have that information" and offer to connect them to a human agent
 
-    Question: {question}
+Context: {context}
 
-    Helpful Answer:"""
+Question: {question}
+
+Answer:"""
 
     QA_PROMPT = PromptTemplate(
         template=template,
@@ -381,7 +414,7 @@ def initialize_qa_chain():
 # API Endpoints (All Original Endpoints)
 # --------------------------
 
-@app.route('/query', methods=['POST'])
+@chatapi_bp.route('/query', methods=['POST'])
 @token_required
 def query(current_user_email):
     """Handle user queries with source documents"""
@@ -492,7 +525,7 @@ def query(current_user_email):
             cursor.close()
             connection.close()
 
-@app.route('/debug_collection', methods=['GET'])
+@chatapi_bp.route('/debug_collection', methods=['GET'])
 def debug_collection():
     """Inspect the Chroma collection"""
     if not vectorstore:
@@ -505,7 +538,7 @@ def debug_collection():
         "sample_ids": collection.get(limit=2)['ids']
     })
 
-@app.route('/debug_query', methods=['POST'])
+@chatapi_bp.route('/debug_query', methods=['POST'])
 def debug_query():
     """Test raw retrieval"""
     data = request.json
@@ -525,7 +558,7 @@ def debug_query():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/verify_persistence', methods=['GET'])
+@chatapi_bp.route('/verify_persistence', methods=['GET'])
 def verify_persistence():
     """Verify that Chroma DB is properly persisted"""
     if not vectorstore:
@@ -551,7 +584,7 @@ def verify_persistence():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/health', methods=['GET'])
+@chatapi_bp.route('/health', methods=['GET'])
 def health_check():
     """System health check"""
     return jsonify({
@@ -597,14 +630,14 @@ def initialize_app():
 # RAG File Management Endpoints
 # --------------------------
 
-@app.route('/rag/files', methods=['GET'])
+@chatapi_bp.route('/rag/files', methods=['GET'])
 @token_required
 def list_rag_files(current_user_email):
     """Return list of PDF files"""
     files = [f for f in os.listdir(PDF_DIR) if f.lower().endswith('.pdf')]
     return jsonify(files)
 
-@app.route('/rag/files', methods=['POST'])
+@chatapi_bp.route('/rag/files', methods=['POST'])
 @token_required
 def upload_rag_file(current_user_email):
     if 'file' not in request.files:
@@ -618,7 +651,7 @@ def upload_rag_file(current_user_email):
     file.save(saved_path)
     return jsonify({'message': 'File uploaded'}), 201
 
-@app.route('/rag/files/<path:filename>', methods=['DELETE'])
+@chatapi_bp.route('/rag/files/<path:filename>', methods=['DELETE'])
 @token_required
 def delete_rag_file(current_user_email, filename):
     safe_name = os.path.basename(unquote(filename))
@@ -628,13 +661,16 @@ def delete_rag_file(current_user_email, filename):
         return jsonify({'message': 'Deleted'}), 200
     return jsonify({'error': 'File not found'}), 404
 
-@app.route('/rag/restart', methods=['POST'])
+@chatapi_bp.route('/rag/restart', methods=['POST'])
 @token_required
 def restart_rag(current_user_email):
     success = build_chroma_db()
     if success:
         return jsonify({'message': 'RAG restarted'}), 200
     return jsonify({'error': 'Failed to restart'}), 500
+
+# Register the Blueprint
+app.register_blueprint(chatapi_bp, url_prefix='/chatapi')
 
 # --------------------------
 # Main Execution

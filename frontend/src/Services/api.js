@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://localhost:8082/api',  // Update to point to your backend server
+  baseURL: '/api',  // Update to point to your backend server
   headers: {
     'Content-Type': 'application/json',
   },
@@ -512,7 +512,7 @@ export const chatbotAPI = {
   sendQuery: async (query) => {
     try {
       // Use the Python backend on port 5000
-      const response = await axios.post('http://localhost:5000/query', { query }, {
+      const response = await axios.post('/chatapi/query', { query }, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -535,9 +535,9 @@ export const chatbotAPI = {
   }
 };
 
-// RAG backend (Flask)
+// RAG backend (Flask) - uses same proxy as chatbot
 const ragApi = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '/chatapi',  // Use the same proxy path as the chatbot
   headers: { 'Content-Type': 'application/json' }
 });
 
