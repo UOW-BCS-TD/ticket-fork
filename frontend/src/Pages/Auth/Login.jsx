@@ -24,7 +24,10 @@ const Login = () => {
   useEffect(() => {
     if (auth.isLoggedIn()) {
       const user = auth.getCurrentUser();
+      console.log('Already logged in user:', user); // Debug log
+      
       if (user && user.role) {
+        console.log('Redirecting already logged in user with role:', user.role); // Debug log
         switch (user.role) {
           case 'ADMIN':
             navigate('/admin/dashboard');
@@ -39,10 +42,12 @@ const Login = () => {
             navigate('/view-tickets');
             break;
           default:
+            console.log('No specific role match for already logged in user, going to profile'); // Debug log
             navigate('/profile');
             break;
         }
       } else {
+        console.log('No user or role found for already logged in user, going to profile'); // Debug log
         navigate('/profile');
       }
     }
@@ -80,9 +85,12 @@ const Login = () => {
 
         window.dispatchEvent(new Event('authChange'));
         
-        // Get user role and redirect accordingly
-        const user = auth.getCurrentUser();
+        // Get user role from response data directly (more reliable)
+        const user = response.user || auth.getCurrentUser();
+        console.log('User after login:', user); // Debug log
+        
         if (user && user.role) {
+          console.log('Redirecting user with role:', user.role); // Debug log
           switch (user.role) {
             case 'ADMIN':
               navigate('/admin/dashboard');
@@ -97,10 +105,12 @@ const Login = () => {
               navigate('/view-tickets');
               break;
             default:
+              console.log('No specific role match, going to profile'); // Debug log
               navigate('/profile');
               break;
           }
         } else {
+          console.log('No user or role found, going to profile'); // Debug log
           navigate('/profile');
         }
       } else {
@@ -161,7 +171,10 @@ const Login = () => {
         // Get user role and redirect accordingly
         setTimeout(() => {
           const user = auth.getCurrentUser();
+          console.log('User after registration:', user); // Debug log
+          
           if (user && user.role) {
+            console.log('Redirecting registered user with role:', user.role); // Debug log
             switch (user.role) {
               case 'ADMIN':
                 navigate('/admin/dashboard');
@@ -176,10 +189,12 @@ const Login = () => {
                 navigate('/view-tickets');
                 break;
               default:
+                console.log('No specific role match for registered user, going to profile'); // Debug log
                 navigate('/profile');
                 break;
             }
           } else {
+            console.log('No user or role found for registered user, going to profile'); // Debug log
             navigate('/profile');
           }
         }, 500);
