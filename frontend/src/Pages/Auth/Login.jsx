@@ -243,22 +243,27 @@ const Login = () => {
         const role = user?.role?.replace('ROLE_', '');
         console.log('Demo login redirecting user with role:', role);
 
-        switch (role) {
-          case 'ADMIN':
-            navigate('/admin/dashboard');
-            break;
-          case 'MANAGER':
-            navigate('/manager/dashboard');
-            break;
-          case 'ENGINEER':
-            navigate('/tickets/assigned');
-            break;
-          case 'CUSTOMER':
-            navigate('/view-tickets');
-            break;
-          default:
-            navigate('/profile');
-            break;
+        if (user && role) {
+          // Optionally: navigate to the correct page first, then reload
+          switch (role) {
+            case 'ADMIN':
+              navigate('/admin/dashboard');
+              break;
+            case 'MANAGER':
+              navigate('/manager/dashboard');
+              break;
+            case 'ENGINEER':
+              navigate('/tickets/assigned');
+              break;
+            case 'CUSTOMER':
+              navigate('/view-tickets');
+              break;
+            default:
+              navigate('/profile');
+              break;
+          }
+          // Then force a reload to sync state
+          window.location.reload();
         }
       } else {
         setError('Demo login failed. Please try again.');
