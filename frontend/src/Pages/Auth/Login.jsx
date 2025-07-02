@@ -392,7 +392,7 @@ const Login = () => {
                     <button 
                       type="button" 
                       className="demo-btn engineer"
-                      onClick={() => handleDemoLogin('l2my@example.com', 'password')}
+                      onClick={() => handleDemoLogin('l2my@example.com', 'password123')}
                       disabled={isLoading}
                     >
                       <i className="fas fa-cogs"></i>
