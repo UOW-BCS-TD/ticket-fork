@@ -70,11 +70,14 @@ const Login = () => {
     setError('');
     
     try {
+      console.log('Attempting login with:', email); // Debug log
       
       // Use the auth service's Login function
       const response = await auth.login(email, password);
+      console.log('Login response:', response); // Debug log
       
       if (response.success) {
+        console.log('Login successful!'); // Debug log
         
         // If remember me is checked, store email in localStorage
         if (rememberMe) {
@@ -115,6 +118,7 @@ const Login = () => {
         }
       } else {
         // Handle unsuccessful login
+        console.log('Login failed:', response.message); // Debug log
         setError(response.message || 'Invalid email or password');
       }
     } catch (err) {

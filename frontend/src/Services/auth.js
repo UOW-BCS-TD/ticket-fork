@@ -5,14 +5,18 @@ const authFunctions = {
   // Login user - aligned with backend JwtResponse structure
   login: async (email, password) => {
     try {
+      console.log('Auth service: Attempting login for:', email); // Debug log
       const response = await authService.login({ email, password });
+      console.log('Auth service: Raw response:', response); // Debug log
       
       // Store token in localStorage
       if (response.token) {
+        console.log('Auth service: Token found, storing user data'); // Debug log
         localStorage.setItem('token', response.token);
 
         if (response.user) {
           localStorage.setItem('user', JSON.stringify(response.user));
+          console.log('Auth service: User stored:', response.user); // Debug log
         }
         
         return {
