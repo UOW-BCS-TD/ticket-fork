@@ -14,13 +14,20 @@ const authFunctions = {
         console.log('Auth service: Token found, storing user data'); // Debug log
         localStorage.setItem('token', response.token);
 
-        if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-          console.log('Auth service: User stored:', response.user); // Debug log
-        }
+        // Create user object from response data
+        const userData = {
+          id: response.id,
+          email: response.email,
+          name: response.name,
+          role: response.roles && response.roles.length > 0 ? response.roles[0] : null
+        };
+
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('Auth service: User stored:', userData); // Debug log
         
         return {
           success: true,
+          user: userData,
           ...response
         };
       }

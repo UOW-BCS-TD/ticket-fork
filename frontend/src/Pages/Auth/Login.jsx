@@ -26,26 +26,28 @@ const Login = () => {
       const user = auth.getCurrentUser();
       console.log('Already logged in user:', user); // Debug log
       
-      if (user && user.role) {
-        console.log('Redirecting already logged in user with role:', user.role); // Debug log
-        switch (user.role) {
-          case 'ADMIN':
-            navigate('/admin/dashboard');
-            break;
-          case 'MANAGER':
-            navigate('/manager/dashboard');
-            break;
-          case 'ENGINEER':
-            navigate('/tickets/assigned');
-            break;
-          case 'CUSTOMER':
-            navigate('/view-tickets');
-            break;
-          default:
-            console.log('No specific role match for already logged in user, going to profile'); // Debug log
-            navigate('/profile');
-            break;
-        }
+              if (user && user.role) {
+          console.log('Redirecting already logged in user with role:', user.role); // Debug log
+          // Handle both 'ADMIN' and 'ROLE_ADMIN' formats
+          const role = user.role.replace('ROLE_', '');
+          switch (role) {
+            case 'ADMIN':
+              navigate('/admin/dashboard');
+              break;
+            case 'MANAGER':
+              navigate('/manager/dashboard');
+              break;
+            case 'ENGINEER':
+              navigate('/tickets/assigned');
+              break;
+            case 'CUSTOMER':
+              navigate('/view-tickets');
+              break;
+            default:
+              console.log('No specific role match for already logged in user, going to profile'); // Debug log
+              navigate('/profile');
+              break;
+          }
       } else {
         console.log('No user or role found for already logged in user, going to profile'); // Debug log
         navigate('/profile');
@@ -94,7 +96,9 @@ const Login = () => {
         
         if (user && user.role) {
           console.log('Redirecting user with role:', user.role); // Debug log
-          switch (user.role) {
+          // Handle both 'ADMIN' and 'ROLE_ADMIN' formats
+          const role = user.role.replace('ROLE_', '');
+          switch (role) {
             case 'ADMIN':
               navigate('/admin/dashboard');
               break;
@@ -179,7 +183,9 @@ const Login = () => {
           
           if (user && user.role) {
             console.log('Redirecting registered user with role:', user.role); // Debug log
-            switch (user.role) {
+            // Handle both 'ADMIN' and 'ROLE_ADMIN' formats
+            const role = user.role.replace('ROLE_', '');
+            switch (role) {
               case 'ADMIN':
                 navigate('/admin/dashboard');
                 break;
