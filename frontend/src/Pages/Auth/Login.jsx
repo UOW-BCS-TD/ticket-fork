@@ -23,7 +23,28 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (auth.isLoggedIn()) {
-      navigate('/profile');
+      const user = auth.getCurrentUser();
+      if (user && user.role) {
+        switch (user.role) {
+          case 'ADMIN':
+            navigate('/admin/dashboard');
+            break;
+          case 'MANAGER':
+            navigate('/manager/dashboard');
+            break;
+          case 'ENGINEER':
+            navigate('/tickets/assigned');
+            break;
+          case 'CUSTOMER':
+            navigate('/view-tickets');
+            break;
+          default:
+            navigate('/profile');
+            break;
+        }
+      } else {
+        navigate('/profile');
+      }
     }
     
     // Force a refresh of the Header component when this component mounts
@@ -59,8 +80,29 @@ const Login = () => {
 
         window.dispatchEvent(new Event('authChange'));
         
-        // Redirect to home page after successful login
-        navigate('/profile');
+        // Get user role and redirect accordingly
+        const user = auth.getCurrentUser();
+        if (user && user.role) {
+          switch (user.role) {
+            case 'ADMIN':
+              navigate('/admin/dashboard');
+              break;
+            case 'MANAGER':
+              navigate('/manager/dashboard');
+              break;
+            case 'ENGINEER':
+              navigate('/tickets/assigned');
+              break;
+            case 'CUSTOMER':
+              navigate('/view-tickets');
+              break;
+            default:
+              navigate('/profile');
+              break;
+          }
+        } else {
+          navigate('/profile');
+        }
       } else {
         // Handle unsuccessful login
         setError(response.message || 'Invalid email or password');
@@ -116,8 +158,31 @@ const Login = () => {
         // Just need to dispatch auth change event and redirect
         window.dispatchEvent(new Event('authChange'));
         
-        // Redirect to home page after successful registration
-        setTimeout(() => navigate('/profile'), 500);
+        // Get user role and redirect accordingly
+        setTimeout(() => {
+          const user = auth.getCurrentUser();
+          if (user && user.role) {
+            switch (user.role) {
+              case 'ADMIN':
+                navigate('/admin/dashboard');
+                break;
+              case 'MANAGER':
+                navigate('/manager/dashboard');
+                break;
+              case 'ENGINEER':
+                navigate('/tickets/assigned');
+                break;
+              case 'CUSTOMER':
+                navigate('/view-tickets');
+                break;
+              default:
+                navigate('/profile');
+                break;
+            }
+          } else {
+            navigate('/profile');
+          }
+        }, 500);
       } else {
         // Handle unsuccessful registration
         setError(response.message || 'Registration failed. Please try again.');
