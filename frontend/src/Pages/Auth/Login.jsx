@@ -237,22 +237,12 @@ const Login = () => {
     try {
       const response = await auth.login(demoEmail, demoPassword);
       
-      if (response && response.token) {
-        // Store user data
-        const userData = {
-          id: response.id,
-          email: response.email,
-          name: response.name,
-          role: response.roles ? response.roles[0].replace('ROLE_', '') : response.role?.replace('ROLE_', ''),
-          token: response.token
-        };
-        
-        auth.setCurrentUser(userData);
-        
-        // Role-based redirection
-        const role = userData.role;
+      if (response && (response.token || response.success)) {
+        // Get user from response or localStorage
+        const user = response.user || auth.getCurrentUser();
+        const role = user?.role?.replace('ROLE_', '');
         console.log('Demo login redirecting user with role:', role);
-        
+
         switch (role) {
           case 'ADMIN':
             navigate('/admin/dashboard');
