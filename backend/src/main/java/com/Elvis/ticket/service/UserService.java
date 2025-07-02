@@ -169,7 +169,7 @@ public class UserService {
         tokenRepository.save(resetToken);
 
         // Send email
-        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        String resetLink = "https://chat.elvificent.com/reset-password?token=" + token;
         emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
     }
 
