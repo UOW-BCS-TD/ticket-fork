@@ -329,7 +329,7 @@ const Login = () => {
                 {isLoading ? 'Logging in...' : 'Login'}
               </button>
 
-              <div className="social-login">
+              {/* <div className="social-login">
                 <p className="social-text">Or sign in with</p>
                 <div className="social-media">
                   <button 
@@ -354,56 +354,60 @@ const Login = () => {
                     <i className="fab fa-apple"></i>
                   </button>
                 </div>
-              </div>
+              </div> */}
 
               <div className="demo-login">
                 <p className="demo-text">Demo Accounts</p>
                 <div className="demo-buttons">
-                  <button 
-                    type="button" 
-                    className="demo-btn admin"
-                    onClick={() => handleDemoLogin('admin@example.com', 'admin123')}
-                    disabled={isLoading}
-                  >
-                    <i className="fas fa-crown"></i>
-                    Admin
-                  </button>
-                  <button 
-                    type="button" 
-                    className="demo-btn manager"
-                    onClick={() => handleDemoLogin('my@example.com', 'password123')}
-                    disabled={isLoading}
-                  >
-                    <i className="fas fa-users-cog"></i>
-                    Manager
-                  </button>
-                  <button 
-                    type="button" 
-                    className="demo-btn engineer"
-                    onClick={() => handleDemoLogin('l1my@example.com', 'password123')}
-                    disabled={isLoading}
-                  >
-                    <i className="fas fa-tools"></i>
-                    Engineer L1
-                  </button>
-                  <button 
-                    type="button" 
-                    className="demo-btn engineer"
-                    onClick={() => handleDemoLogin('l2my@example.com', 'password')}
-                    disabled={isLoading}
-                  >
-                    <i className="fas fa-cogs"></i>
-                    Engineer L2
-                  </button>
-                  <button 
-                    type="button" 
-                    className="demo-btn customer"
-                    onClick={() => handleDemoLogin('cus@example.com', 'password123')}
-                    disabled={isLoading}
-                  >
-                    <i className="fas fa-user"></i>
-                    Customer
-                  </button>
+                  <div className="demo-row">
+                    <button 
+                      type="button" 
+                      className="demo-btn admin"
+                      onClick={() => handleDemoLogin('admin@example.com', 'admin123')}
+                      disabled={isLoading}
+                    >
+                      <i className="fas fa-crown"></i>
+                      Admin
+                    </button>
+                    <button 
+                      type="button" 
+                      className="demo-btn manager"
+                      onClick={() => handleDemoLogin('my@example.com', 'password123')}
+                      disabled={isLoading}
+                    >
+                      <i className="fas fa-users-cog"></i>
+                      Manager
+                    </button>
+                  </div>
+                  <div className="demo-row">
+                    <button 
+                      type="button" 
+                      className="demo-btn engineer"
+                      onClick={() => handleDemoLogin('l1my@example.com', 'password123')}
+                      disabled={isLoading}
+                    >
+                      <i className="fas fa-tools"></i>
+                      Engineer L2
+                    </button>
+                    <button 
+                      type="button" 
+                      className="demo-btn engineer"
+                      onClick={() => handleDemoLogin('l2my@example.com', 'password')}
+                      disabled={isLoading}
+                    >
+                      <i className="fas fa-cogs"></i>
+                      Engineer L3
+                    </button>
+                    <button 
+                      type="button" 
+                      className="demo-btn customer"
+                      onClick={() => handleDemoLogin('cus@example.com', 'password123')}
+                      disabled={isLoading}
+                    >
+                      <i className="fas fa-user"></i>
+                      Customer
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>

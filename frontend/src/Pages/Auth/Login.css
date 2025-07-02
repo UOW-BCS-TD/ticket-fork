@@ -559,6 +559,12 @@ form.sign-up-form {
   .demo-btn i {
     font-size: 0.9rem;
   }
+
+  .demo-row {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 0;
+  }
 }
 
 .login-btn:hover {
@@ -680,4 +686,11 @@ form.sign-up-form {
   background: linear-gradient(135deg, #f95e88 0%, #fdd92e 100%);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(250, 112, 154, 0.4);
+}
+
+.demo-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 8px;
 }
