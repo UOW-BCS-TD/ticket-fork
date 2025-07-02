@@ -479,7 +479,7 @@ form.sign-up-form {
   }
 
   .demo-buttons {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 8px;
   }
 
@@ -616,9 +616,9 @@ form.sign-up-form {
 }
 
 .demo-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
 }
 
