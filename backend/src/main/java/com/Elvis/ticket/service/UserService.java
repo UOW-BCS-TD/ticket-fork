@@ -160,8 +160,9 @@ public class UserService {
             return;
         }
 
-        // Delete any existing tokens for this user
-        tokenRepository.deleteByUser_Id(user.getId());
+        // Delete any existing tokens for this user and flush to ensure deletion is committed
+        tokenRepository.deleteByUserId(user.getId());
+        tokenRepository.flush();
 
         // Create new token
         String token = UUID.randomUUID().toString();
