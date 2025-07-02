@@ -384,8 +384,7 @@ form.sign-up-form {
 }
 
 .social-icon.apple:hover {
-  background-color: #000;
-  color: white;
+  background-color: #333;
 }
 
 /* Responsive styles */
@@ -474,6 +473,21 @@ form.sign-up-form {
     height: 40px;
     font-size: 16px;
   }
+
+  .demo-login {
+    margin-top: 20px;
+  }
+
+  .demo-buttons {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .demo-btn {
+    font-size: 0.8rem;
+    padding: 10px 14px;
+    min-height: 40px;
+  }
 }
 
 @media (max-width: 570px) {
@@ -525,6 +539,26 @@ form.sign-up-form {
   .social-text::after {
     width: 25%;
   }
+
+  .demo-text {
+    font-size: 0.8rem;
+  }
+
+  .demo-text::before,
+  .demo-text::after {
+    width: 20%;
+  }
+
+  .demo-btn {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    min-height: 38px;
+    gap: 6px;
+  }
+
+  .demo-btn i {
+    font-size: 0.9rem;
+  }
 }
 
 .login-btn:hover {
@@ -540,4 +574,110 @@ form.sign-up-form {
 
 .social-icon:active {
   animation: socialIconPop 0.3s ease;
+}
+
+/* Demo Login Styles */
+.demo-login {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.demo-text {
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.demo-text::before,
+.demo-text::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.demo-text::before {
+  left: 0;
+}
+
+.demo-text::after {
+  right: 0;
+}
+
+.demo-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.demo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  color: white;
+  min-height: 45px;
+}
+
+.demo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.demo-btn i {
+  font-size: 1rem;
+}
+
+.demo-btn.admin {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.demo-btn.admin:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.demo-btn.manager {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.demo-btn.manager:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ee82e9 0%, #f3455a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+}
+
+.demo-btn.engineer {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.demo-btn.engineer:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3d9aec 0%, #00e0ec 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+}
+
+.demo-btn.customer {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.demo-btn.customer:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f95e88 0%, #fdd92e 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(250, 112, 154, 0.4);
 }

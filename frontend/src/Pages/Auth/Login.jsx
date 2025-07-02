@@ -230,6 +230,57 @@ const Login = () => {
     console.log(`Social login with ${provider} not implemented yet`);
   };
 
+  const handleDemoLogin = async (demoEmail, demoPassword) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await auth.login(demoEmail, demoPassword);
+      
+      if (response && response.token) {
+        // Store user data
+        const userData = {
+          id: response.id,
+          email: response.email,
+          name: response.name,
+          role: response.roles ? response.roles[0].replace('ROLE_', '') : response.role?.replace('ROLE_', ''),
+          token: response.token
+        };
+        
+        auth.setCurrentUser(userData);
+        
+        // Role-based redirection
+        const role = userData.role;
+        console.log('Demo login redirecting user with role:', role);
+        
+        switch (role) {
+          case 'ADMIN':
+            navigate('/admin/dashboard');
+            break;
+          case 'MANAGER':
+            navigate('/manager/dashboard');
+            break;
+          case 'ENGINEER':
+            navigate('/tickets/assigned');
+            break;
+          case 'CUSTOMER':
+            navigate('/view-tickets');
+            break;
+          default:
+            navigate('/profile');
+            break;
+        }
+      } else {
+        setError('Demo login failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('Demo login failed:', err);
+      setError(err.message || 'Demo login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -306,6 +357,57 @@ const Login = () => {
                     onClick={() => handleSocialLogin('Apple')}
                   >
                     <i className="fab fa-apple"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div className="demo-login">
+                <p className="demo-text">Demo Accounts</p>
+                <div className="demo-buttons">
+                  <button 
+                    type="button" 
+                    className="demo-btn admin"
+                    onClick={() => handleDemoLogin('admin@example.com', 'admin123')}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-crown"></i>
+                    Admin
+                  </button>
+                  <button 
+                    type="button" 
+                    className="demo-btn manager"
+                    onClick={() => handleDemoLogin('my@example.com', 'password123')}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-users-cog"></i>
+                    Manager
+                  </button>
+                  <button 
+                    type="button" 
+                    className="demo-btn engineer"
+                    onClick={() => handleDemoLogin('l1my@example.com', 'password123')}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-tools"></i>
+                    Engineer L1
+                  </button>
+                  <button 
+                    type="button" 
+                    className="demo-btn engineer"
+                    onClick={() => handleDemoLogin('l2my@example.com', 'password')}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-cogs"></i>
+                    Engineer L2
+                  </button>
+                  <button 
+                    type="button" 
+                    className="demo-btn customer"
+                    onClick={() => handleDemoLogin('cus@example.com', 'password123')}
+                    disabled={isLoading}
+                  >
+                    <i className="fas fa-user"></i>
+                    Customer
                   </button>
                 </div>
               </div>
