@@ -61,34 +61,41 @@ const RAGFileManagement = () => {
   };
 
   return (
-    <div className="admin-page">
+    <div className="admin-page rag-management">
       <h2>RAG File Management</h2>
-      <div style={{ marginBottom: 16 }}>
+      <div className="rag-controls">
         <label className="upload-btn">
           <input type="file" accept="application/pdf" onChange={handleUpload} disabled={uploading} style={{ display: 'none' }} />
           {uploading ? 'Uploading...' : 'Upload PDF'}
         </label>
-        <button className="restart-btn" onClick={handleRestart} style={{ marginLeft: 10 }}>Restart RAG</button>
+        <button className="restart-btn" onClick={handleRestart}>Restart RAG</button>
       </div>
-      {message && <div>{message}</div>}
+      {message && <div className="rag-message">{message}</div>}
       {loading ? (
-        <div>Loading...</div>
+        <div className="rag-loading"></div>
       ) : error ? (
-        <div>{error}</div>
+        <div className="rag-error">{error}</div>
+      ) : files.length === 0 ? (
+        <div className="empty-state">
+          <h3>No files uploaded yet</h3>
+          <p>Upload PDF files to build your RAG knowledge base</p>
+        </div>
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr><th>Filename</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {files.map(f => (
-              <tr key={f}>
-                <td>{f}</td>
-                <td><button onClick={() => handleDelete(f)}>Delete</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="rag-table-container">
+          <table className="admin-table">
+            <thead>
+              <tr><th>Filename</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {files.map(f => (
+                <tr key={f}>
+                  <td><span className="file-name">{f}</span></td>
+                  <td><button className="delete-btn" onClick={() => handleDelete(f)}>Delete</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
