@@ -381,9 +381,12 @@ def initialize_qa_chain():
     # Define the prompt template
     template = """You are a TechCare support assistant. Answer questions directly and naturally.
 
-Rules:
+IMPORTANT FORMATTING RULES:
+- Use PLAIN TEXT ONLY - no markdown, no asterisks, no special formatting
+- For emphasis, use CAPITAL LETTERS or simple numbered lists
+- Do not use **bold**, *italic*, or any markdown syntax
+- Use simple dashes (-) for bullet points if needed
 - Give concise, helpful answers
-- Use plain language without markdown formatting
 - Don't add commentary in parentheses
 - Don't repeat instructions or guidelines in your response
 - If you don't know something, say "I don't have that information" and offer to connect them to a human agent
@@ -392,7 +395,7 @@ Context: {context}
 
 Question: {question}
 
-Answer:"""
+Answer (in plain text only):"""
 
     QA_PROMPT = PromptTemplate(
         template=template,
